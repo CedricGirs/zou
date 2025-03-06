@@ -55,10 +55,10 @@ const Onboarding = () => {
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
-      return true; // Return true to indicate success
+      return true;
     } else {
       completeOnboarding();
-      return true; // Return true to indicate success
+      return true;
     }
   };
 
