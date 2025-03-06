@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { CheckCircle, X, Upload, Clock } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface CourseItem {
   id: string;
@@ -19,6 +20,7 @@ interface StatusCardProps {
 }
 
 const StatusCard = ({ item, onUpdate }: StatusCardProps) => {
+  const { t } = useLanguage();
   const [showUpload, setShowUpload] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   
@@ -95,7 +97,7 @@ const StatusCard = ({ item, onUpdate }: StatusCardProps) => {
       
       <div className="mb-3">
         <div className="flex justify-between text-xs mb-1">
-          <span>Progress</span>
+          <span>{t("progress")}</span>
           <span>{item.progress}%</span>
         </div>
         <div className="progress-bar">
@@ -124,7 +126,7 @@ const StatusCard = ({ item, onUpdate }: StatusCardProps) => {
             onClick={() => setShowUpload(true)}
           >
             <Upload size={12} className="mr-1" />
-            CERT
+            {t("cert")}
           </button>
         ) : (
           <button 
@@ -139,7 +141,7 @@ const StatusCard = ({ item, onUpdate }: StatusCardProps) => {
       {showUpload && (
         <div className="mt-3 bg-muted p-2 rounded-md animate-appear-from-bottom">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium">Upload Certificate</span>
+            <span className="text-xs font-medium">{t("uploadCertificate")}</span>
           </div>
           <input 
             type="file" 
@@ -152,7 +154,7 @@ const StatusCard = ({ item, onUpdate }: StatusCardProps) => {
             onClick={handleUpload}
             disabled={!file}
           >
-            UPLOAD
+            {t("upload")}
           </button>
         </div>
       )}
@@ -160,7 +162,7 @@ const StatusCard = ({ item, onUpdate }: StatusCardProps) => {
       {item.certificate && (
         <div className="mt-3 flex items-center text-xs">
           <CheckCircle size={12} className="text-green-500 mr-1" />
-          <span>Certificate verified</span>
+          <span>{t("certificate")}</span>
         </div>
       )}
     </div>

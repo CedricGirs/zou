@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface XPBarProps {
   currentXP: number;
@@ -8,6 +9,7 @@ interface XPBarProps {
 }
 
 const XPBar = ({ currentXP, maxXP, animated = true }: XPBarProps) => {
+  const { t } = useLanguage();
   const [animatedXP, setAnimatedXP] = useState(0);
   const percentage = (currentXP / maxXP) * 100;
   
@@ -28,7 +30,7 @@ const XPBar = ({ currentXP, maxXP, animated = true }: XPBarProps) => {
   return (
     <div className="w-full">
       <div className="flex justify-between mb-1 text-xs">
-        <span className="font-pixel">XP</span>
+        <span className="font-pixel">{t("xp")}</span>
         <span className="font-mono">{currentXP} / {maxXP}</span>
       </div>
       <div className="progress-bar h-3">

@@ -1,14 +1,17 @@
 
 import { NavLink } from "react-router-dom";
 import { Home, GraduationCap, ShoppingBag, DollarSign, Zap } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 const BottomNav = () => {
+  const { t } = useLanguage();
+
   const navItems = [
-    { to: "/", icon: Home, label: "Home" },
-    { to: "/status", icon: GraduationCap, label: "Status" },
-    { to: "/look", icon: ShoppingBag, label: "Look" },
-    { to: "/finances", icon: DollarSign, label: "Finances" },
-    { to: "/skills", icon: Zap, label: "Skills" }
+    { to: "/", icon: Home, label: t("home") },
+    { to: "/status", icon: GraduationCap, label: t("status") },
+    { to: "/look", icon: ShoppingBag, label: t("look") },
+    { to: "/finances", icon: DollarSign, label: t("finances") },
+    { to: "/skills", icon: Zap, label: t("skills") }
   ];
 
   return (

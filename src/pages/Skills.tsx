@@ -1,10 +1,12 @@
-
 import MainLayout from "../components/layout/MainLayout";
 import SkillTree from "../components/skills/SkillTree";
-import Badge from "../components/ui/Badge";
+import Badge from "../components/ui/badge";
 import { BookOpen, Globe, Lightbulb, Heart, Code, Brain, Trophy, Dumbbell } from "lucide-react";
+import { useLanguage } from "../context/LanguageContext";
 
 const Skills = () => {
+  const { t } = useLanguage();
+  
   const badges = [
     { 
       id: "polyglot", 
@@ -75,17 +77,17 @@ const Skills = () => {
   return (
     <MainLayout>
       <div className="mb-6">
-        <h1 className="font-pixel text-2xl mb-2">Skills</h1>
-        <p className="text-muted-foreground">Develop your skills and earn badges through achievements</p>
+        <h1 className="font-pixel text-2xl mb-2">{t("skillsTitle")}</h1>
+        <p className="text-muted-foreground">{t("skillsSubtitle")}</p>
       </div>
       
       <div className="glass-card p-4 mb-6">
-        <h2 className="font-pixel text-lg mb-4">Skill Tree</h2>
+        <h2 className="font-pixel text-lg mb-4">{t("skillTree")}</h2>
         <SkillTree />
       </div>
       
       <div className="glass-card p-4">
-        <h2 className="font-pixel text-lg mb-4">Badges & Achievements</h2>
+        <h2 className="font-pixel text-lg mb-4">{t("badgesAchievements")}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {badges.map(badge => (
             <Badge 

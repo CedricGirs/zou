@@ -1,9 +1,9 @@
-
 import { NavLink } from "react-router-dom";
 import { 
   Home, GraduationCap, ShoppingBag, DollarSign, Zap, User, 
   Settings, Bell, Package, ChevronLeft, ChevronRight
 } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -11,19 +11,21 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
+  const { t } = useLanguage();
+
   const mainNavItems = [
-    { to: "/", icon: Home, label: "Home" },
-    { to: "/status", icon: GraduationCap, label: "Status" },
-    { to: "/look", icon: ShoppingBag, label: "Look" },
-    { to: "/finances", icon: DollarSign, label: "Finances" },
-    { to: "/skills", icon: Zap, label: "Skills" }
+    { to: "/", icon: Home, label: t("home") },
+    { to: "/status", icon: GraduationCap, label: t("status") },
+    { to: "/look", icon: ShoppingBag, label: t("look") },
+    { to: "/finances", icon: DollarSign, label: t("finances") },
+    { to: "/skills", icon: Zap, label: t("skills") }
   ];
 
   const secondaryNavItems = [
-    { to: "/profile", icon: User, label: "Profile" },
-    { to: "/settings", icon: Settings, label: "Settings" },
-    { to: "/notifications", icon: Bell, label: "Notifications" },
-    { to: "/inventory", icon: Package, label: "Inventory" }
+    { to: "/profile", icon: User, label: t("profile") },
+    { to: "/settings", icon: Settings, label: t("settings") },
+    { to: "/notifications", icon: Bell, label: t("notifications") },
+    { to: "/inventory", icon: Package, label: t("inventory") }
   ];
 
   return (

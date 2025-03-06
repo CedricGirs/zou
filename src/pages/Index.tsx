@@ -1,14 +1,15 @@
-
 import { useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import Avatar from "../components/dashboard/Avatar";
 import LifeGauges from "../components/dashboard/LifeGauges";
 import XPBar from "../components/dashboard/XPBar";
-import Badge from "../components/ui/Badge";
+import Badge from "../components/ui/badge";
 import { Book, Award, Dumbbell, Globe, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "../context/LanguageContext";
 
 const Index = () => {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [level, setLevel] = useState(5);
   const [currentXP, setCurrentXP] = useState(350);
@@ -51,7 +52,6 @@ const Index = () => {
     let newXP = currentXP + amount;
     let newLevel = level;
     
-    // Level up if XP exceeds max
     if (newXP >= maxXP) {
       newXP = newXP - maxXP;
       newLevel = level + 1;
@@ -103,10 +103,10 @@ const Index = () => {
         <div className="md:col-span-1">
           <div className="glass-card p-6 flex flex-col items-center">
             <Avatar size="lg" showLevel level={level} />
-            <h2 className="mt-4 mb-2 text-xl">Welcome back!</h2>
+            <h2 className="mt-4 mb-2 text-xl">{t("welcome")}</h2>
             <XPBar currentXP={currentXP} maxXP={maxXP} />
             <div className="mt-6 w-full">
-              <h3 className="font-pixel text-sm mb-3">Life Gauges</h3>
+              <h3 className="font-pixel text-sm mb-3">{t("lifeGauges")}</h3>
               <LifeGauges />
             </div>
           </div>
@@ -116,7 +116,7 @@ const Index = () => {
           <div className="glass-card p-6 h-full">
             <div className="flex items-center mb-4">
               <Zap size={18} className="text-zou-purple mr-2" />
-              <h2 className="font-pixel text-lg">Daily Quests</h2>
+              <h2 className="font-pixel text-lg">{t("dailyQuests")}</h2>
             </div>
             
             <div className="space-y-3">
@@ -149,7 +149,7 @@ const Index = () => {
             <div className="mt-6">
               <div className="flex items-center mb-4">
                 <Award size={18} className="text-zou-purple mr-2" />
-                <h2 className="font-pixel text-lg">Recent Badges</h2>
+                <h2 className="font-pixel text-lg">{t("recentBadges")}</h2>
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

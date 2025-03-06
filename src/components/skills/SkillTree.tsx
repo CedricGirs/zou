@@ -1,6 +1,6 @@
-
 import { useState } from "react";
 import { Sword, Shield, Wand } from "lucide-react";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface Skill {
   id: string;
@@ -14,7 +14,8 @@ interface Skill {
 }
 
 const SkillTree = () => {
-  // Mock data - in a real app, this would come from an API
+  const { t } = useLanguage();
+  
   const [skills, setSkills] = useState<Skill[]>([
     {
       id: "pomodoro",
@@ -138,7 +139,6 @@ const SkillTree = () => {
     }
   };
   
-  // Function to unlock a skill (in a real app, this would call an API)
   const unlockSkill = (skillId: string) => {
     setSkills(skills.map(skill => 
       skill.id === skillId ? { ...skill, unlocked: true } : skill
@@ -151,20 +151,19 @@ const SkillTree = () => {
       <div className="flex justify-around mb-4">
         <div className="flex items-center">
           <Sword size={16} className="text-weapons mr-1" />
-          <span className="text-sm font-medium">Weapons = Productivity</span>
+          <span className="text-sm font-medium">{t("weapons")}</span>
         </div>
         <div className="flex items-center">
           <Shield size={16} className="text-defense mr-1" />
-          <span className="text-sm font-medium">Defense = Health</span>
+          <span className="text-sm font-medium">{t("defense")}</span>
         </div>
         <div className="flex items-center">
           <Wand size={16} className="text-magic mr-1" />
-          <span className="text-sm font-medium">Magic = Knowledge</span>
+          <span className="text-sm font-medium">{t("magic")}</span>
         </div>
       </div>
       
       <div className="relative h-[500px] w-full bg-muted/50 rounded-lg p-4 overflow-auto">
-        {/* Connection lines */}
         <svg className="absolute top-0 left-0 w-full h-full">
           {skills.map(skill => 
             skill.connections.map(targetId => {
@@ -187,7 +186,6 @@ const SkillTree = () => {
           )}
         </svg>
         
-        {/* Skill nodes */}
         {skills.map(skill => (
           <div 
             key={skill.id}
@@ -211,7 +209,6 @@ const SkillTree = () => {
           </div>
         ))}
         
-        {/* Skill details popup */}
         {selectedSkill && (
           <div 
             className="absolute glass-card p-4 w-64 z-10 animate-fade-in"
@@ -231,7 +228,7 @@ const SkillTree = () => {
                 className="w-full pixel-button text-[10px]"
                 onClick={() => unlockSkill(selectedSkill.id)}
               >
-                UNLOCK
+                {t("unlock")}
               </button>
             )}
           </div>

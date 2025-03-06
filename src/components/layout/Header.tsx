@@ -2,6 +2,7 @@
 import { Bell, Moon, Sun } from "lucide-react";
 import XPBar from "../dashboard/XPBar";
 import LifeGauges from "../dashboard/LifeGauges";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -10,6 +11,7 @@ interface HeaderProps {
 }
 
 const Header = ({ toggleSidebar, theme, setTheme }: HeaderProps) => {
+  const { t } = useLanguage();
   const level = 5; // Mock level
   const avatarUrl = "https://api.dicebear.com/7.x/pixel-art/svg?seed=Felix&backgroundColor=b6e3f4";
   
@@ -21,7 +23,7 @@ const Header = ({ toggleSidebar, theme, setTheme }: HeaderProps) => {
             className="md:hidden p-2 rounded-md hover:bg-muted"
             onClick={toggleSidebar}
           >
-            <span className="font-pixel text-sm">MENU</span>
+            <span className="font-pixel text-sm">{t("menu")}</span>
           </button>
           
           <div className="hidden sm:flex items-center space-x-2">
@@ -33,7 +35,7 @@ const Header = ({ toggleSidebar, theme, setTheme }: HeaderProps) => {
               />
             </div>
             <div className="flex items-center">
-              <span className="font-pixel text-xs">LVL</span>
+              <span className="font-pixel text-xs">{t("level")}</span>
               <span className="font-pixel text-lg text-zou-purple ml-1">{level}</span>
             </div>
           </div>
