@@ -19,12 +19,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, CreditCard } from 'lucide-react';
+import { Plus, Trash2, Filter, Search, CreditCard, ArrowUpDown, Download } from 'lucide-react';
 import { useUserData, Transaction } from "@/context/UserDataContext";
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
+import { Button } from "@/components/ui/button";
 
-const TransactionTracker = () => {
+interface TransactionTrackerProps {
+  selectedMonth?: string;
+}
+
+const TransactionTracker = ({ selectedMonth }: TransactionTrackerProps) => {
   const { userData, updateFinanceModule } = useUserData();
   const transactions = userData.financeModule.transactions || [];
   
@@ -37,6 +42,9 @@ const TransactionTracker = () => {
     isVerified: false
   });
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('Tous');
+
   const categories = [
     'Logement', 'Alimentation', 'Transport', 'Loisirs', 
     'Santé', 'Éducation', 'Vêtements', 'Cadeaux', 'Autre'
@@ -47,9 +55,7 @@ const TransactionTracker = () => {
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
 
-  const [selectedMonth, setSelectedMonth] = useState(
-    new Date().toLocaleString('fr-FR', { month: 'long' })
-  );
+  const [filterMonth, setFilterMonth] = useState(selectedMonth || new Date().toLocaleString('fr-FR', { month: 'long' }));
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -131,10 +137,46 @@ const TransactionTracker = () => {
     });
   };
 
-  // Filter transactions by month
-  const filteredTransactions = transactions.filter(t => 
-    selectedMonth === 'Tous' || t.month === selectedMonth
-  );
+  const exportTransactions = () => {
+    const dataToExport = filteredTransactions.map(t => ({
+      Date: new Date(t.date).toLocaleDateString('fr-FR'),
+      Mois: t.month,
+      Description: t.description,
+      Montant: t.amount,
+      Catégorie: t.category,
+      Vérifié: t.isVerified ? 'Oui' : 'Non'
+    }));
+
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      Object.keys(dataToExport[0]).join(';') + '\n' +
+      dataToExport.map(row => 
+        Object.values(row).join(';')
+      ).join('\n');
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `transactions_${filterMonth}_${new Date().getFullYear()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export réussi",
+      description: `Les transactions de ${filterMonth} ont été exportées avec succès.`
+    });
+  };
+
+  // Filter transactions by month, category and search term
+  const filteredTransactions = transactions.filter(t => {
+    const matchesMonth = filterMonth === 'Tous' || t.month === filterMonth;
+    const matchesCategory = categoryFilter === 'Tous' || t.category === categoryFilter;
+    const matchesSearch = searchTerm === '' || 
+      t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.category.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return matchesMonth && matchesCategory && matchesSearch;
+  });
 
   // Group transactions by category for the pie chart
   const categoryData = filteredTransactions.reduce((acc, transaction) => {
@@ -159,12 +201,22 @@ const TransactionTracker = () => {
 
   return (
     <div className="glass-card p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="font-pixel text-lg">Transactions</h2>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <h2 className="font-pixel text-lg">Suivi des Transactions</h2>
         
-        <div className="flex items-center space-x-2">
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-32">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+            <Input
+              placeholder="Rechercher..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8 w-full md:w-40"
+            />
+          </div>
+          
+          <Select value={filterMonth} onValueChange={setFilterMonth}>
+            <SelectTrigger className="w-full md:w-32">
               <SelectValue placeholder="Mois" />
             </SelectTrigger>
             <SelectContent>
@@ -175,12 +227,24 @@ const TransactionTracker = () => {
             </SelectContent>
           </Select>
           
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-full md:w-32">
+              <SelectValue placeholder="Catégorie" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Tous">Toutes</SelectItem>
+              {categories.map(category => (
+                <SelectItem key={category} value={category}>{category}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
           <Dialog>
             <DialogTrigger asChild>
-              <button className="pixel-button flex items-center">
-                <Plus size={16} className="mr-1" />
+              <Button variant="default" size="sm" className="flex items-center gap-2">
+                <Plus size={16} />
                 Ajouter
-              </button>
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -272,12 +336,11 @@ const TransactionTracker = () => {
                 </div>
               </div>
               <div className="flex justify-end">
-                <button 
-                  className="pixel-button"
+                <Button 
                   onClick={handleAddTransaction}
                 >
                   Ajouter la transaction
-                </button>
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -286,9 +349,12 @@ const TransactionTracker = () => {
       
       {filteredTransactions.length > 0 ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <h3 className="text-sm font-semibold mb-2">Répartition des dépenses</h3>
+              <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                <ArrowUpDown size={16} />
+                Répartition des dépenses
+              </h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -306,7 +372,7 @@ const TransactionTracker = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => `${value} €`} />
+                    <Tooltip formatter={(value) => `${value.toLocaleString('fr-FR')} €`} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -314,7 +380,10 @@ const TransactionTracker = () => {
             </div>
             
             <div>
-              <h3 className="text-sm font-semibold mb-2">Résumé du mois</h3>
+              <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                <Filter size={16} />
+                Résumé des transactions
+              </h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center p-3 bg-muted/30 rounded-md">
                   <span>Total des transactions:</span>
@@ -328,7 +397,7 @@ const TransactionTracker = () => {
                     {filteredTransactions
                       .filter(t => t.amount < 0)
                       .reduce((sum, t) => sum + Math.abs(t.amount), 0)
-                      .toFixed(2)} €
+                      .toLocaleString('fr-FR')} €
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-muted/30 rounded-md">
@@ -337,8 +406,19 @@ const TransactionTracker = () => {
                     {filteredTransactions
                       .filter(t => t.amount > 0)
                       .reduce((sum, t) => sum + t.amount, 0)
-                      .toFixed(2)} €
+                      .toLocaleString('fr-FR')} €
                   </span>
+                </div>
+                <div className="mt-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full flex justify-center items-center gap-2"
+                    onClick={exportTransactions}
+                  >
+                    <Download size={16} />
+                    Exporter en CSV
+                  </Button>
                 </div>
               </div>
             </div>
@@ -366,7 +446,7 @@ const TransactionTracker = () => {
                     <td className={`border p-2 text-right ${
                       transaction.amount > 0 ? 'text-green-500' : 'text-red-500'
                     }`}>
-                      {transaction.amount.toFixed(2)} €
+                      {transaction.amount.toLocaleString('fr-FR')} €
                     </td>
                     <td className="border p-2 text-center">
                       <span className="px-2 py-1 rounded-full text-xs bg-muted">
@@ -397,7 +477,7 @@ const TransactionTracker = () => {
       ) : (
         <div className="text-center p-6 border border-dashed rounded-md">
           <p className="text-muted-foreground">
-            Aucune transaction pour {selectedMonth === 'Tous' ? 'cette période' : selectedMonth}.
+            Aucune transaction pour {filterMonth === 'Tous' ? 'cette période' : filterMonth}.
           </p>
           <p className="text-muted-foreground text-sm mt-1">
             Ajoutez votre première transaction en cliquant sur le bouton "Ajouter".
