@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useOnboarding } from "../context/OnboardingContext";
@@ -118,7 +117,7 @@ const Profile = () => {
       title: t("profileUpdated"),
       description: t("profileUpdateSuccess"),
     });
-    playSound('success');
+    playSound('click');
   };
 
   // Get user rank (level 1 for now, later will be dynamic)
