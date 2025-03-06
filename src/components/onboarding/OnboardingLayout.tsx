@@ -15,7 +15,7 @@ interface OnboardingLayoutProps {
   onNext?: () => boolean; // Return boolean to indicate success
   onPrevious?: () => void;
   nextDisabled?: boolean;
-  onComplete?: () => void; // Added this prop for completing onboarding
+  onComplete?: () => void; // For completing onboarding
 }
 
 const OnboardingLayout = ({
