@@ -20,17 +20,27 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Edit, BarChart as BarChartIcon, AlertTriangle, Info } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Edit, BarChartIcon, AlertTriangle, Info } from 'lucide-react';
 import { useUserData } from "@/context/UserDataContext";
 import { toast } from '@/hooks/use-toast';
 
 const AnnualBudget = () => {
   const { userData, updateFinanceModule } = useUserData();
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    // Default to current month
+    return new Date().toLocaleString('fr-FR', { month: 'long' });
+  });
   const [monthlyIncome, setMonthlyIncome] = useState(0);
   const [monthlyExpenses, setMonthlyExpenses] = useState(0);
   const [chartData, setChartData] = useState<any[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  const months = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+  ];
 
   useEffect(() => {
     // Check if the annual budget has been initialized
@@ -40,15 +50,17 @@ const AnnualBudget = () => {
     } else {
       updateChartData();
       setIsInitialized(true);
+      
+      // Set initial income and expense values for the selected month
+      if (userData.financeModule.annualBudget[selectedMonth]) {
+        const monthData = userData.financeModule.annualBudget[selectedMonth];
+        setMonthlyIncome(monthData.income);
+        setMonthlyExpenses(monthData.expenses);
+      }
     }
-  }, [userData.financeModule.annualBudget]);
+  }, [userData.financeModule.annualBudget, selectedMonth]);
 
   const initializeAnnualBudget = async () => {
-    const months = [
-      'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-      'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-    ];
-    
     // Create template budget with empty values
     const initialBudget = {} as Record<string, { income: number; expenses: number }>;
     
@@ -68,7 +80,7 @@ const AnnualBudget = () => {
   const updateChartData = () => {
     if (userData.financeModule.annualBudget) {
       const formattedData = Object.entries(userData.financeModule.annualBudget).map(([month, data]) => ({
-        month,
+        month: month.substring(0, 3),
         income: data.income,
         expenses: data.expenses,
         savings: data.income - data.expenses
@@ -77,12 +89,12 @@ const AnnualBudget = () => {
     }
   };
 
-  const handleEditMonth = (month: string) => {
-    const monthData = userData.financeModule.annualBudget?.[month];
+  const handleEditMonth = () => {
+    const monthData = userData.financeModule.annualBudget?.[selectedMonth];
     if (monthData) {
       setMonthlyIncome(monthData.income);
       setMonthlyExpenses(monthData.expenses);
-      setSelectedMonth(month);
+      setEditDialogOpen(true);
     }
   };
 
@@ -102,40 +114,66 @@ const AnnualBudget = () => {
         description: `Le budget de ${selectedMonth} a été mis à jour.`,
       });
       
-      setSelectedMonth(null);
+      setEditDialogOpen(false);
       updateChartData();
     }
   };
 
-  const calculateTotals = () => {
-    if (!userData.financeModule.annualBudget) return { totalIncome: 0, totalExpenses: 0, totalSavings: 0 };
+  const handleMonthChange = (month: string) => {
+    setSelectedMonth(month);
     
-    let totalIncome = 0;
-    let totalExpenses = 0;
+    // Update the form values when the month changes
+    if (userData.financeModule.annualBudget?.[month]) {
+      const monthData = userData.financeModule.annualBudget[month];
+      setMonthlyIncome(monthData.income);
+      setMonthlyExpenses(monthData.expenses);
+    }
+  };
+
+  // Get current month's data
+  const getCurrentMonthData = () => {
+    if (!userData.financeModule.annualBudget || !userData.financeModule.annualBudget[selectedMonth]) {
+      return { income: 0, expenses: 0, savings: 0 };
+    }
     
-    Object.values(userData.financeModule.annualBudget).forEach(month => {
-      totalIncome += month.income;
-      totalExpenses += month.expenses;
-    });
-    
+    const monthData = userData.financeModule.annualBudget[selectedMonth];
     return {
-      totalIncome,
-      totalExpenses,
-      totalSavings: totalIncome - totalExpenses
+      income: monthData.income,
+      expenses: monthData.expenses,
+      savings: monthData.income - monthData.expenses
     };
   };
 
-  const { totalIncome, totalExpenses, totalSavings } = calculateTotals();
+  const { income, expenses, savings } = getCurrentMonthData();
+  const savingsRate = income > 0 ? (savings / income) * 100 : 0;
 
   return (
     <div className="glass-card p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <BarChartIcon className="mr-2 text-zou-purple" size={20} />
-          <h2 className="font-pixel text-lg">Budget Annuel</h2>
+          <h2 className="font-pixel text-lg">Budget Mensuel</h2>
         </div>
-        <div className="text-sm text-muted-foreground">
-          Aperçu de vos finances sur l'année
+        
+        <div className="flex items-center space-x-2">
+          <Select value={selectedMonth} onValueChange={handleMonthChange}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Mois" />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map(month => (
+                <SelectItem key={month} value={month}>{month}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <button 
+            className="pixel-button flex items-center"
+            onClick={handleEditMonth}
+          >
+            <Edit size={16} className="mr-1" />
+            Éditer
+          </button>
         </div>
       </div>
       
@@ -143,25 +181,25 @@ const AnnualBudget = () => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="pixel-card flex flex-col items-center bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
-              <h3 className="text-sm font-medium mb-1">Revenus Annuels</h3>
+              <h3 className="text-sm font-medium mb-1">Revenus - {selectedMonth}</h3>
               <span className="font-pixel text-xl text-zou-purple">
-                {totalIncome.toLocaleString()} €
+                {income.toLocaleString()} €
               </span>
             </div>
             
             <div className="pixel-card flex flex-col items-center bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
-              <h3 className="text-sm font-medium mb-1">Dépenses Annuelles</h3>
+              <h3 className="text-sm font-medium mb-1">Dépenses - {selectedMonth}</h3>
               <span className="font-pixel text-xl text-zou-orange">
-                {totalExpenses.toLocaleString()} €
+                {expenses.toLocaleString()} €
               </span>
             </div>
             
             <div className="pixel-card flex flex-col items-center bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
-              <h3 className="text-sm font-medium mb-1">Épargne Annuelle</h3>
-              <span className={`font-pixel text-xl ${totalSavings >= 0 ? 'text-zou-green' : 'text-red-500'}`}>
-                {totalSavings.toLocaleString()} €
+              <h3 className="text-sm font-medium mb-1">Épargne - {selectedMonth}</h3>
+              <span className={`font-pixel text-xl ${savings >= 0 ? 'text-zou-green' : 'text-red-500'}`}>
+                {savings.toLocaleString()} €
               </span>
-              {totalSavings < 0 && (
+              {savings < 0 && (
                 <div className="flex items-center text-xs text-red-500 mt-1">
                   <AlertTriangle size={12} className="mr-1" />
                   Déficit budgétaire
@@ -171,6 +209,15 @@ const AnnualBudget = () => {
           </div>
           
           <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-semibold">Aperçu Budgétaire - {selectedMonth}</h3>
+              <div className="text-sm text-muted-foreground">
+                Taux d'épargne: <span className={`font-medium ${savingsRate >= 20 ? 'text-green-500' : savingsRate > 0 ? 'text-amber-500' : 'text-red-500'}`}>
+                  {savingsRate.toFixed(1)}%
+                </span>
+              </div>
+            </div>
+            
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart
@@ -202,111 +249,138 @@ const AnnualBudget = () => {
             )}
           </div>
           
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-muted">
-                  <th className="border p-2 text-left">Mois</th>
-                  <th className="border p-2 text-right">Revenus</th>
-                  <th className="border p-2 text-right">Dépenses</th>
-                  <th className="border p-2 text-right">Épargne</th>
-                  <th className="border p-2 text-center">% Dépenses</th>
-                  <th className="border p-2 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(userData.financeModule.annualBudget || {}).map(([month, data]) => {
-                  const percentExpenses = data.income > 0 ? ((data.expenses / data.income) * 100).toFixed(1) : "0";
-                  const savings = data.income - data.expenses;
-                  
-                  return (
-                    <tr key={month} className="hover:bg-muted/50">
-                      <td className="border p-2">{month}</td>
-                      <td className="border p-2 text-right">{data.income.toLocaleString()} €</td>
-                      <td className="border p-2 text-right">{data.expenses.toLocaleString()} €</td>
-                      <td className={`border p-2 text-right ${savings >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {savings.toLocaleString()} €
-                      </td>
-                      <td className="border p-2 text-center">
-                        <div className="flex items-center justify-center">
-                          <div className="w-16 bg-gray-200 rounded-full h-2.5 mr-2">
-                            <div 
-                              className={`h-2.5 rounded-full ${
-                                parseFloat(percentExpenses) > 90 ? 'bg-red-500' : 
-                                parseFloat(percentExpenses) > 75 ? 'bg-orange-500' : 'bg-green-500'
-                              }`}
-                              style={{ width: `${Math.min(parseFloat(percentExpenses), 100)}%` }}
-                            ></div>
-                          </div>
-                          <span>{percentExpenses}%</span>
-                        </div>
-                      </td>
-                      <td className="border p-2 text-center">
-                        <Dialog open={selectedMonth === month} onOpenChange={(open) => !open && setSelectedMonth(null)}>
-                          <DialogTrigger asChild>
-                            <button 
-                              className="p-1 rounded hover:bg-muted"
-                              onClick={() => handleEditMonth(month)}
-                            >
-                              <Edit size={16} />
-                            </button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Modifier le budget de {selectedMonth}</DialogTitle>
-                              <DialogDescription>
-                                Ajustez les revenus et dépenses pour ce mois
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="income" className="text-right">
-                                  Revenus
-                                </Label>
-                                <Input
-                                  id="income"
-                                  type="number"
-                                  value={monthlyIncome}
-                                  onChange={(e) => setMonthlyIncome(Number(e.target.value))}
-                                  className="col-span-3"
-                                />
-                              </div>
-                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="expenses" className="text-right">
-                                  Dépenses
-                                </Label>
-                                <Input
-                                  id="expenses"
-                                  type="number"
-                                  value={monthlyExpenses}
-                                  onChange={(e) => setMonthlyExpenses(Number(e.target.value))}
-                                  className="col-span-3"
-                                />
-                              </div>
-                            </div>
-                            <div className="flex justify-end">
-                              <button 
-                                className="pixel-button"
-                                onClick={handleSaveMonth}
-                              >
-                                Enregistrer
-                              </button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="pixel-card p-4">
+              <h3 className="text-sm font-semibold mb-4">Détails du Budget - {selectedMonth}</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Revenus</span>
+                    <span className="font-medium">{income.toLocaleString()} €</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-zou-purple h-2 rounded-full" 
+                      style={{ width: '100%' }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Dépenses</span>
+                    <span className="font-medium">{expenses.toLocaleString()} €</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full ${
+                        expenses > income ? 'bg-red-500' : 'bg-zou-orange'
+                      }`}
+                      style={{ width: `${income > 0 ? Math.min((expenses / income) * 100, 100) : 0}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Épargne</span>
+                    <span className={`font-medium ${savings >= 0 ? 'text-zou-green' : 'text-red-500'}`}>
+                      {savings.toLocaleString()} €
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full ${savings >= 0 ? 'bg-zou-green' : 'bg-red-500'}`}
+                      style={{ width: `${income > 0 ? Math.min(Math.abs(savings / income) * 100, 100) : 0}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="pixel-card p-4">
+              <h3 className="text-sm font-semibold mb-4">Conseils Budgétaires</h3>
+              
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <div className="mr-2 bg-zou-purple text-white rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    1
+                  </div>
+                  <div className="text-sm">
+                    <strong>Règle 50/30/20:</strong> Allouez 50% aux besoins, 30% aux désirs et 20% à l'épargne.
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <div className="mr-2 bg-zou-purple text-white rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    2
+                  </div>
+                  <div className="text-sm">
+                    <strong>Automatisez l'épargne:</strong> Programmez un virement automatique dès réception de votre salaire.
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <div className="mr-2 bg-zou-purple text-white rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    3
+                  </div>
+                  <div className="text-sm">
+                    <strong>Revoyez régulièrement:</strong> Ajustez votre budget chaque mois en fonction de vos résultats.
+                  </div>
+                </li>
+              </ul>
+            </div>
           </div>
+          
+          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Modifier le budget de {selectedMonth}</DialogTitle>
+                <DialogDescription>
+                  Ajustez les revenus et dépenses pour ce mois
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="income" className="text-right">
+                    Revenus
+                  </Label>
+                  <Input
+                    id="income"
+                    type="number"
+                    value={monthlyIncome}
+                    onChange={(e) => setMonthlyIncome(Number(e.target.value))}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="expenses" className="text-right">
+                    Dépenses
+                  </Label>
+                  <Input
+                    id="expenses"
+                    type="number"
+                    value={monthlyExpenses}
+                    onChange={(e) => setMonthlyExpenses(Number(e.target.value))}
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button 
+                  className="pixel-button"
+                  onClick={handleSaveMonth}
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </>
       ) : (
         <div className="text-center p-10">
           <Info size={40} className="mx-auto mb-4 text-muted-foreground opacity-20" />
           <p className="text-muted-foreground">
-            Initialisation du budget annuel...
+            Initialisation du budget mensuel...
           </p>
         </div>
       )}

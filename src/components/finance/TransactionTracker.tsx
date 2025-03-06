@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   PieChart, 
@@ -29,9 +28,11 @@ const TransactionTracker = () => {
   const { userData, updateFinanceModule } = useUserData();
   const transactions = userData.financeModule.transactions || [];
   
+  const currentMonth = new Date().toLocaleString('fr-FR', { month: 'long' });
+  
   const [newTransaction, setNewTransaction] = useState<Partial<Transaction>>({
     date: new Date().toISOString().split('T')[0],
-    month: new Date().toLocaleString('fr-FR', { month: 'long' }),
+    month: currentMonth,
     description: '',
     amount: 0,
     category: 'Autre',
@@ -48,15 +49,11 @@ const TransactionTracker = () => {
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
 
-  const [selectedMonth, setSelectedMonth] = useState(
-    new Date().toLocaleString('fr-FR', { month: 'long' })
-  );
-
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [transactionType, setTransactionType] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
 
-  // Update the monthly budget based on transactions
   useEffect(() => {
     if (transactions.length > 0 && userData.financeModule.annualBudget) {
       updateBudgetFromTransactions();
@@ -66,7 +63,6 @@ const TransactionTracker = () => {
   const updateBudgetFromTransactions = async () => {
     if (!userData.financeModule.annualBudget) return;
     
-    // Group transactions by month
     const transactionsByMonth = transactions.reduce((acc, transaction) => {
       const month = transaction.month;
       if (!acc[month]) {
@@ -82,7 +78,6 @@ const TransactionTracker = () => {
       return acc;
     }, {} as Record<string, { income: number, expenses: number }>);
     
-    // Update annual budget with transaction data
     const updatedBudget = { ...userData.financeModule.annualBudget };
     
     Object.entries(transactionsByMonth).forEach(([month, data]) => {
@@ -127,7 +122,6 @@ const TransactionTracker = () => {
   };
 
   const handleAddTransaction = async () => {
-    // Validate
     if (!newTransaction.description || !newTransaction.date) {
       toast({
         title: "Erreur",
@@ -156,15 +150,16 @@ const TransactionTracker = () => {
       description: "La transaction a été ajoutée avec succès."
     });
     
-    // Reset form
     setNewTransaction({
       date: new Date().toISOString().split('T')[0],
-      month: new Date().toLocaleString('fr-FR', { month: 'long' }),
+      month: transaction.month,
       description: '',
       amount: 0,
       category: 'Autre',
       isVerified: false
     });
+    
+    setSelectedMonth(transaction.month);
     
     setShowDialog(false);
   };
@@ -179,21 +174,15 @@ const TransactionTracker = () => {
     });
   };
 
-  // Filter transactions by month, category and type
   const filteredTransactions = transactions.filter(t => {
     let passesFilter = true;
     
-    // Month filter
-    if (selectedMonth !== 'Tous') {
-      passesFilter = passesFilter && t.month === selectedMonth;
-    }
+    passesFilter = passesFilter && t.month === selectedMonth;
     
-    // Category filter
     if (categoryFilter) {
       passesFilter = passesFilter && t.category === categoryFilter;
     }
     
-    // Transaction type filter
     if (transactionType === 'revenus') {
       passesFilter = passesFilter && t.amount > 0;
     } else if (transactionType === 'depenses') {
@@ -203,9 +192,8 @@ const TransactionTracker = () => {
     return passesFilter;
   });
 
-  // Group transactions by category for the pie chart
   const categoryData = filteredTransactions.reduce((acc, transaction) => {
-    if (transaction.amount < 0) { // Only include expenses
+    if (transaction.amount < 0) {
       const category = transaction.category;
       const amount = Math.abs(transaction.amount);
       
@@ -223,10 +211,8 @@ const TransactionTracker = () => {
     value
   }));
 
-  // Colors for the pie chart
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
-  // Calculate totals for the selected period
   const calculateTotals = () => {
     const expenses = filteredTransactions
       .filter(t => t.amount < 0)
@@ -372,15 +358,14 @@ const TransactionTracker = () => {
         </div>
       </div>
       
-      <div className="mb-4 flex flex-wrap gap-2">
-        <div className="flex items-center">
+      <div className="mb-4 flex flex-wrap gap-2 items-center">
+        <div className="flex items-center mr-2">
           <Calendar size={16} className="mr-2 text-muted-foreground" />
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-32 h-8 text-xs">
+            <SelectTrigger className="w-40 h-8">
               <SelectValue placeholder="Mois" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Tous">Tous les mois</SelectItem>
               {months.map(month => (
                 <SelectItem key={month} value={month}>{month}</SelectItem>
               ))}
@@ -426,17 +411,17 @@ const TransactionTracker = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div className="pixel-card bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
-          <h3 className="text-sm font-medium mb-2">Revenus</h3>
+          <h3 className="text-sm font-medium mb-2">Revenus - {selectedMonth}</h3>
           <div className="font-pixel text-xl text-zou-purple">{income.toLocaleString()} €</div>
         </div>
         
         <div className="pixel-card bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
-          <h3 className="text-sm font-medium mb-2">Dépenses</h3>
+          <h3 className="text-sm font-medium mb-2">Dépenses - {selectedMonth}</h3>
           <div className="font-pixel text-xl text-zou-orange">{expenses.toLocaleString()} €</div>
         </div>
         
         <div className="pixel-card bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
-          <h3 className="text-sm font-medium mb-2">Solde</h3>
+          <h3 className="text-sm font-medium mb-2">Solde - {selectedMonth}</h3>
           <div className={`font-pixel text-xl ${balance >= 0 ? 'text-zou-green' : 'text-red-500'}`}>
             {balance.toLocaleString()} €
           </div>
@@ -447,7 +432,7 @@ const TransactionTracker = () => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
             <div>
-              <h3 className="text-sm font-semibold mb-3 px-1">Répartition des dépenses</h3>
+              <h3 className="text-sm font-semibold mb-3 px-1">Répartition des dépenses - {selectedMonth}</h3>
               {pieChartData.length > 0 ? (
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
@@ -475,14 +460,14 @@ const TransactionTracker = () => {
                 <div className="h-64 flex items-center justify-center text-muted-foreground">
                   <div className="text-center">
                     <Info size={40} className="mx-auto mb-2 opacity-20" />
-                    <p>Aucune dépense à afficher pour cette période</p>
+                    <p>Aucune dépense à afficher pour {selectedMonth}</p>
                   </div>
                 </div>
               )}
             </div>
             
             <div>
-              <h3 className="text-sm font-semibold mb-3 px-1">Dernières transactions</h3>
+              <h3 className="text-sm font-semibold mb-3 px-1">Dernières transactions - {selectedMonth}</h3>
               <div className="space-y-3 max-h-64 overflow-y-auto px-1 py-2">
                 {filteredTransactions.slice(0, 5).map((transaction) => (
                   <div key={transaction.id} className="flex items-center space-x-3 p-2 border-b">
@@ -500,7 +485,7 @@ const TransactionTracker = () => {
                 ))}
                 {filteredTransactions.length === 0 && (
                   <div className="text-center text-muted-foreground p-4">
-                    Aucune transaction pour cette période
+                    Aucune transaction pour {selectedMonth}
                   </div>
                 )}
               </div>
@@ -561,7 +546,7 @@ const TransactionTracker = () => {
         <div className="text-center p-10 border border-dashed rounded-md">
           <CreditCard size={40} className="mx-auto mb-4 text-muted-foreground opacity-20" />
           <p className="text-muted-foreground font-medium mb-2">
-            Aucune transaction pour {selectedMonth === 'Tous' ? 'cette période' : selectedMonth}
+            Aucune transaction pour {selectedMonth}
           </p>
           <p className="text-muted-foreground text-sm mb-4">
             Ajoutez votre première transaction en cliquant sur le bouton "Ajouter"
