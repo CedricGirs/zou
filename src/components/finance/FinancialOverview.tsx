@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
 
 interface FinancialOverviewProps {
   income: number;
@@ -109,7 +110,7 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <Dialog open={isEditingIncome} onOpenChange={setIsEditingIncome}>
         <div 
           onClick={handleOpenIncomeDialog}
@@ -122,10 +123,10 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
             <DollarSign size={16} />
             <span>Revenus mensuels</span>
           </div>
-          <div className="text-2xl font-semibold text-primary">{income.toLocaleString('fr-FR')} €</div>
+          <div className="text-2xl font-semibold text-primary">0 €</div>
           <div className="flex items-center gap-1 text-xs text-green-500">
             <ArrowUp size={12} />
-            <span>+{(income * 0.03).toFixed(0)}€ vs mois dernier</span>
+            <span>Définissez vos revenus</span>
           </div>
         </div>
         
@@ -182,10 +183,10 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
             <ArrowUp size={16} className="rotate-180" />
             <span>Dépenses mensuelles</span>
           </div>
-          <div className="text-2xl font-semibold text-destructive">{expenses.toLocaleString('fr-FR')} €</div>
+          <div className="text-2xl font-semibold text-destructive">0 €</div>
           <div className="flex items-center gap-1 text-xs text-red-500">
             <ArrowUp size={12} />
-            <span>+{(expenses * 0.02).toFixed(0)}€ vs mois dernier</span>
+            <span>Ajoutez vos dépenses</span>
           </div>
         </div>
         
@@ -290,10 +291,10 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
             <PiggyBank size={16} />
             <span>Objectif épargne</span>
           </div>
-          <div className="text-2xl font-semibold text-primary">{savingsGoal.toLocaleString('fr-FR')} €</div>
+          <div className="text-2xl font-semibold text-primary">0 €</div>
           <div className="flex items-center gap-1 text-xs text-green-500">
             <TrendingUp size={12} />
-            <span>Objectif annuel</span>
+            <span>Définir un objectif</span>
           </div>
         </div>
         
@@ -317,6 +318,15 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
                 className="col-span-3"
               />
             </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right col-span-1">
+                Progression
+              </Label>
+              <div className="col-span-3">
+                <Progress value={0} className="h-2" />
+                <p className="text-xs text-muted-foreground mt-1">0% réalisé</p>
+              </div>
+            </div>
           </div>
           <div className="flex justify-end">
             <Button onClick={handleSaveSavingsGoal}>
@@ -325,19 +335,6 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
           </div>
         </DialogContent>
       </Dialog>
-      
-      <div className="glass-card p-4 flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-          <ArrowDown size={16} className="text-green-500" />
-          <span>Balance mensuelle</span>
-        </div>
-        <div className={`text-2xl font-semibold ${balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-          {balance.toLocaleString('fr-FR')} €
-        </div>
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <span>Taux d'épargne: {savingsRate}%</span>
-        </div>
-      </div>
     </div>
   );
 };

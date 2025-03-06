@@ -148,22 +148,22 @@ const defaultFinanceModule: FinanceModule = {
   emergencyFund: 0,
   transactions: [],
   savingsGoals: [
-    { id: "emergency", name: "Fonds d'urgence", target: 5000, saved: 1500, deadline: "2024-12-31" },
-    { id: "vacation", name: "Vacances", target: 2000, saved: 800, deadline: "2024-06-30" }
+    { id: "emergency", name: "Fonds d'urgence", target: 0, saved: 0, deadline: "2024-12-31" },
+    { id: "vacation", name: "Vacances", target: 0, saved: 0, deadline: "2024-06-30" }
   ],
   annualBudget: {
-    "Janvier": { income: 5000, expenses: 3500 },
-    "Février": { income: 5000, expenses: 3600 },
-    "Mars": { income: 5000, expenses: 3400 },
-    "Avril": { income: 5000, expenses: 3300 },
-    "Mai": { income: 5000, expenses: 3700 },
-    "Juin": { income: 5000, expenses: 3800 },
-    "Juillet": { income: 5000, expenses: 4000 },
-    "Août": { income: 5000, expenses: 3900 },
-    "Septembre": { income: 5000, expenses: 3500 },
-    "Octobre": { income: 5000, expenses: 3600 },
-    "Novembre": { income: 5000, expenses: 3700 },
-    "Décembre": { income: 5000, expenses: 4200 }
+    "Janvier": { income: 0, expenses: 0 },
+    "Février": { income: 0, expenses: 0 },
+    "Mars": { income: 0, expenses: 0 },
+    "Avril": { income: 0, expenses: 0 },
+    "Mai": { income: 0, expenses: 0 },
+    "Juin": { income: 0, expenses: 0 },
+    "Juillet": { income: 0, expenses: 0 },
+    "Août": { income: 0, expenses: 0 },
+    "Septembre": { income: 0, expenses: 0 },
+    "Octobre": { income: 0, expenses: 0 },
+    "Novembre": { income: 0, expenses: 0 },
+    "Décembre": { income: 0, expenses: 0 }
   }
 };
 

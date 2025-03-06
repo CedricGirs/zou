@@ -19,11 +19,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Filter, Search, CreditCard, ArrowUpDown, Download } from 'lucide-react';
+import { Plus, Trash2, Filter, Search, CreditCard, ArrowUpDown, Download, CalendarDays } from 'lucide-react';
 import { useUserData, Transaction } from "@/context/UserDataContext";
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface TransactionTrackerProps {
   selectedMonth?: string;
@@ -31,7 +34,7 @@ interface TransactionTrackerProps {
 
 const TransactionTracker = ({ selectedMonth }: TransactionTrackerProps) => {
   const { userData, updateFinanceModule } = useUserData();
-  const transactions = userData.financeModule.transactions || [];
+  const transactions: Transaction[] = []; // Tableau vide pour réinitialiser
   
   const [newTransaction, setNewTransaction] = useState<Partial<Transaction>>({
     date: new Date().toISOString().split('T')[0],
@@ -87,7 +90,7 @@ const TransactionTracker = ({ selectedMonth }: TransactionTrackerProps) => {
   };
 
   const handleAddTransaction = async () => {
-    // Validate
+    // Validation
     if (!newTransaction.description || !newTransaction.date) {
       toast({
         title: "Erreur",
@@ -99,8 +102,8 @@ const TransactionTracker = ({ selectedMonth }: TransactionTrackerProps) => {
 
     const transaction: Transaction = {
       id: uuidv4(),
-      date: newTransaction.date || '',
-      month: newTransaction.month || '',
+      date: newTransaction.date || format(new Date(), 'yyyy-MM-dd'),
+      month: newTransaction.month || format(new Date(), 'MMMM', { locale: fr }),
       description: newTransaction.description || '',
       amount: newTransaction.amount || 0,
       category: newTransaction.category || 'Autre',
@@ -127,363 +130,288 @@ const TransactionTracker = ({ selectedMonth }: TransactionTrackerProps) => {
     });
   };
 
-  const handleDeleteTransaction = async (id: string) => {
-    const updatedTransactions = transactions.filter(t => t.id !== id);
-    await updateFinanceModule({ transactions: updatedTransactions });
-    
-    toast({
-      title: "Transaction supprimée",
-      description: "La transaction a été supprimée avec succès."
-    });
-  };
+  // Filter transactions - empty for reset
+  const filteredTransactions: Transaction[] = [];
 
-  const exportTransactions = () => {
-    const dataToExport = filteredTransactions.map(t => ({
-      Date: new Date(t.date).toLocaleDateString('fr-FR'),
-      Mois: t.month,
-      Description: t.description,
-      Montant: t.amount,
-      Catégorie: t.category,
-      Vérifié: t.isVerified ? 'Oui' : 'Non'
-    }));
-
-    const csvContent = "data:text/csv;charset=utf-8," + 
-      Object.keys(dataToExport[0]).join(';') + '\n' +
-      dataToExport.map(row => 
-        Object.values(row).join(';')
-      ).join('\n');
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `transactions_${filterMonth}_${new Date().getFullYear()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast({
-      title: "Export réussi",
-      description: `Les transactions de ${filterMonth} ont été exportées avec succès.`
-    });
-  };
-
-  // Filter transactions by month, category and search term
-  const filteredTransactions = transactions.filter(t => {
-    const matchesMonth = filterMonth === 'Tous' || t.month === filterMonth;
-    const matchesCategory = categoryFilter === 'Tous' || t.category === categoryFilter;
-    const matchesSearch = searchTerm === '' || 
-      t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.category.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return matchesMonth && matchesCategory && matchesSearch;
-  });
-
-  // Group transactions by category for the pie chart
-  const categoryData = filteredTransactions.reduce((acc, transaction) => {
-    const category = transaction.category;
-    const amount = Math.abs(transaction.amount);
-    
-    if (!acc[category]) {
-      acc[category] = 0;
-    }
-    
-    acc[category] += amount;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const pieChartData = Object.entries(categoryData).map(([name, value]) => ({
-    name,
-    value
-  }));
+  // Empty pie chart data
+  const pieChartData = [
+    { name: 'Logement', value: 0 },
+    { name: 'Alimentation', value: 0 },
+    { name: 'Transport', value: 0 },
+    { name: 'Loisirs', value: 0 },
+    { name: 'Autre', value: 0 }
+  ];
 
   // Colors for the pie chart
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
   return (
-    <div className="glass-card p-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <h2 className="font-pixel text-lg">Suivi des Transactions</h2>
-        
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-            <Input
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 w-full md:w-40"
-            />
-          </div>
-          
-          <Select value={filterMonth} onValueChange={setFilterMonth}>
-            <SelectTrigger className="w-full md:w-32">
-              <SelectValue placeholder="Mois" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Tous">Tous les mois</SelectItem>
-              {months.map(month => (
-                <SelectItem key={month} value={month}>{month}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-full md:w-32">
-              <SelectValue placeholder="Catégorie" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Tous">Toutes</SelectItem>
-              {categories.map(category => (
-                <SelectItem key={category} value={category}>{category}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="default" size="sm" className="flex items-center gap-2">
-                <Plus size={16} />
-                Ajouter
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Ajouter une transaction</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="date" className="text-right">Date</Label>
-                  <Input
-                    id="date"
-                    name="date"
-                    type="date"
-                    value={newTransaction.date}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="month" className="text-right">Mois</Label>
-                  <div className="col-span-3">
-                    <Select 
-                      value={newTransaction.month} 
-                      onValueChange={handleMonthChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner un mois" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {months.map(month => (
-                          <SelectItem key={month} value={month}>{month}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="description" className="text-right">Description</Label>
-                  <Input
-                    id="description"
-                    name="description"
-                    value={newTransaction.description}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="amount" className="text-right">Montant</Label>
-                  <Input
-                    id="amount"
-                    name="amount"
-                    type="number"
-                    value={newTransaction.amount}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="category" className="text-right">Catégorie</Label>
-                  <div className="col-span-3">
-                    <Select 
-                      value={newTransaction.category} 
-                      onValueChange={handleCategoryChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner une catégorie" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map(category => (
-                          <SelectItem key={category} value={category}>{category}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <div className="col-span-4 flex items-center space-x-2">
-                    <Checkbox 
-                      id="isVerified" 
-                      checked={newTransaction.isVerified}
-                      onCheckedChange={handleCheckboxChange}
-                    />
-                    <Label htmlFor="isVerified">Vérifié avec la banque</Label>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <Button 
-                  onClick={handleAddTransaction}
-                >
-                  Ajouter la transaction
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-      
-      {filteredTransactions.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                <ArrowUpDown size={16} />
-                Répartition des dépenses
-              </h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieChartData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {pieChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `${value.toLocaleString('fr-FR')} €`} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              <CardTitle>Gestion des transactions</CardTitle>
+              <CardDescription>Suivez vos revenus et dépenses</CardDescription>
             </div>
             
-            <div>
-              <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                <Filter size={16} />
-                Résumé des transactions
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-muted/30 rounded-md">
-                  <span>Total des transactions:</span>
-                  <span className="font-semibold">
-                    {filteredTransactions.length}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-muted/30 rounded-md">
-                  <span>Total des dépenses:</span>
-                  <span className="font-semibold text-red-500">
-                    {filteredTransactions
-                      .filter(t => t.amount < 0)
-                      .reduce((sum, t) => sum + Math.abs(t.amount), 0)
-                      .toLocaleString('fr-FR')} €
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-muted/30 rounded-md">
-                  <span>Total des revenus:</span>
-                  <span className="font-semibold text-green-500">
-                    {filteredTransactions
-                      .filter(t => t.amount > 0)
-                      .reduce((sum, t) => sum + t.amount, 0)
-                      .toLocaleString('fr-FR')} €
-                  </span>
-                </div>
-                <div className="mt-4">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full flex justify-center items-center gap-2"
-                    onClick={exportTransactions}
-                  >
-                    <Download size={16} />
-                    Exporter en CSV
-                  </Button>
-                </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+                <Input
+                  placeholder="Rechercher..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 w-full md:w-40"
+                />
               </div>
+              
+              <Select value={filterMonth} onValueChange={setFilterMonth}>
+                <SelectTrigger className="w-full md:w-32">
+                  <SelectValue placeholder="Mois" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Tous">Tous les mois</SelectItem>
+                  {months.map(month => (
+                    <SelectItem key={month} value={month}>{month}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full md:w-32">
+                  <SelectValue placeholder="Catégorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Tous">Toutes</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="flex items-center gap-2">
+                    <Plus size={16} />
+                    Ajouter
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Ajouter une transaction</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="date" className="text-right">Date</Label>
+                      <Input
+                        id="date"
+                        name="date"
+                        type="date"
+                        value={newTransaction.date}
+                        onChange={handleInputChange}
+                        className="col-span-3"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="month" className="text-right">Mois</Label>
+                      <div className="col-span-3">
+                        <Select 
+                          value={newTransaction.month} 
+                          onValueChange={handleMonthChange}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Sélectionner un mois" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {months.map(month => (
+                              <SelectItem key={month} value={month}>{month}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="description" className="text-right">Description</Label>
+                      <Input
+                        id="description"
+                        name="description"
+                        value={newTransaction.description}
+                        onChange={handleInputChange}
+                        className="col-span-3"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="amount" className="text-right">Montant</Label>
+                      <Input
+                        id="amount"
+                        name="amount"
+                        type="number"
+                        value={newTransaction.amount}
+                        onChange={handleInputChange}
+                        className="col-span-3"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="category" className="text-right">Catégorie</Label>
+                      <div className="col-span-3">
+                        <Select 
+                          value={newTransaction.category} 
+                          onValueChange={handleCategoryChange}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Sélectionner une catégorie" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map(category => (
+                              <SelectItem key={category} value={category}>{category}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <div className="col-span-4 flex items-center space-x-2">
+                        <Checkbox 
+                          id="isVerified" 
+                          checked={newTransaction.isVerified}
+                          onCheckedChange={handleCheckboxChange}
+                        />
+                        <Label htmlFor="isVerified">Vérifié avec la banque</Label>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button onClick={handleAddTransaction}>
+                      Ajouter la transaction
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-muted">
-                  <th className="border p-2 text-left">Date</th>
-                  <th className="border p-2 text-left">Description</th>
-                  <th className="border p-2 text-right">Montant</th>
-                  <th className="border p-2 text-center">Catégorie</th>
-                  <th className="border p-2 text-center">Vérifié</th>
-                  <th className="border p-2 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTransactions.map((transaction) => (
-                  <tr key={transaction.id} className="hover:bg-muted/50">
-                    <td className="border p-2">
-                      {new Date(transaction.date).toLocaleDateString('fr-FR')}
-                    </td>
-                    <td className="border p-2">{transaction.description}</td>
-                    <td className={`border p-2 text-right ${
-                      transaction.amount > 0 ? 'text-green-500' : 'text-red-500'
-                    }`}>
-                      {transaction.amount.toLocaleString('fr-FR')} €
-                    </td>
-                    <td className="border p-2 text-center">
-                      <span className="px-2 py-1 rounded-full text-xs bg-muted">
-                        {transaction.category}
-                      </span>
-                    </td>
-                    <td className="border p-2 text-center">
-                      {transaction.isVerified ? (
-                        <CreditCard className="inline-block text-green-500" size={16} />
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </td>
-                    <td className="border p-2 text-center">
-                      <button 
-                        className="p-1 rounded hover:bg-muted text-red-500"
-                        onClick={() => handleDeleteTransaction(transaction.id)}
+        </CardHeader>
+        <CardContent>
+          <div className="text-center p-6 border border-dashed rounded-md">
+            <CalendarDays className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground font-medium">
+              Aucune transaction pour {filterMonth === 'Tous' ? 'cette période' : filterMonth}.
+            </p>
+            <p className="text-muted-foreground text-sm mt-1 mb-4">
+              Ajoutez votre première transaction en cliquant sur le bouton "Ajouter".
+            </p>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus size={16} className="mr-2" />
+                  Ajouter une transaction
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                {/* Contenu de la fenêtre modale - identique à celui ci-dessus */}
+                <DialogHeader>
+                  <DialogTitle>Ajouter une transaction</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="date2" className="text-right">Date</Label>
+                    <Input
+                      id="date2"
+                      name="date"
+                      type="date"
+                      value={newTransaction.date}
+                      onChange={handleInputChange}
+                      className="col-span-3"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="month2" className="text-right">Mois</Label>
+                    <div className="col-span-3">
+                      <Select 
+                        value={newTransaction.month} 
+                        onValueChange={handleMonthChange}
                       >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner un mois" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {months.map(month => (
+                            <SelectItem key={month} value={month}>{month}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="description2" className="text-right">Description</Label>
+                    <Input
+                      id="description2"
+                      name="description"
+                      value={newTransaction.description}
+                      onChange={handleInputChange}
+                      className="col-span-3"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="amount2" className="text-right">Montant</Label>
+                    <Input
+                      id="amount2"
+                      name="amount"
+                      type="number"
+                      value={newTransaction.amount}
+                      onChange={handleInputChange}
+                      className="col-span-3"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="category2" className="text-right">Catégorie</Label>
+                    <div className="col-span-3">
+                      <Select 
+                        value={newTransaction.category} 
+                        onValueChange={handleCategoryChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner une catégorie" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map(category => (
+                            <SelectItem key={category} value={category}>{category}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <div className="col-span-4 flex items-center space-x-2">
+                      <Checkbox 
+                        id="isVerified2" 
+                        checked={newTransaction.isVerified}
+                        onCheckedChange={handleCheckboxChange}
+                      />
+                      <Label htmlFor="isVerified2">Vérifié avec la banque</Label>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <Button onClick={handleAddTransaction}>
+                    Ajouter la transaction
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
-        </>
-      ) : (
-        <div className="text-center p-6 border border-dashed rounded-md">
-          <p className="text-muted-foreground">
-            Aucune transaction pour {filterMonth === 'Tous' ? 'cette période' : filterMonth}.
-          </p>
-          <p className="text-muted-foreground text-sm mt-1">
-            Ajoutez votre première transaction en cliquant sur le bouton "Ajouter".
-          </p>
-        </div>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

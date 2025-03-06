@@ -23,6 +23,8 @@ import { Label } from "@/components/ui/label";
 import { Edit } from 'lucide-react';
 import { useUserData } from "@/context/UserDataContext";
 import { toast } from '@/hooks/use-toast';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AnnualBudget = () => {
   const { userData, updateFinanceModule } = useUserData();
@@ -94,138 +96,140 @@ const AnnualBudget = () => {
   const { totalIncome, totalExpenses, totalSavings } = calculateTotals();
 
   return (
-    <div className="glass-card p-4">
-      <h2 className="font-pixel text-lg mb-4">Budget Annuel</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="pixel-card flex flex-col items-center">
-          <h3 className="text-sm font-medium mb-1">Revenus Annuels</h3>
-          <span className="font-pixel text-xl text-zou-purple">
-            {totalIncome} €
-          </span>
+    <Card>
+      <CardHeader>
+        <CardTitle>Budget Annuel</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="pixel-card flex flex-col items-center">
+            <h3 className="text-sm font-medium mb-1">Revenus Annuels</h3>
+            <span className="font-pixel text-xl text-zou-purple">
+              0 €
+            </span>
+          </div>
+          
+          <div className="pixel-card flex flex-col items-center">
+            <h3 className="text-sm font-medium mb-1">Dépenses Annuelles</h3>
+            <span className="font-pixel text-xl text-zou-orange">
+              0 €
+            </span>
+          </div>
+          
+          <div className="pixel-card flex flex-col items-center">
+            <h3 className="text-sm font-medium mb-1">Épargne Annuelle</h3>
+            <span className="font-pixel text-xl text-zou-green">
+              0 €
+            </span>
+          </div>
         </div>
         
-        <div className="pixel-card flex flex-col items-center">
-          <h3 className="text-sm font-medium mb-1">Dépenses Annuelles</h3>
-          <span className="font-pixel text-xl text-zou-orange">
-            {totalExpenses} €
-          </span>
+        <div className="mb-6">
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip 
+                formatter={(value) => `${value} €`}
+                labelFormatter={(label) => `Mois: ${label}`}
+              />
+              <Legend />
+              <Bar dataKey="income" name="Revenus" fill="#8884d8" />
+              <Bar dataKey="expenses" name="Dépenses" fill="#ff7c43" />
+              <Bar dataKey="savings" name="Épargne" fill="#82ca9d" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
         
-        <div className="pixel-card flex flex-col items-center">
-          <h3 className="text-sm font-medium mb-1">Épargne Annuelle</h3>
-          <span className="font-pixel text-xl text-zou-green">
-            {totalSavings} €
-          </span>
-        </div>
-      </div>
-      
-      <div className="mb-6">
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart
-            data={chartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip 
-              formatter={(value) => `${value} €`}
-              labelFormatter={(label) => `Mois: ${label}`}
-            />
-            <Legend />
-            <Bar dataKey="income" name="Revenus" fill="#8884d8" />
-            <Bar dataKey="expenses" name="Dépenses" fill="#ff7c43" />
-            <Bar dataKey="savings" name="Épargne" fill="#82ca9d" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-      
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-muted">
-              <th className="border p-2 text-left">Mois</th>
-              <th className="border p-2 text-right">Revenus</th>
-              <th className="border p-2 text-right">Dépenses</th>
-              <th className="border p-2 text-right">Épargne</th>
-              <th className="border p-2 text-center">% Dépenses</th>
-              <th className="border p-2 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(userData.financeModule.annualBudget || {}).map(([month, data]) => {
-              const percentExpenses = data.income > 0 ? ((data.expenses / data.income) * 100).toFixed(1) : "0";
-              const savings = data.income - data.expenses;
-              
-              return (
-                <tr key={month} className="hover:bg-muted/50">
-                  <td className="border p-2">{month}</td>
-                  <td className="border p-2 text-right">{data.income} €</td>
-                  <td className="border p-2 text-right">{data.expenses} €</td>
-                  <td className="border p-2 text-right">{savings} €</td>
-                  <td className="border p-2 text-center">{percentExpenses}%</td>
-                  <td className="border p-2 text-center">
-                    <Dialog open={selectedMonth === month} onOpenChange={(open) => !open && setSelectedMonth(null)}>
-                      <DialogTrigger asChild>
-                        <button 
-                          className="p-1 rounded hover:bg-muted"
-                          onClick={() => handleEditMonth(month)}
-                        >
-                          <Edit size={16} />
-                        </button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Modifier le budget de {selectedMonth}</DialogTitle>
-                          <DialogDescription>
-                            Ajustez les revenus et dépenses pour ce mois
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="income" className="text-right">
-                              Revenus
-                            </Label>
-                            <Input
-                              id="income"
-                              type="number"
-                              value={monthlyIncome}
-                              onChange={(e) => setMonthlyIncome(Number(e.target.value))}
-                              className="col-span-3"
-                            />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="expenses" className="text-right">
-                              Dépenses
-                            </Label>
-                            <Input
-                              id="expenses"
-                              type="number"
-                              value={monthlyExpenses}
-                              onChange={(e) => setMonthlyExpenses(Number(e.target.value))}
-                              className="col-span-3"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex justify-end">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-muted">
+                <th className="border p-2 text-left">Mois</th>
+                <th className="border p-2 text-right">Revenus</th>
+                <th className="border p-2 text-right">Dépenses</th>
+                <th className="border p-2 text-right">Épargne</th>
+                <th className="border p-2 text-center">% Dépenses</th>
+                <th className="border p-2 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(userData.financeModule.annualBudget || {}).map(([month, data]) => {
+                const percentExpenses = data.income > 0 ? ((data.expenses / data.income) * 100).toFixed(1) : "0";
+                const savings = data.income - data.expenses;
+                
+                return (
+                  <tr key={month} className="hover:bg-muted/50">
+                    <td className="border p-2">{month}</td>
+                    <td className="border p-2 text-right">{data.income} €</td>
+                    <td className="border p-2 text-right">{data.expenses} €</td>
+                    <td className="border p-2 text-right">{savings} €</td>
+                    <td className="border p-2 text-center">{percentExpenses}%</td>
+                    <td className="border p-2 text-center">
+                      <Dialog open={selectedMonth === month} onOpenChange={(open) => !open && setSelectedMonth(null)}>
+                        <DialogTrigger asChild>
                           <button 
-                            className="pixel-button"
-                            onClick={handleSaveMonth}
+                            className="p-1 rounded hover:bg-muted"
+                            onClick={() => handleEditMonth(month)}
                           >
-                            Enregistrer
+                            <Edit size={16} />
                           </button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Modifier le budget de {selectedMonth}</DialogTitle>
+                            <DialogDescription>
+                              Ajustez les revenus et dépenses pour ce mois
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="income" className="text-right">
+                                Revenus
+                              </Label>
+                              <Input
+                                id="income"
+                                type="number"
+                                value={monthlyIncome}
+                                onChange={(e) => setMonthlyIncome(Number(e.target.value))}
+                                className="col-span-3"
+                              />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="expenses" className="text-right">
+                                Dépenses
+                              </Label>
+                              <Input
+                                id="expenses"
+                                type="number"
+                                value={monthlyExpenses}
+                                onChange={(e) => setMonthlyExpenses(Number(e.target.value))}
+                                className="col-span-3"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex justify-end">
+                            <Button 
+                              onClick={handleSaveMonth}
+                            >
+                              Enregistrer
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
