@@ -48,6 +48,13 @@ const translations = {
     lookSubtitle: 'Manage your wardrobe and outfit choices',
     addClothingItem: 'Add Clothing Item',
     lookModuleComing: 'Look module coming soon...',
+    clothingSelection: 'Clothing Selection',
+    weeklyOutfits: 'Weekly Outfits',
+    validate: 'Validate Selection',
+    regenerate: 'Regenerate',
+    edit: 'Edit',
+    finishEditing: 'Finish',
+    selectClothes: 'Select clothes and click "Validate Selection" to generate outfits.',
     
     // Common
     level: 'LVL',
@@ -101,6 +108,13 @@ const translations = {
     lookSubtitle: 'Gérez votre garde-robe et vos tenues',
     addClothingItem: 'Ajouter un Vêtement',
     lookModuleComing: 'Module Style bientôt disponible...',
+    clothingSelection: 'Sélection des vêtements',
+    weeklyOutfits: 'Tenues hebdomadaires',
+    validate: 'Valider ma sélection',
+    regenerate: 'Régénérer',
+    edit: 'Modifier',
+    finishEditing: 'Terminer',
+    selectClothes: 'Veuillez sélectionner des vêtements et cliquer sur "Valider ma sélection" pour générer des tenues.',
     
     // Common
     level: 'NIV',
