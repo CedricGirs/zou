@@ -1,92 +1,90 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 260 15% 98%;
+    --foreground: 260 10% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 260 10% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 260 10% 20%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 260 60% 75%;
+    --primary-foreground: 260 10% 20%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 260 20% 96%;
+    --secondary-foreground: 260 10% 20%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 260 15% 92%;
+    --muted-foreground: 260 20% 40%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 260 30% 92%;
+    --accent-foreground: 260 10% 20%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 260 15% 90%;
+    --input: 260 15% 90%;
+    --ring: 260 60% 75%;
 
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    --sidebar-background: 260 50% 97%;
+    --sidebar-foreground: 260 10% 20%;
+    --sidebar-primary: 260 60% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 260 15% 92%;
+    --sidebar-accent-foreground: 260 10% 20%;
+    --sidebar-border: 260 15% 90%;
+    --sidebar-ring: 260 60% 75%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 260 15% 10%;
+    --foreground: 260 10% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 260 15% 15%;
+    --card-foreground: 260 10% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 260 15% 15%;
+    --popover-foreground: 260 10% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 260 60% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 260 15% 18%;
+    --secondary-foreground: 260 10% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 260 15% 18%;
+    --muted-foreground: 260 15% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 260 15% 22%;
+    --accent-foreground: 260 10% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 260 10% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 260 15% 22%;
+    --input: 260 15% 22%;
+    --ring: 260 60% 65%;
+    
+    --sidebar-background: 260 15% 13%;
+    --sidebar-foreground: 260 10% 98%;
+    --sidebar-primary: 260 60% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 260 15% 18%;
+    --sidebar-accent-foreground: 260 10% 98%;
+    --sidebar-border: 260 15% 22%;
+    --sidebar-ring: 260 60% 65%;
   }
 }
 
@@ -96,6 +94,80 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
   }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-pixel tracking-tight;
+  }
+}
+
+@layer components {
+  .pixel-border {
+    @apply border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,0.7)];
+  }
+  
+  .pixel-button {
+    @apply px-4 py-2 bg-zou-purple text-white font-pixel text-xs uppercase tracking-wide 
+           pixel-border transition-transform active:translate-y-1 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.7)]
+           hover:bg-opacity-90 focus:outline-none;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 dark:bg-black/50 backdrop-blur-md rounded-lg border border-white/20 dark:border-white/10 shadow-lg;
+  }
+  
+  .pixel-card {
+    @apply bg-white dark:bg-zinc-800 pixel-border p-4 rounded-md;
+  }
+  
+  .pixel-input {
+    @apply bg-white dark:bg-zinc-800 pixel-border p-2 rounded-sm focus:outline-none focus:ring-2 focus:ring-zou-purple;
+  }
+  
+  .app-container {
+    @apply flex min-h-screen w-full relative bg-gradient-to-br from-background to-secondary;
+  }
+  
+  .main-content {
+    @apply flex-1 p-4 md:p-6 pt-16 pb-20 md:pb-6 md:ml-64 transition-all duration-300;
+  }
+  
+  .page-enter {
+    @apply animate-appear-from-bottom;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  @apply w-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-zou-purple/50 rounded-full hover:bg-zou-purple/70;
+}
+
+/* Pixel Art Grid - add to elements for pixel perfect rendering */
+.pixel-art {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Progress Bar Styles */
+.progress-bar {
+  @apply h-4 rounded-sm overflow-hidden relative bg-muted;
+}
+
+.progress-bar-fill {
+  @apply h-full transition-all duration-500 ease-out relative;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer bg-[length:200%_100%];
 }
