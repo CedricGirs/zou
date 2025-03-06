@@ -8,7 +8,7 @@ import {
   Zap, Award, Star, Users, Battery,
   Calendar, Sunrise, Droplet, Heart, Book,
   Trophy, Gamepad, Palette, Gift, Share2,
-  Coffee, Repeat, AlertTriangle, Timer1, Package,
+  Coffee, Repeat, AlertTriangle, Timer, Package,
   UserPlus, MessageCircle, UserCheck, ThumbsUp, UsersRound,
   Code, FileSpreadsheet, Wrench, Utensils, HeartPulse,
   Ghost, Snowflake, Sparkle, Sun, CheckCircle2
