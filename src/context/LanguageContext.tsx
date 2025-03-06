@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode } from "react";
 
 type Language = "en" | "fr";
@@ -44,11 +45,11 @@ const translations = {
     save: 'SAVE',
     cancel: 'CANCEL',
     success: 'Success',
-    error: 'Error',
+    errorMsg: 'Error',
     itemAdded: 'Item has been added',
     titleRequired: 'Title is required',
     added: 'has been added',
-    delete: 'Delete',
+    deleteItem: 'Delete',
     deleteConfirm: 'Are you sure you want to delete this item?',
     itemDeleted: 'Item has been deleted',
     
@@ -156,9 +157,7 @@ const translations = {
     allCategories: "All Categories",
     special: "Special",
     noBadgesFound: "No badges found",
-    error: "Error",
     pleaseEnterQuestTitle: "Please enter a quest title",
-    delete: "Delete",
   },
   fr: {
     // Dashboard/Home
@@ -195,11 +194,11 @@ const translations = {
     save: 'ENREGISTRER',
     cancel: 'ANNULER',
     success: 'Succès',
-    error: 'Erreur',
+    errorMsg: 'Erreur',
     itemAdded: 'L\'élément a été ajouté',
     titleRequired: 'Le titre est requis',
     added: 'a été ajouté',
-    delete: 'Supprimer',
+    deleteItem: 'Supprimer',
     deleteConfirm: 'Êtes-vous sûr de vouloir supprimer cet élément ?',
     itemDeleted: 'L\'élément a été supprimé',
     
@@ -307,9 +306,7 @@ const translations = {
     allCategories: "Toutes les catégories",
     special: "Spécial",
     noBadgesFound: "Aucun badge trouvé",
-    error: "Erreur",
     pleaseEnterQuestTitle: "Veuillez entrer un titre de quête",
-    delete: "Supprimer",
   }
 };
 
