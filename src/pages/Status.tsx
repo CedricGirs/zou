@@ -2,11 +2,14 @@
 import { useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import StatusCard from "../components/status/StatusCard";
+import AddItemModal from "../components/status/AddItemModal";
 import { GraduationCap, Globe, Brain, Plus } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Status = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   
   const [courses, setCourses] = useState([
     {
@@ -43,10 +46,26 @@ const Status = () => {
     }
   ]);
   
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<"course" | "language" | "skill">("course");
+  
   const updateCourse = (id: string, updates: any) => {
     setCourses(courses.map(course => 
       course.id === id ? { ...course, ...updates } : course
     ));
+  };
+  
+  const openAddModal = (type: "course" | "language" | "skill") => {
+    setModalType(type);
+    setModalOpen(true);
+  };
+  
+  const addNewItem = (item: any) => {
+    setCourses([...courses, item]);
+    toast({
+      title: t("success"),
+      description: `${item.title} ${t("added")}`,
+    });
   };
   
   return (
@@ -73,7 +92,10 @@ const Status = () => {
             ))}
           </div>
           
-          <button className="w-full mt-4 pixel-button flex items-center justify-center">
+          <button 
+            className="w-full mt-4 pixel-button flex items-center justify-center"
+            onClick={() => openAddModal("course")}
+          >
             <Plus size={14} className="mr-1" />
             {t("addCourse")}
           </button>
@@ -95,7 +117,10 @@ const Status = () => {
             ))}
           </div>
           
-          <button className="w-full mt-4 pixel-button flex items-center justify-center">
+          <button 
+            className="w-full mt-4 pixel-button flex items-center justify-center"
+            onClick={() => openAddModal("language")}
+          >
             <Plus size={14} className="mr-1" />
             {t("addLanguage")}
           </button>
@@ -117,12 +142,22 @@ const Status = () => {
             ))}
           </div>
           
-          <button className="w-full mt-4 pixel-button flex items-center justify-center">
+          <button 
+            className="w-full mt-4 pixel-button flex items-center justify-center"
+            onClick={() => openAddModal("skill")}
+          >
             <Plus size={14} className="mr-1" />
             {t("addSkill")}
           </button>
         </div>
       </div>
+      
+      <AddItemModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={addNewItem}
+        type={modalType}
+      />
     </MainLayout>
   );
 };
