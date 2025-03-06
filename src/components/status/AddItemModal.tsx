@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,25 @@ interface AddItemModalProps {
   type: "course" | "language" | "skill";
 }
 
+const languageLevelDescriptions = {
+  "A1": "Beginner (17%)",
+  "A2": "Elementary (33%)",
+  "B1": "Intermediate (50%)",
+  "B2": "Upper Intermediate (67%)",
+  "C1": "Advanced (83%)",
+  "C2": "Proficient (100%)"
+};
+
+// Helper to convert language level to progress percentage
+const levelToProgress = {
+  "A1": 17,
+  "A2": 33,
+  "B1": 50,
+  "B2": 67,
+  "C1": 83,
+  "C2": 100
+};
+
 const AddItemModal = ({ isOpen, onClose, onSave, type }: AddItemModalProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -23,6 +42,20 @@ const AddItemModal = ({ isOpen, onClose, onSave, type }: AddItemModalProps) => {
   const [progress, setProgress] = useState(0);
   const [level, setLevel] = useState("A1");
   const [deadline, setDeadline] = useState("");
+
+  // Update progress when language level changes
+  useEffect(() => {
+    if (type === "language" && level) {
+      setProgress(levelToProgress[level as keyof typeof levelToProgress]);
+    }
+  }, [level, type]);
+
+  const handleLevelChange = (newLevel: string) => {
+    setLevel(newLevel);
+    if (type === "language") {
+      setProgress(levelToProgress[newLevel as keyof typeof levelToProgress]);
+    }
+  };
 
   const handleSave = () => {
     if (!title.trim()) {
@@ -103,13 +136,13 @@ const AddItemModal = ({ isOpen, onClose, onSave, type }: AddItemModalProps) => {
           {type === "language" && (
             <div className="grid gap-2">
               <Label htmlFor="level">{t("level")}</Label>
-              <Select value={level} onValueChange={setLevel}>
+              <Select value={level} onValueChange={handleLevelChange}>
                 <SelectTrigger>
                   <SelectValue placeholder={t("selectLevel")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {["A1", "A2", "B1", "B2", "C1", "C2"].map((lvl) => (
-                    <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>
+                  {Object.entries(languageLevelDescriptions).map(([lvl, description]) => (
+                    <SelectItem key={lvl} value={lvl}>{lvl} - {description}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -117,12 +150,16 @@ const AddItemModal = ({ isOpen, onClose, onSave, type }: AddItemModalProps) => {
           )}
           
           <div className="grid gap-2">
-            <Label htmlFor="progress">{t("progress")}: {progress}%</Label>
+            <Label htmlFor="progress">
+              {t("progress")}: {progress}%
+              {type === "language" && level && ` (${level})`}
+            </Label>
             <Slider
               value={[progress]}
               max={100}
               step={5}
               onValueChange={(value) => setProgress(value[0])}
+              disabled={type === "language"} // Disable manual slider adjustment for languages
             />
           </div>
         </div>
