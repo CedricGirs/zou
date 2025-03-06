@@ -1,22 +1,11 @@
-
 import { useState } from "react";
 import { CheckCircle, X, Upload, Clock, Trash2 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
-
-interface CourseItem {
-  id: string;
-  title: string;
-  type: "course" | "language" | "skill";
-  progress: number;
-  level?: string;
-  deadline?: string;
-  completed: boolean;
-  certificate?: string;
-}
+import { StatusItem } from "../../types/course";
 
 interface StatusCardProps {
-  item: CourseItem;
-  onUpdate: (id: string, updates: Partial<CourseItem>) => void;
+  item: StatusItem;
+  onUpdate: (id: string, updates: Partial<StatusItem>) => void;
   onDelete: (id: string) => void;
 }
 

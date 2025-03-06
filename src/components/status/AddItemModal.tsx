@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLanguage } from "../../context/LanguageContext";
+import { StatusItem, CourseItem, LanguageItem, SkillItem } from "../../types/course";
 
 interface AddItemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (item: any) => void;
+  onSave: (item: StatusItem) => void;
   type: "course" | "language" | "skill";
 }
 
@@ -34,19 +35,35 @@ const AddItemModal = ({ isOpen, onClose, onSave, type }: AddItemModalProps) => {
       return;
     }
 
-    const newItem = {
-      id: `${type}-${Date.now()}`,
-      title,
-      type,
-      progress,
-      completed: progress === 100,
-    };
+    let newItem: StatusItem;
 
-    // Ajouter des propriétés spécifiques au type
     if (type === "language") {
-      Object.assign(newItem, { level });
+      newItem = {
+        id: `${type}-${Date.now()}`,
+        title,
+        type,
+        level,
+        progress,
+        completed: progress === 100
+      };
     } else if (type === "course") {
-      Object.assign(newItem, { deadline });
+      newItem = {
+        id: `${type}-${Date.now()}`,
+        title,
+        type,
+        deadline,
+        progress,
+        completed: progress === 100
+      };
+    } else {
+      // type === "skill"
+      newItem = {
+        id: `${type}-${Date.now()}`,
+        title,
+        type,
+        progress,
+        completed: progress === 100
+      };
     }
 
     onSave(newItem);

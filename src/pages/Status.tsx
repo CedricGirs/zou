@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import StatusCard from "../components/status/StatusCard";
@@ -6,17 +7,18 @@ import { GraduationCap, Globe, Brain, Plus } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { useSyncUserData } from "../hooks/useSyncUserData";
+import { StatusItem } from "../types/course";
 
 const Status = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const { statusModule } = useSyncUserData();
+  const { statusModule, updateStatusModule } = useSyncUserData();
   
-  const [courses, setCourses] = useState([
+  const [courses, setCourses] = useState<StatusItem[]>([
     {
       id: "cs101",
       title: "Computer Science 101",
-      type: "course" as const,
+      type: "course",
       progress: 75,
       deadline: "2023-12-31",
       completed: false
@@ -24,7 +26,7 @@ const Status = () => {
     {
       id: "french",
       title: "French",
-      type: "language" as const,
+      type: "language",
       level: "B1",
       progress: 40,
       completed: false
@@ -32,7 +34,7 @@ const Status = () => {
     {
       id: "spanish",
       title: "Spanish",
-      type: "language" as const,
+      type: "language",
       level: "A2",
       progress: 20,
       completed: false
@@ -40,7 +42,7 @@ const Status = () => {
     {
       id: "public-speaking",
       title: "Public Speaking",
-      type: "skill" as const,
+      type: "skill",
       progress: 90,
       completed: true,
       certificate: "certificate.pdf"
@@ -83,7 +85,8 @@ const Status = () => {
           title: skill,
           type: "skill" as const,
           progress: 10,
-          completed: false
+          completed: false,
+          certificate: undefined
         }));
       
       if (newSkillCourses.length > 0) {
@@ -95,7 +98,7 @@ const Status = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"course" | "language" | "skill">("course");
   
-  const updateCourse = (id: string, updates: any) => {
+  const updateCourse = (id: string, updates: Partial<StatusItem>) => {
     setCourses(courses.map(course => 
       course.id === id ? { ...course, ...updates } : course
     ));
@@ -114,7 +117,7 @@ const Status = () => {
     setModalOpen(true);
   };
   
-  const addNewItem = (item: any) => {
+  const addNewItem = (item: StatusItem) => {
     setCourses([...courses, item]);
     toast({
       title: t("success"),
