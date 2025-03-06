@@ -7,10 +7,41 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Plus, X } from "lucide-react";
 import { StatusModule } from "@/context/UserDataContext";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 interface EditStatusModuleFormProps {
   onSave: () => void;
 }
+
+// Common language options
+const languageOptions = [
+  "English", "French", "Spanish", "German", "Italian", 
+  "Portuguese", "Russian", "Chinese", "Japanese", "Arabic",
+  "Hindi", "Korean", "Dutch", "Swedish", "Norwegian"
+];
+
+// Common soft skills
+const softSkillOptions = [
+  "Communication", "Team Work", "Problem Solving", "Time Management", 
+  "Leadership", "Adaptability", "Creativity", "Critical Thinking",
+  "Emotional Intelligence", "Work Ethic", "Attention to Detail", 
+  "Conflict Resolution", "Empathy", "Negotiation"
+];
+
+const languageLevelDescriptions = {
+  "A1": "Beginner",
+  "A2": "Elementary",
+  "B1": "Intermediate",
+  "B2": "Upper Intermediate",
+  "C1": "Advanced",
+  "C2": "Proficient"
+};
 
 const EditStatusModuleForm = ({ onSave }: EditStatusModuleFormProps) => {
   const { userData, updateStatusModule } = useUserData();
@@ -22,6 +53,8 @@ const EditStatusModuleForm = ({ onSave }: EditStatusModuleFormProps) => {
   
   const [newLanguage, setNewLanguage] = useState<{ name: string; level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" }>({ name: "", level: "A1" });
   const [newSkill, setNewSkill] = useState("");
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [showSkillDropdown, setShowSkillDropdown] = useState(false);
   
   const handleStatusChange = (newStatus: StatusModule['status']) => {
     setStatus(newStatus);
@@ -31,6 +64,7 @@ const EditStatusModuleForm = ({ onSave }: EditStatusModuleFormProps) => {
     if (newLanguage.name.trim()) {
       setLanguages([...languages, { ...newLanguage }]);
       setNewLanguage({ name: "", level: "A1" });
+      setShowLanguageDropdown(false);
     }
   };
   
@@ -44,6 +78,7 @@ const EditStatusModuleForm = ({ onSave }: EditStatusModuleFormProps) => {
     if (newSkill.trim()) {
       setSoftSkills([...softSkills, newSkill]);
       setNewSkill("");
+      setShowSkillDropdown(false);
     }
   };
   
@@ -61,6 +96,24 @@ const EditStatusModuleForm = ({ onSave }: EditStatusModuleFormProps) => {
     });
     
     onSave();
+  };
+  
+  const filteredLanguageOptions = languageOptions.filter(
+    lang => !languages.some(l => l.name.toLowerCase() === lang.toLowerCase())
+  );
+  
+  const filteredSkillOptions = softSkillOptions.filter(
+    skill => !softSkills.some(s => s.toLowerCase() === skill.toLowerCase())
+  );
+
+  const selectLanguage = (lang: string) => {
+    setNewLanguage({ ...newLanguage, name: lang });
+    setShowLanguageDropdown(false);
+  };
+
+  const selectSkill = (skill: string) => {
+    setNewSkill(skill);
+    setShowSkillDropdown(false);
   };
   
   return (
@@ -97,7 +150,7 @@ const EditStatusModuleForm = ({ onSave }: EditStatusModuleFormProps) => {
         <div className="space-y-2">
           {languages.map((lang, index) => (
             <div key={index} className="flex items-center bg-muted/50 p-2 rounded-md">
-              <span className="flex-1">{lang.name} ({lang.level})</span>
+              <span className="flex-1">{lang.name} - {lang.level} ({languageLevelDescriptions[lang.level]})</span>
               <button
                 type="button"
                 onClick={() => removeLanguage(index)}
@@ -110,27 +163,54 @@ const EditStatusModuleForm = ({ onSave }: EditStatusModuleFormProps) => {
         </div>
         
         <div className="flex mt-3 gap-2">
-          <Input
-            value={newLanguage.name}
-            onChange={(e) => setNewLanguage({ ...newLanguage, name: e.target.value })}
-            placeholder={t("languageName")}
-            className="flex-1"
-          />
-          <select
+          <div className="relative flex-1">
+            <Input
+              value={newLanguage.name}
+              onChange={(e) => {
+                setNewLanguage({ ...newLanguage, name: e.target.value });
+                setShowLanguageDropdown(true);
+              }}
+              onFocus={() => setShowLanguageDropdown(true)}
+              placeholder={t("languageName")}
+              className="flex-1"
+            />
+            {showLanguageDropdown && filteredLanguageOptions.length > 0 && (
+              <div className="absolute z-10 w-full bg-popover shadow-md rounded-md mt-1 max-h-60 overflow-auto">
+                {filteredLanguageOptions
+                  .filter(lang => lang.toLowerCase().includes(newLanguage.name.toLowerCase()) || newLanguage.name === "")
+                  .map((lang, i) => (
+                    <div
+                      key={i}
+                      className="px-3 py-2 hover:bg-accent cursor-pointer"
+                      onClick={() => selectLanguage(lang)}
+                    >
+                      {lang}
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+          
+          <Select
             value={newLanguage.level}
-            onChange={(e) => setNewLanguage({ 
+            onValueChange={(value) => setNewLanguage({ 
               ...newLanguage, 
-              level: e.target.value as "A1" | "A2" | "B1" | "B2" | "C1" | "C2" 
+              level: value as "A1" | "A2" | "B1" | "B2" | "C1" | "C2" 
             })}
-            className="rounded-md border border-input bg-background px-3 py-2"
           >
-            <option value="A1">A1</option>
-            <option value="A2">A2</option>
-            <option value="B1">B1</option>
-            <option value="B2">B2</option>
-            <option value="C1">C1</option>
-            <option value="C2">C2</option>
-          </select>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="A1">A1 - {languageLevelDescriptions.A1}</SelectItem>
+              <SelectItem value="A2">A2 - {languageLevelDescriptions.A2}</SelectItem>
+              <SelectItem value="B1">B1 - {languageLevelDescriptions.B1}</SelectItem>
+              <SelectItem value="B2">B2 - {languageLevelDescriptions.B2}</SelectItem>
+              <SelectItem value="C1">C1 - {languageLevelDescriptions.C1}</SelectItem>
+              <SelectItem value="C2">C2 - {languageLevelDescriptions.C2}</SelectItem>
+            </SelectContent>
+          </Select>
+          
           <Button type="button" size="sm" onClick={addLanguage}>
             <Plus size={16} />
           </Button>
@@ -155,16 +235,41 @@ const EditStatusModuleForm = ({ onSave }: EditStatusModuleFormProps) => {
         </div>
         
         <div className="flex mt-3 gap-2">
-          <Input
-            value={newSkill}
-            onChange={(e) => setNewSkill(e.target.value)}
-            placeholder={t("skillName")}
-            className="flex-1"
-          />
+          <div className="relative flex-1">
+            <Input
+              value={newSkill}
+              onChange={(e) => {
+                setNewSkill(e.target.value);
+                setShowSkillDropdown(true);
+              }}
+              onFocus={() => setShowSkillDropdown(true)}
+              placeholder={t("skillName")}
+              className="flex-1"
+            />
+            {showSkillDropdown && filteredSkillOptions.length > 0 && (
+              <div className="absolute z-10 w-full bg-popover shadow-md rounded-md mt-1 max-h-60 overflow-auto">
+                {filteredSkillOptions
+                  .filter(skill => skill.toLowerCase().includes(newSkill.toLowerCase()) || newSkill === "")
+                  .map((skill, i) => (
+                    <div
+                      key={i}
+                      className="px-3 py-2 hover:bg-accent cursor-pointer"
+                      onClick={() => selectSkill(skill)}
+                    >
+                      {skill}
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
           <Button type="button" size="sm" onClick={addSkill}>
             <Plus size={16} />
           </Button>
         </div>
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={handleSubmit}>{t("save")}</Button>
       </div>
     </div>
   );
