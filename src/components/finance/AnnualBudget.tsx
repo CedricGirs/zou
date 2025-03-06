@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Edit } from 'lucide-react';
+import { Edit, BarChart as BarChartIcon, AlertTriangle } from 'lucide-react';
 import { useUserData } from "@/context/UserDataContext";
 import { toast } from '@/hooks/use-toast';
 
@@ -95,28 +95,42 @@ const AnnualBudget = () => {
 
   return (
     <div className="glass-card p-4">
-      <h2 className="font-pixel text-lg mb-4">Budget Annuel</h2>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <BarChartIcon className="mr-2 text-zou-purple" size={20} />
+          <h2 className="font-pixel text-lg">Budget Annuel</h2>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Aperçu de vos finances sur l'année
+        </div>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="pixel-card flex flex-col items-center">
+        <div className="pixel-card flex flex-col items-center bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
           <h3 className="text-sm font-medium mb-1">Revenus Annuels</h3>
           <span className="font-pixel text-xl text-zou-purple">
-            {totalIncome} €
+            {totalIncome.toLocaleString()} €
           </span>
         </div>
         
-        <div className="pixel-card flex flex-col items-center">
+        <div className="pixel-card flex flex-col items-center bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
           <h3 className="text-sm font-medium mb-1">Dépenses Annuelles</h3>
           <span className="font-pixel text-xl text-zou-orange">
-            {totalExpenses} €
+            {totalExpenses.toLocaleString()} €
           </span>
         </div>
         
-        <div className="pixel-card flex flex-col items-center">
+        <div className="pixel-card flex flex-col items-center bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
           <h3 className="text-sm font-medium mb-1">Épargne Annuelle</h3>
-          <span className="font-pixel text-xl text-zou-green">
-            {totalSavings} €
+          <span className={`font-pixel text-xl ${totalSavings >= 0 ? 'text-zou-green' : 'text-red-500'}`}>
+            {totalSavings.toLocaleString()} €
           </span>
+          {totalSavings < 0 && (
+            <div className="flex items-center text-xs text-red-500 mt-1">
+              <AlertTriangle size={12} className="mr-1" />
+              Déficit budgétaire
+            </div>
+          )}
         </div>
       </div>
       
@@ -130,7 +144,7 @@ const AnnualBudget = () => {
             <XAxis dataKey="month" />
             <YAxis />
             <Tooltip 
-              formatter={(value) => `${value} €`}
+              formatter={(value) => `${Number(value).toLocaleString()} €`}
               labelFormatter={(label) => `Mois: ${label}`}
             />
             <Legend />
@@ -161,10 +175,25 @@ const AnnualBudget = () => {
               return (
                 <tr key={month} className="hover:bg-muted/50">
                   <td className="border p-2">{month}</td>
-                  <td className="border p-2 text-right">{data.income} €</td>
-                  <td className="border p-2 text-right">{data.expenses} €</td>
-                  <td className="border p-2 text-right">{savings} €</td>
-                  <td className="border p-2 text-center">{percentExpenses}%</td>
+                  <td className="border p-2 text-right">{data.income.toLocaleString()} €</td>
+                  <td className="border p-2 text-right">{data.expenses.toLocaleString()} €</td>
+                  <td className={`border p-2 text-right ${savings >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {savings.toLocaleString()} €
+                  </td>
+                  <td className="border p-2 text-center">
+                    <div className="flex items-center justify-center">
+                      <div className="w-16 bg-gray-200 rounded-full h-2.5 mr-2">
+                        <div 
+                          className={`h-2.5 rounded-full ${
+                            parseFloat(percentExpenses) > 90 ? 'bg-red-500' : 
+                            parseFloat(percentExpenses) > 75 ? 'bg-orange-500' : 'bg-green-500'
+                          }`}
+                          style={{ width: `${Math.min(parseFloat(percentExpenses), 100)}%` }}
+                        ></div>
+                      </div>
+                      <span>{percentExpenses}%</span>
+                    </div>
+                  </td>
                   <td className="border p-2 text-center">
                     <Dialog open={selectedMonth === month} onOpenChange={(open) => !open && setSelectedMonth(null)}>
                       <DialogTrigger asChild>

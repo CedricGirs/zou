@@ -4,7 +4,7 @@ import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, TrendingUp, PiggyBank, CreditCard, Edit } from "lucide-react";
+import { DollarSign, TrendingUp, PiggyBank, CreditCard, Edit, LayoutDashboard } from "lucide-react";
 import AnnualBudget from "@/components/finance/AnnualBudget";
 import TransactionTracker from "@/components/finance/TransactionTracker";
 import SavingsTracker from "@/components/finance/SavingsTracker";
@@ -120,22 +120,43 @@ const Finances = () => {
   // Calculate total income
   const totalIncome = (userData.financeModule.monthlyIncome || 0) + (userData.financeModule.additionalIncome || 0);
   
+  // Calculate available amount
+  const availableAmount = totalIncome - totalExpenses;
+
+  // Calculate percentage of income spent
+  const spentPercentage = totalIncome > 0 ? (totalExpenses / totalIncome) * 100 : 0;
+  
   return (
     <MainLayout>
       <div className="mb-6">
-        <h1 className="font-pixel text-2xl mb-2">Finances</h1>
-        <p className="text-muted-foreground">Gérez votre budget, vos dépenses et vos objectifs d'épargne</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="font-pixel text-2xl mb-2">Finances</h1>
+            <p className="text-muted-foreground">Gérez votre budget, vos dépenses et vos objectifs d'épargne</p>
+          </div>
+          <div className="hidden md:block">
+            <span className="text-sm text-muted-foreground mr-2">
+              {new Date().toLocaleDateString('fr-FR', { 
+                year: 'numeric',
+                month: 'long'
+              })}
+            </span>
+          </div>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Dialog open={isEditingIncome} onOpenChange={setIsEditingIncome}>
           <DialogTrigger asChild>
-            <div className="pixel-card flex flex-col items-center cursor-pointer hover:bg-muted/50 relative" onClick={handleOpenIncomeDialog}>
+            <div className="pixel-card flex flex-col items-center cursor-pointer hover:bg-muted/50 relative bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20" onClick={handleOpenIncomeDialog}>
               <Edit size={16} className="absolute top-2 right-2 opacity-50" />
               <h3 className="text-sm font-medium mb-1">Revenus Mensuels</h3>
               <span className="font-pixel text-xl text-zou-purple">
-                {totalIncome} €
+                {totalIncome.toLocaleString()} €
               </span>
+              <div className="mt-2 w-full bg-black/5 h-1 rounded-full">
+                <div className="bg-zou-purple h-1 rounded-full" style={{ width: '100%' }}></div>
+              </div>
             </div>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
@@ -184,12 +205,24 @@ const Finances = () => {
         
         <Dialog open={isEditingExpenses} onOpenChange={setIsEditingExpenses}>
           <DialogTrigger asChild>
-            <div className="pixel-card flex flex-col items-center cursor-pointer hover:bg-muted/50 relative" onClick={handleOpenExpensesDialog}>
+            <div className="pixel-card flex flex-col items-center cursor-pointer hover:bg-muted/50 relative bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20" onClick={handleOpenExpensesDialog}>
               <Edit size={16} className="absolute top-2 right-2 opacity-50" />
               <h3 className="text-sm font-medium mb-1">Dépenses Mensuelles</h3>
               <span className="font-pixel text-xl text-zou-orange">
-                {totalExpenses} €
+                {totalExpenses.toLocaleString()} €
               </span>
+              <div className="mt-2 w-full bg-black/5 h-1 rounded-full">
+                <div 
+                  className={`h-1 rounded-full ${
+                    spentPercentage > 90 ? 'bg-red-500' : 
+                    spentPercentage > 75 ? 'bg-zou-orange' : 'bg-zou-purple'
+                  }`} 
+                  style={{ width: `${Math.min(spentPercentage, 100)}%` }}
+                ></div>
+              </div>
+              <div className="text-xs mt-1 text-muted-foreground">
+                {spentPercentage.toFixed(0)}% de vos revenus
+              </div>
             </div>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
@@ -286,19 +319,28 @@ const Finances = () => {
         
         <Dialog open={isEditingSavingsGoal} onOpenChange={setIsEditingSavingsGoal}>
           <DialogTrigger asChild>
-            <div className="pixel-card flex flex-col items-center cursor-pointer hover:bg-muted/50 relative" onClick={handleOpenSavingsGoalDialog}>
+            <div className="pixel-card flex flex-col items-center cursor-pointer hover:bg-muted/50 relative bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20" onClick={handleOpenSavingsGoalDialog}>
               <Edit size={16} className="absolute top-2 right-2 opacity-50" />
-              <h3 className="text-sm font-medium mb-1">Objectif Épargne</h3>
-              <span className="font-pixel text-xl text-zou-green">
-                {userData.financeModule.savingsGoal} €
+              <h3 className="text-sm font-medium mb-1">Disponible Mensuel</h3>
+              <span className={`font-pixel text-xl ${availableAmount >= 0 ? 'text-zou-green' : 'text-red-500'}`}>
+                {availableAmount.toLocaleString()} €
               </span>
+              <div className="text-xs mt-2 text-muted-foreground">
+                Objectif d'épargne: {userData.financeModule.savingsGoal.toLocaleString()} €
+              </div>
+              <div className="mt-1 w-full bg-black/5 h-1 rounded-full">
+                <div 
+                  className={`h-1 rounded-full ${availableAmount >= userData.financeModule.savingsGoal ? 'bg-zou-green' : 'bg-gray-400'}`} 
+                  style={{ width: `${Math.min((availableAmount / userData.financeModule.savingsGoal) * 100, 100)}%` }}
+                ></div>
+              </div>
             </div>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Modifier l'objectif d'épargne</DialogTitle>
               <DialogDescription>
-                Définissez votre objectif d'épargne à atteindre
+                Définissez votre objectif d'épargne mensuel à atteindre
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -314,6 +356,10 @@ const Finances = () => {
                   className="col-span-3"
                 />
               </div>
+              <div className="col-span-4 text-sm text-muted-foreground">
+                <p>Le montant que vous souhaitez économiser chaque mois.</p>
+                <p className="mt-2">Actuellement, il vous reste {availableAmount.toLocaleString()} € après dépenses.</p>
+              </div>
             </div>
             <div className="flex justify-end">
               <button 
@@ -327,8 +373,12 @@ const Finances = () => {
         </Dialog>
       </div>
       
-      <Tabs defaultValue="budget" className="w-full">
+      <Tabs defaultValue="dashboard" className="w-full">
         <TabsList className="mb-4">
+          <TabsTrigger value="dashboard" className="flex items-center">
+            <LayoutDashboard className="mr-1" size={16} />
+            Dashboard
+          </TabsTrigger>
           <TabsTrigger value="budget" className="flex items-center">
             <DollarSign className="mr-1" size={16} />
             Budget
@@ -347,6 +397,123 @@ const Finances = () => {
           </TabsTrigger>
         </TabsList>
         
+        <TabsContent value="dashboard">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Résumé des dépenses par catégorie */}
+            <div className="glass-card p-4">
+              <h3 className="font-pixel text-md mb-3">Répartition des Dépenses</h3>
+              <div className="space-y-3">
+                {totalExpenses > 0 ? (
+                  <>
+                    <ExpenseItem 
+                      label="Logement" 
+                      amount={userData.financeModule.housingExpenses || 0} 
+                      percentage={(userData.financeModule.housingExpenses || 0) / totalExpenses * 100} 
+                      color="bg-purple-500" 
+                    />
+                    <ExpenseItem 
+                      label="Alimentation" 
+                      amount={userData.financeModule.foodExpenses || 0} 
+                      percentage={(userData.financeModule.foodExpenses || 0) / totalExpenses * 100} 
+                      color="bg-blue-500" 
+                    />
+                    <ExpenseItem 
+                      label="Transport" 
+                      amount={userData.financeModule.transportExpenses || 0} 
+                      percentage={(userData.financeModule.transportExpenses || 0) / totalExpenses * 100} 
+                      color="bg-green-500" 
+                    />
+                    <ExpenseItem 
+                      label="Loisirs" 
+                      amount={userData.financeModule.leisureExpenses || 0} 
+                      percentage={(userData.financeModule.leisureExpenses || 0) / totalExpenses * 100} 
+                      color="bg-yellow-500" 
+                    />
+                    <ExpenseItem 
+                      label="Charges fixes" 
+                      amount={userData.financeModule.fixedExpenses || 0} 
+                      percentage={(userData.financeModule.fixedExpenses || 0) / totalExpenses * 100} 
+                      color="bg-orange-500" 
+                    />
+                    <ExpenseItem 
+                      label="Dettes" 
+                      amount={userData.financeModule.debtPayments || 0} 
+                      percentage={(userData.financeModule.debtPayments || 0) / totalExpenses * 100} 
+                      color="bg-red-500" 
+                    />
+                  </>
+                ) : (
+                  <div className="text-center p-4 text-muted-foreground">
+                    Aucune dépense enregistrée
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Widget d'économies réalisées */}
+            <div className="glass-card p-4">
+              <h3 className="font-pixel text-md mb-3">Progression Financière</h3>
+              
+              <div className="mb-4">
+                <h4 className="text-sm font-medium mb-2">Taux d'épargne mensuel</h4>
+                <div className="pixel-card p-3">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm">Actuel</span>
+                    <span className="text-sm font-medium">
+                      {totalIncome > 0 ? ((availableAmount / totalIncome) * 100).toFixed(1) : "0"}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-zou-purple h-2.5 rounded-full" 
+                      style={{ 
+                        width: `${totalIncome > 0 ? Math.max(Math.min((availableAmount / totalIncome) * 100, 100), 0) : 0}%` 
+                      }}
+                    ></div>
+                  </div>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    Recommandé: 20% de vos revenus
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium mb-2">Objectif d'épargne mensuel</h4>
+                <div className="pixel-card p-3">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm">Progression</span>
+                    <span className="text-sm font-medium">
+                      {userData.financeModule.savingsGoal > 0 
+                        ? Math.min(Math.max(Math.round((availableAmount / userData.financeModule.savingsGoal) * 100), 0), 100)
+                        : 0
+                      }%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-zou-green h-2.5 rounded-full" 
+                      style={{ 
+                        width: `${userData.financeModule.savingsGoal > 0 
+                          ? Math.min(Math.max((availableAmount / userData.financeModule.savingsGoal) * 100, 0), 100)
+                          : 0
+                        }%` 
+                      }}
+                    ></div>
+                  </div>
+                  <div className="mt-2 flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">
+                      Objectif: {userData.financeModule.savingsGoal.toLocaleString()} €
+                    </span>
+                    <span className={`text-xs ${availableAmount >= userData.financeModule.savingsGoal ? 'text-green-500' : 'text-muted-foreground'}`}>
+                      Actuel: {availableAmount.toLocaleString()} €
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+        
         <TabsContent value="budget">
           <AnnualBudget />
         </TabsContent>
@@ -364,6 +531,27 @@ const Finances = () => {
         </TabsContent>
       </Tabs>
     </MainLayout>
+  );
+};
+
+// Composant utilitaire pour afficher une ligne de dépense
+const ExpenseItem = ({ label, amount, percentage, color }: { label: string; amount: number; percentage: number; color: string }) => {
+  return (
+    <div className="mb-3">
+      <div className="flex justify-between mb-1">
+        <span className="text-sm">{label}</span>
+        <span className="text-sm font-medium">{amount.toLocaleString()} €</span>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2.5">
+        <div 
+          className={`${color} h-2.5 rounded-full`} 
+          style={{ width: `${percentage}%` }}
+        ></div>
+      </div>
+      <div className="flex justify-end mt-1">
+        <span className="text-xs text-muted-foreground">{percentage.toFixed(1)}%</span>
+      </div>
+    </div>
   );
 };
 
