@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Sword, Shield, Wand } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
@@ -120,7 +119,6 @@ const SkillTree = ({ skills = [], onSkillsUpdate }: SkillTreeProps) => {
   const [localSkills, setLocalSkills] = useState<Skill[]>(skills.length > 0 ? skills : defaultSkills);
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
   
-  // Synchroniser les compétences lorsqu'elles changent
   useEffect(() => {
     if (skills.length > 0) {
       setLocalSkills(skills);
@@ -156,16 +154,13 @@ const SkillTree = ({ skills = [], onSkillsUpdate }: SkillTreeProps) => {
   };
   
   const unlockSkill = async (skillId: string) => {
-    // Vérifier si la compétence peut être débloquée (ses prérequis sont débloqués)
     const skillToUnlock = localSkills.find(s => s.id === skillId);
     if (!skillToUnlock) return;
     
-    // Vérifier les connexions entrantes (compétences qui pointent vers celle-ci)
     const prerequisites = localSkills.filter(s => 
       s.connections.includes(skillId)
     );
     
-    // Toutes les compétences prérequises doivent être débloquées
     const canUnlock = prerequisites.every(p => p.unlocked);
     
     if (!canUnlock) {
@@ -177,7 +172,6 @@ const SkillTree = ({ skills = [], onSkillsUpdate }: SkillTreeProps) => {
       return;
     }
     
-    // Mettre à jour localement
     const updatedSkills = localSkills.map(skill => 
       skill.id === skillId ? { ...skill, unlocked: true } : skill
     );
@@ -185,10 +179,9 @@ const SkillTree = ({ skills = [], onSkillsUpdate }: SkillTreeProps) => {
     setLocalSkills(updatedSkills);
     setSelectedSkill(null);
     
-    // Enregistrer dans Firebase
     try {
       await onSkillsUpdate(updatedSkills);
-      playSound('success');
+      playSound('badge');
       toast({
         title: t("skillUnlocked"),
         description: skillToUnlock.name,

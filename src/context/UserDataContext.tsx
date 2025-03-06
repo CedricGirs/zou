@@ -1,4 +1,3 @@
-
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { doc, setDoc, getDoc, updateDoc, collection } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -185,7 +184,19 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Mise à jour dans Firebase
       const userDocRef = doc(db, 'users', newData.uid);
-      await updateDoc(userDocRef, newData);
+      
+      // Convert UserData to a plain object without methods
+      const dataToSave = {
+        uid: newData.uid,
+        heroProfile: newData.heroProfile,
+        statusModule: newData.statusModule,
+        lookModule: newData.lookModule,
+        financeModule: newData.financeModule,
+        statusItems: newData.statusItems,
+        skills: newData.skills,
+      };
+      
+      await updateDoc(userDocRef, dataToSave);
     } catch (error) {
       console.error("Erreur lors de la sauvegarde des données:", error);
       toast({
@@ -203,7 +214,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
       heroProfile: { ...userData.heroProfile, ...updates },
     };
     await saveUserData(newData);
-    playSound('success');
+    playSound('click');
   };
 
   const updateStatusModule = async (updates: Partial<StatusModule>) => {
