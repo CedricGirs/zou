@@ -7,7 +7,7 @@ import { GraduationCap, Globe, Brain, Plus } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { useSyncUserData } from "../hooks/useSyncUserData";
-import { StatusItem } from "../types/course";
+import { StatusItem, CourseItem, LanguageItem, SkillItem } from "../types/course";
 
 const Status = () => {
   const { t } = useLanguage();
@@ -22,7 +22,7 @@ const Status = () => {
       progress: 75,
       deadline: "2023-12-31",
       completed: false
-    },
+    } as CourseItem,
     {
       id: "french",
       title: "French",
@@ -30,7 +30,7 @@ const Status = () => {
       level: "B1",
       progress: 40,
       completed: false
-    },
+    } as LanguageItem,
     {
       id: "spanish",
       title: "Spanish",
@@ -38,7 +38,7 @@ const Status = () => {
       level: "A2",
       progress: 20,
       completed: false
-    },
+    } as LanguageItem,
     {
       id: "public-speaking",
       title: "Public Speaking",
@@ -46,7 +46,7 @@ const Status = () => {
       progress: 90,
       completed: true,
       certificate: "certificate.pdf"
-    }
+    } as SkillItem
   ]);
   
   useEffect(() => {
@@ -55,12 +55,12 @@ const Status = () => {
         .filter(c => c.type === "language")
         .map(c => c.id);
       
-      const newLanguageCourses = statusModule.languages
+      const newLanguageCourses: LanguageItem[] = statusModule.languages
         .filter(lang => !existingLanguageIds.includes(lang.name.toLowerCase()))
         .map(lang => ({
           id: lang.name.toLowerCase(),
           title: lang.name,
-          type: "language" as const,
+          type: "language",
           level: lang.level,
           progress: 20,
           completed: false
@@ -78,15 +78,14 @@ const Status = () => {
         .filter(c => c.type === "skill")
         .map(c => c.id);
       
-      const newSkillCourses = statusModule.softSkills
+      const newSkillCourses: SkillItem[] = statusModule.softSkills
         .filter(skill => !existingSkillIds.includes(skill.toLowerCase().replace(/\s+/g, '-')))
         .map(skill => ({
           id: skill.toLowerCase().replace(/\s+/g, '-'),
           title: skill,
-          type: "skill" as const,
+          type: "skill",
           progress: 10,
-          completed: false,
-          certificate: undefined
+          completed: false
         }));
       
       if (newSkillCourses.length > 0) {

@@ -35,35 +35,33 @@ const AddItemModal = ({ isOpen, onClose, onSave, type }: AddItemModalProps) => {
       return;
     }
 
+    const baseItem = {
+      id: `${type}-${Date.now()}`,
+      title,
+      progress,
+      completed: progress === 100
+    };
+
     let newItem: StatusItem;
 
     if (type === "language") {
       newItem = {
-        id: `${type}-${Date.now()}`,
-        title,
+        ...baseItem,
         type,
-        level,
-        progress,
-        completed: progress === 100
-      };
+        level
+      } as LanguageItem;
     } else if (type === "course") {
       newItem = {
-        id: `${type}-${Date.now()}`,
-        title,
+        ...baseItem,
         type,
-        deadline,
-        progress,
-        completed: progress === 100
-      };
+        deadline
+      } as CourseItem;
     } else {
       // type === "skill"
       newItem = {
-        id: `${type}-${Date.now()}`,
-        title,
-        type,
-        progress,
-        completed: progress === 100
-      };
+        ...baseItem,
+        type
+      } as SkillItem;
     }
 
     onSave(newItem);

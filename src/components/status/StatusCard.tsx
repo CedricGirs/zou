@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { CheckCircle, X, Upload, Clock, Trash2 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
-import { StatusItem } from "../../types/course";
+import { StatusItem, CourseItem, LanguageItem, SkillItem } from "../../types/course";
 
 interface StatusCardProps {
   item: StatusItem;
@@ -32,11 +33,18 @@ const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
   const handleUpload = () => {
     if (file) {
       // In a real app, you would upload the file to a server
-      onUpdate(item.id, { 
-        certificate: URL.createObjectURL(file),
-        completed: true,
-        progress: 100
-      });
+      if (item.type === "skill") {
+        onUpdate(item.id, { 
+          certificate: URL.createObjectURL(file),
+          completed: true,
+          progress: 100
+        });
+      } else {
+        onUpdate(item.id, { 
+          completed: true,
+          progress: 100
+        });
+      }
       setShowUpload(false);
       setFile(null);
     }
@@ -47,12 +55,22 @@ const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
       onDelete(item.id);
     }
   };
+
+  // Helper function to determine if we have a deadline (only course items have deadlines)
+  const hasDeadline = (item: StatusItem): item is CourseItem => {
+    return item.type === "course";
+  };
+
+  // Helper function for certificate (only skill items have certificates)
+  const hasCertificate = (item: StatusItem): item is SkillItem => {
+    return item.type === "skill" && !!item.certificate;
+  };
   
   return (
     <div className={`
       pixel-card relative overflow-hidden
       ${item.completed ? 'border-green-500' : ''}
-      ${item.deadline && new Date(item.deadline) < new Date() ? 'border-red-500' : ''}
+      ${hasDeadline(item) && new Date(item.deadline) < new Date() ? 'border-red-500' : ''}
     `}>
       {item.completed && (
         <div className="absolute top-0 right-0 bg-green-500 text-white p-1">
@@ -63,7 +81,7 @@ const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
       <div className="flex justify-between items-start mb-3">
         <h3 className="font-pixel text-sm">{item.title}</h3>
         <div className="flex space-x-1">
-          {item.deadline && (
+          {hasDeadline(item) && (
             <div className="flex items-center text-xs text-muted-foreground">
               <Clock size={12} className="mr-1" />
               {new Date(item.deadline).toLocaleDateString()}
@@ -79,7 +97,7 @@ const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
         </div>
       </div>
       
-      {item.type === "language" && item.level && (
+      {item.type === "language" && (
         <div className="flex items-center space-x-2 mb-3">
           <span className="text-xs font-medium">Level:</span>
           <div className="flex space-x-1">
@@ -162,7 +180,7 @@ const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
         </div>
       )}
       
-      {item.certificate && (
+      {hasCertificate(item) && (
         <div className="mt-3 flex items-center text-xs">
           <CheckCircle size={12} className="text-green-500 mr-1" />
           <span>{t("certificate")}</span>
