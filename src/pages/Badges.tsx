@@ -2,20 +2,12 @@
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import CustomBadge from "../components/ui/CustomBadge";
-import { Award, Filter, Search } from "lucide-react";
+import { Award, Filter, Search, BookOpen, Shirt, DollarSign, Gamepad, Calendar, Trophy, Coffee, Users, Code, Sparkles } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-
-interface Badge {
-  id: string;
-  icon: JSX.Element;
-  name: string;
-  description: string;
-  rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
-  unlocked: boolean;
-  unlockedDate?: string;
-  category: string;
-}
+import { Badge } from "../types/badge";
+import { badgeData } from "../data/badgeData";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Badges = () => {
   const { t } = useLanguage();
@@ -24,88 +16,9 @@ const Badges = () => {
   const [filter, setFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // Mock badges data - in a real app, this would come from your backend or localStorage
+  // Load badges from the data file
   useEffect(() => {
-    const mockBadges: Badge[] = [
-      { 
-        id: "book-worm", 
-        icon: <Book size={16} />, 
-        name: "Book Worm", 
-        description: "Read 5 books in a month", 
-        rarity: "uncommon", 
-        unlocked: true, 
-        unlockedDate: "2023-05-15T14:30:00Z",
-        category: "status"
-      },
-      { 
-        id: "polyglot", 
-        icon: <Globe size={16} />, 
-        name: "Polyglot", 
-        description: "Reach B2 level in 2 languages", 
-        rarity: "rare", 
-        unlocked: true,
-        unlockedDate: "2023-06-01T09:15:00Z",
-        category: "status"
-      },
-      { 
-        id: "gym-rat", 
-        icon: <Dumbbell size={16} />, 
-        name: "Gym Rat", 
-        description: "Work out 20 times in a month", 
-        rarity: "uncommon", 
-        unlocked: false,
-        category: "look"
-      },
-      { 
-        id: "fashionista", 
-        icon: <Shirt size={16} />, 
-        name: "Fashionista", 
-        description: "Create 50 unique outfit combinations", 
-        rarity: "rare", 
-        unlocked: false,
-        category: "look"
-      },
-      { 
-        id: "investor", 
-        icon: <DollarSign size={16} />, 
-        name: "Investor", 
-        description: "Diversify in 3 different assets", 
-        rarity: "rare", 
-        unlocked: true,
-        unlockedDate: "2023-04-10T16:45:00Z",
-        category: "finances"
-      },
-      { 
-        id: "budget-master", 
-        icon: <Calculator size={16} />, 
-        name: "Budget Master", 
-        description: "6 months without exceeding your budget", 
-        rarity: "epic", 
-        unlocked: false,
-        category: "finances"
-      },
-      { 
-        id: "pomodoro-master", 
-        icon: <Clock size={16} />, 
-        name: "Pomodoro Master", 
-        description: "Complete 100 Pomodoro sessions", 
-        rarity: "uncommon", 
-        unlocked: true,
-        unlockedDate: "2023-03-22T11:20:00Z",
-        category: "skills"
-      },
-      { 
-        id: "legend", 
-        icon: <Crown size={16} />, 
-        name: "Legend", 
-        description: "Reach level 99", 
-        rarity: "legendary", 
-        unlocked: false,
-        category: "special"
-      }
-    ];
-    
-    setBadges(mockBadges);
+    setBadges(badgeData);
   }, []);
 
   const filteredBadges = badges.filter(badge => {
@@ -115,17 +28,38 @@ const Badges = () => {
     return matchesFilter && matchesSearch;
   });
 
+  // Group badges by category for the tab view
+  const getBadgesByCategory = (category: string) => {
+    return badges.filter(badge => badge.category === category);
+  };
+  
+  const categories = [
+    { id: "status", label: t("status"), icon: <BookOpen size={16} /> },
+    { id: "look", label: t("look"), icon: <Shirt size={16} /> },
+    { id: "finances", label: t("finances"), icon: <DollarSign size={16} /> },
+    { id: "gamification", label: t("gamification"), icon: <Gamepad size={16} /> },
+    { id: "daily", label: t("dailyQuests"), icon: <Calendar size={16} /> },
+    { id: "special", label: t("specialRewards"), icon: <Trophy size={16} /> },
+    { id: "humor", label: t("humor"), icon: <Coffee size={16} /> },
+    { id: "social", label: t("social"), icon: <Users size={16} /> },
+    { id: "technical", label: t("technical"), icon: <Code size={16} /> },
+    { id: "events", label: t("events"), icon: <Sparkles size={16} /> }
+  ];
+
   const showBadgeDetails = (badge: Badge) => {
     if (badge.unlocked) {
+      const unlockedDate = badge.unlockedDate ? 
+        `\n${t("unlockedOn")}: ${new Date(badge.unlockedDate).toLocaleDateString()}` : '';
+      
       toast({
         title: badge.name,
-        description: `${badge.description}${badge.unlockedDate ? `\nUnlocked on: ${new Date(badge.unlockedDate).toLocaleDateString()}` : ''}`,
+        description: `${badge.description}${unlockedDate}`,
         duration: 3000,
       });
     } else {
       toast({
-        title: "Badge Locked",
-        description: "Complete the requirements to unlock this badge!",
+        title: t("badgeLocked"),
+        description: t("completeRequirements"),
         duration: 3000,
       });
     }
@@ -161,36 +95,73 @@ const Badges = () => {
                   className="pixel-input"
                 >
                   <option value="all">{t("allCategories")}</option>
-                  <option value="status">{t("status")}</option>
-                  <option value="look">{t("look")}</option>
-                  <option value="finances">{t("finances")}</option>
-                  <option value="skills">{t("skills")}</option>
-                  <option value="special">{t("special")}</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>{category.label}</option>
+                  ))}
                 </select>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredBadges.length > 0 ? (
-              filteredBadges.map(badge => (
-                <CustomBadge
-                  key={badge.id}
-                  icon={badge.icon}
-                  name={badge.name}
-                  description={badge.description}
-                  rarity={badge.rarity}
-                  unlocked={badge.unlocked}
-                  onClick={() => showBadgeDetails(badge)}
-                />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-10 text-muted-foreground">
-                <Award size={40} className="mx-auto mb-2 opacity-50" />
-                <p>{t("noBadgesFound")}</p>
-              </div>
-            )}
-          </div>
+          {searchTerm || filter !== "all" ? (
+            // Search/filter results view
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {filteredBadges.length > 0 ? (
+                filteredBadges.map(badge => (
+                  <CustomBadge
+                    key={badge.id}
+                    icon={badge.icon}
+                    name={badge.name}
+                    description={badge.description}
+                    rarity={badge.rarity}
+                    unlocked={badge.unlocked}
+                    onClick={() => showBadgeDetails(badge)}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-10 text-muted-foreground">
+                  <Award size={40} className="mx-auto mb-2 opacity-50" />
+                  <p>{t("noBadgesFound")}</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Tabbed view for normal browsing
+            <Tabs defaultValue="status" className="w-full">
+              <TabsList className="grid grid-cols-5 mb-6 sm:grid-cols-10">
+                {categories.map(category => (
+                  <TabsTrigger key={category.id} value={category.id} className="flex items-center gap-1">
+                    {category.icon}
+                    <span className="hidden sm:inline">{category.label}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              
+              {categories.map(category => (
+                <TabsContent key={category.id} value={category.id} className="mt-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {getBadgesByCategory(category.id).length > 0 ? (
+                      getBadgesByCategory(category.id).map(badge => (
+                        <CustomBadge
+                          key={badge.id}
+                          icon={badge.icon}
+                          name={badge.name}
+                          description={badge.description}
+                          rarity={badge.rarity}
+                          unlocked={badge.unlocked}
+                          onClick={() => showBadgeDetails(badge)}
+                        />
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center py-10 text-muted-foreground">
+                        <p>{t("noBadgesInCategory")}</p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              ))}
+            </Tabs>
+          )}
         </div>
       </div>
     </MainLayout>
@@ -198,6 +169,3 @@ const Badges = () => {
 };
 
 export default Badges;
-
-// Import necessary icons
-import { Book, Globe, Dumbbell, Shirt, DollarSign, Calculator, Clock, Crown } from "lucide-react";

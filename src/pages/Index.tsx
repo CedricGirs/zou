@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import MainLayout from "../components/layout/MainLayout";
@@ -6,10 +5,12 @@ import Avatar from "../components/dashboard/Avatar";
 import LifeGauges from "../components/dashboard/LifeGauges";
 import XPBar from "../components/dashboard/XPBar";
 import CustomBadge from "../components/ui/CustomBadge";
-import { Book, Award, Dumbbell, Globe, Zap, ArrowRight, Plus } from "lucide-react";
+import { Award, ArrowRight, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "../context/LanguageContext";
 import { playSound, preloadSounds } from "@/utils/audioUtils";
+import { badgeData } from "../data/badgeData";
+import { Badge } from "../types/badge";
 
 // Interface for quests
 interface Quest {
@@ -22,13 +23,13 @@ interface Quest {
 
 // Function to determine user rank based on level
 const getUserRank = (level: number): string => {
-  if (level >= 1 && level <= 10) return "Apprenti";
-  if (level >= 11 && level <= 30) return "Combattant";
-  if (level >= 31 && level <= 50) return "Héros";
-  if (level >= 51 && level <= 70) return "Maître";
-  if (level >= 71 && level <= 90) return "Légendaire";
-  if (level >= 91) return "Divin";
-  return "Nouveau"; // Default
+  if (level >= 1 && level <= 10) return "Apprentice";
+  if (level >= 11 && level <= 30) return "Fighter";
+  if (level >= 31 && level <= 50) return "Hero";
+  if (level >= 51 && level <= 70) return "Master";
+  if (level >= 71 && level <= 90) return "Legendary";
+  if (level >= 91) return "Divine";
+  return "Novice"; // Default
 };
 
 const Index = () => {
@@ -74,34 +75,15 @@ const Index = () => {
   // Filter out completed quests for display
   const incompleteQuests = dailyQuests.filter(quest => !quest.completed);
   
-  const recentBadges = [
-    { 
-      id: "book-worm", 
-      icon: <Book size={16} />, 
-      name: "Book Worm", 
-      description: "Read 5 books in a month", 
-      rarity: "uncommon", 
-      unlocked: true,
-      unlockedDate: "2023-05-15T14:30:00Z" 
-    },
-    { 
-      id: "polyglot", 
-      icon: <Globe size={16} />, 
-      name: "Polyglot", 
-      description: "Reach B2 level in 2 languages", 
-      rarity: "rare", 
-      unlocked: true,
-      unlockedDate: "2023-06-01T09:15:00Z"
-    },
-    { 
-      id: "gym-rat", 
-      icon: <Dumbbell size={16} />, 
-      name: "Gym Rat", 
-      description: "Work out 20 times in a month", 
-      rarity: "uncommon", 
-      unlocked: false 
-    }
-  ];
+  // Get recently unlocked badges (max 3)
+  const recentBadges = badgeData
+    .filter(badge => badge.unlocked && badge.unlockedDate)
+    .sort((a, b) => {
+      const dateA = new Date(a.unlockedDate || "");
+      const dateB = new Date(b.unlockedDate || "");
+      return dateB.getTime() - dateA.getTime();
+    })
+    .slice(0, 3);
   
   const addXP = (amount: number) => {
     let newXP = currentXP + amount;
@@ -148,18 +130,18 @@ const Index = () => {
     localStorage.setItem("zouDailyQuests", JSON.stringify(updatedQuests));
   };
   
-  const showBadgeDetails = (badge: any) => {
+  const showBadgeDetails = (badge: Badge) => {
     if (badge.unlocked) {
       playSound('badge');
       toast({
         title: badge.name,
-        description: `${badge.description}${badge.unlockedDate ? `\nUnlocked on: ${new Date(badge.unlockedDate).toLocaleDateString()}` : ''}`,
+        description: `${badge.description}${badge.unlockedDate ? `\n${t("unlockedOn")}: ${new Date(badge.unlockedDate).toLocaleDateString()}` : ''}`,
         duration: 3000,
       });
     } else {
       toast({
-        title: "Badge Locked",
-        description: "Complete the requirements to unlock this badge!",
+        title: t("badgeLocked"),
+        description: t("completeRequirements"),
         duration: 3000,
       });
     }
@@ -188,7 +170,7 @@ const Index = () => {
           <div className="glass-card p-6 h-full">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
-                <Zap size={18} className="text-zou-purple mr-2" />
+                <Award size={18} className="text-zou-purple mr-2" />
                 <h2 className="font-pixel text-lg">{t("dailyQuests")}</h2>
               </div>
               <Link 
@@ -255,7 +237,7 @@ const Index = () => {
                     icon={badge.icon}
                     name={badge.name}
                     description={badge.description}
-                    rarity={badge.rarity as any}
+                    rarity={badge.rarity}
                     unlocked={badge.unlocked}
                     onClick={() => showBadgeDetails(badge)}
                   />

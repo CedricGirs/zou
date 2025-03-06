@@ -2,78 +2,37 @@
 import MainLayout from "../components/layout/MainLayout";
 import SkillTree from "../components/skills/SkillTree";
 import CustomBadge from "../components/ui/CustomBadge";
-import { BookOpen, Globe, Lightbulb, Heart, Code, Brain, Trophy, Dumbbell } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
+import { badgeData } from "../data/badgeData";
+import { Badge } from "../types/badge";
+import { useToast } from "@/hooks/use-toast";
+import { playSound } from "@/utils/audioUtils";
 
 const Skills = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   
-  const badges = [
-    { 
-      id: "polyglot", 
-      icon: <Globe size={16} />, 
-      name: "Polyglot", 
-      description: "Reach C1 proficiency in 3 languages", 
-      rarity: "legendary", 
-      unlocked: false 
-    },
-    { 
-      id: "bookworm", 
-      icon: <BookOpen size={16} />, 
-      name: "Book Worm", 
-      description: "Read 12 books in a year", 
-      rarity: "rare", 
-      unlocked: true 
-    },
-    { 
-      id: "creative", 
-      icon: <Lightbulb size={16} />, 
-      name: "Creative Genius", 
-      description: "Complete 5 creative projects", 
-      rarity: "epic", 
-      unlocked: false 
-    },
-    { 
-      id: "mindful", 
-      icon: <Heart size={16} />, 
-      name: "Mindfulness Master", 
-      description: "Meditate for 30 consecutive days", 
-      rarity: "rare", 
-      unlocked: true 
-    },
-    { 
-      id: "coder", 
-      icon: <Code size={16} />, 
-      name: "Code Ninja", 
-      description: "Complete 3 programming courses", 
-      rarity: "epic", 
-      unlocked: false 
-    },
-    { 
-      id: "quiz", 
-      icon: <Brain size={16} />, 
-      name: "Quiz Champion", 
-      description: "Score 90%+ on 10 knowledge quizzes", 
-      rarity: "uncommon", 
-      unlocked: true 
-    },
-    { 
-      id: "fitness", 
-      icon: <Dumbbell size={16} />, 
-      name: "Fitness Freak", 
-      description: "Work out 20 times in a month", 
-      rarity: "rare", 
-      unlocked: false 
-    },
-    { 
-      id: "achiever", 
-      icon: <Trophy size={16} />, 
-      name: "Ultimate Achiever", 
-      description: "Reach level 50 in Zou", 
-      rarity: "legendary", 
-      unlocked: false 
+  // Filter badges related to skills and learning
+  const skillBadges = badgeData.filter(badge => 
+    badge.category === "status" || badge.category === "technical" || badge.category === "gamification"
+  ).slice(0, 8);
+  
+  const showBadgeDetails = (badge: Badge) => {
+    if (badge.unlocked) {
+      playSound('badge');
+      toast({
+        title: badge.name,
+        description: `${badge.description}${badge.unlockedDate ? `\n${t("unlockedOn")}: ${new Date(badge.unlockedDate).toLocaleDateString()}` : ''}`,
+        duration: 3000,
+      });
+    } else {
+      toast({
+        title: t("badgeLocked"),
+        description: t("completeRequirements"),
+        duration: 3000,
+      });
     }
-  ];
+  };
   
   return (
     <MainLayout>
@@ -90,14 +49,15 @@ const Skills = () => {
       <div className="glass-card p-4">
         <h2 className="font-pixel text-lg mb-4">{t("badgesAchievements")}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {badges.map(badge => (
+          {skillBadges.map(badge => (
             <CustomBadge 
               key={badge.id}
               icon={badge.icon}
               name={badge.name}
               description={badge.description}
-              rarity={badge.rarity as any}
+              rarity={badge.rarity}
               unlocked={badge.unlocked}
+              onClick={() => showBadgeDetails(badge)}
             />
           ))}
         </div>
