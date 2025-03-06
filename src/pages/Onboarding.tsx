@@ -1,109 +1,95 @@
-import { useEffect } from "react";
-import { Navigate, useNavigate, useLocation } from "react-router-dom";
-import { useOnboarding } from "../context/OnboardingContext";
+
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import OnboardingLayout from "../components/onboarding/OnboardingLayout";
 import HeroProfileStep from "../components/onboarding/HeroProfileStep";
 import StatusModuleStep from "../components/onboarding/StatusModuleStep";
 import LookModuleStep from "../components/onboarding/LookModuleStep";
 import FinanceModuleStep from "../components/onboarding/FinanceModuleStep";
 import { useLanguage } from "../context/LanguageContext";
+import { useUserData } from "../context/UserDataContext";
 
 const Onboarding = () => {
-  const { onboarding, totalSteps, setOnboardingCompleted, nextStep, prevStep } = useOnboarding();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const location = useLocation();
+  const { setCompletedOnboarding } = useUserData();
+  const [currentStep, setCurrentStep] = useState(0);
   
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const stepParam = params.get('step');
-    
-    if (stepParam) {
-      const step = parseInt(stepParam);
-      if (!isNaN(step) && step >= 1 && step <= totalSteps) {
-        while (onboarding.currentStep < step) {
-          nextStep();
-        }
-        while (onboarding.currentStep > step) {
-          prevStep();
-        }
-      }
-    }
-  }, [location.search]);
-  
-  useEffect(() => {
-    if (onboarding.isCompleted && !location.pathname.includes('onboarding')) {
-      navigate('/');
-    }
-  }, [onboarding.isCompleted, navigate, location.pathname]);
-  
-  if (onboarding.isCompleted && !location.pathname.includes('onboarding')) {
-    return <Navigate to="/" />;
-  }
-  
-  const renderStep = () => {
-    switch (onboarding.currentStep) {
-      case 1:
-        return (
-          <OnboardingLayout
-            title={t("createHeroProfile")}
-            subtitle={t("createHeroProfileDesc")}
-            showPrevButton={false}
-            onNext={() => {
-              return !!onboarding.heroProfile.username.trim();
-            }}
-          >
-            <HeroProfileStep />
-          </OnboardingLayout>
-        );
-      case 2:
-        return (
-          <OnboardingLayout
-            title={t("statusModule")}
-            subtitle={t("statusModuleDesc")}
-          >
-            <StatusModuleStep />
-          </OnboardingLayout>
-        );
-      case 3:
-        return (
-          <OnboardingLayout
-            title={t("lookModule")}
-            subtitle={t("lookModuleDesc")}
-          >
-            <LookModuleStep />
-          </OnboardingLayout>
-        );
-      case 4:
-        return (
-          <OnboardingLayout
-            title={t("financeModule")}
-            subtitle={t("financeModuleDesc")}
-          >
-            <FinanceModuleStep />
-          </OnboardingLayout>
-        );
-      case 5:
-        return (
-          <OnboardingLayout
-            title={t("tutorial")}
-            subtitle={t("tutorialDesc")}
-            onComplete={() => {
-              setOnboardingCompleted(true);
-            }}
-          >
-            <div className="text-center py-10">
-              <p className="text-muted-foreground">{t("congratsOnboarding")}</p>
-              <p className="mt-4">{t("readyToStart")}</p>
-            </div>
-          </OnboardingLayout>
-        );
-      default:
-        return <Navigate to="/" />;
+  const steps = [
+    {
+      title: t("heroProfile"),
+      component: <HeroProfileStep />,
+      validate: () => true, // Validation is done inside the component
+    },
+    {
+      title: t("statusModule"),
+      component: <StatusModuleStep />,
+      validate: () => true,
+    },
+    {
+      title: t("lookModule"),
+      component: <LookModuleStep />,
+      validate: () => true,
+    },
+    {
+      title: t("financeModule"),
+      component: <FinanceModuleStep />,
+      validate: () => true,
+    },
+    {
+      title: t("tutorial"),
+      component: (
+        <div className="space-y-6">
+          <p>{t("tutorialText1")}</p>
+          <p>{t("tutorialText2")}</p>
+          <p>{t("tutorialText3")}</p>
+          <div className="pixel-card p-4 bg-zou-purple/10 mt-6">
+            <p className="text-sm font-medium">{t("tutorialTip")}</p>
+          </div>
+        </div>
+      ),
+      validate: () => true,
+    },
+  ];
+
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      completeOnboarding();
     }
   };
-  
-  return renderStep();
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const completeOnboarding = () => {
+    // Set onboarding completed in UserDataContext
+    setCompletedOnboarding(true);
+    // Navigate to main app
+    navigate('/');
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/80 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-4xl">
+        <OnboardingLayout
+          title={steps[currentStep].title}
+          subtitle={t("stepProgress", { current: currentStep + 1, total: steps.length })}
+          currentStep={currentStep}
+          totalSteps={steps.length}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+          onComplete={completeOnboarding}
+        >
+          {steps[currentStep].component}
+        </OnboardingLayout>
+      </div>
+    </div>
+  );
 };
 
 export default Onboarding;

@@ -1,21 +1,61 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
+import { useUserData } from "../context/UserDataContext";
 import { DollarSign, TrendingUp, PiggyBank, Plus, AlertCircle } from "lucide-react";
 
 const Finances = () => {
+  const { userData, updateFinanceModule } = useUserData();
+  
+  // Use user data for initial budget values if available
+  const initialIncome = userData.financeModule.monthlyIncome || 5000;
+  
   // Mock data for budget categories
   const [budget, setBudget] = useState({
-    income: 5000,
+    income: initialIncome,
     categories: [
-      { id: "housing", name: "Housing", budget: 1500, spent: 1450, color: "bg-zou-purple" },
+      { id: "housing", name: "Housing", budget: userData.financeModule.fixedExpenses || 1500, spent: 1450, color: "bg-zou-purple" },
       { id: "food", name: "Food", budget: 600, spent: 580, color: "bg-zou-orange" },
       { id: "transport", name: "Transport", budget: 400, spent: 320, color: "bg-zou-blue" },
       { id: "leisure", name: "Leisure", budget: 300, spent: 350, color: "bg-zou-pink" },
-      { id: "savings", name: "Savings", budget: 1000, spent: 800, color: "bg-zou-green" },
+      { id: "savings", name: "Savings", budget: userData.financeModule.savingsGoal || 1000, spent: 800, color: "bg-zou-green" },
       { id: "other", name: "Other", budget: 200, spent: 180, color: "bg-gray-400" }
     ]
   });
+  
+  // Update budget when userData changes
+  useEffect(() => {
+    if (userData.financeModule.monthlyIncome || userData.financeModule.fixedExpenses || userData.financeModule.savingsGoal) {
+      const updatedCategories = [...budget.categories];
+      
+      // Update housing budget if fixed expenses changed
+      if (userData.financeModule.fixedExpenses) {
+        const housingIndex = updatedCategories.findIndex(cat => cat.id === "housing");
+        if (housingIndex !== -1) {
+          updatedCategories[housingIndex] = {
+            ...updatedCategories[housingIndex],
+            budget: userData.financeModule.fixedExpenses
+          };
+        }
+      }
+      
+      // Update savings budget if savings goal changed
+      if (userData.financeModule.savingsGoal) {
+        const savingsIndex = updatedCategories.findIndex(cat => cat.id === "savings");
+        if (savingsIndex !== -1) {
+          updatedCategories[savingsIndex] = {
+            ...updatedCategories[savingsIndex],
+            budget: userData.financeModule.savingsGoal
+          };
+        }
+      }
+      
+      setBudget({
+        income: userData.financeModule.monthlyIncome || budget.income,
+        categories: updatedCategories
+      });
+    }
+  }, [userData.financeModule]);
   
   // Mock data for savings goals
   const [savingsGoals, setSavingsGoals] = useState([

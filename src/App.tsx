@@ -1,110 +1,67 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./context/LanguageContext";
 import { OnboardingProvider } from "./context/OnboardingContext";
+import { UserDataProvider } from "./context/UserDataContext";
+
 import Index from "./pages/Index";
 import Status from "./pages/Status";
 import Look from "./pages/Look";
-import Finances from "./pages/Finances";
 import Skills from "./pages/Skills";
+import Finances from "./pages/Finances";
 import DailyQuests from "./pages/DailyQuests";
 import Badges from "./pages/Badges";
 import Profile from "./pages/Profile";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
+import "./App.css";
+import { Toaster } from "./components/ui/toaster";
+
 const queryClient = new QueryClient();
 
-// Component to check if onboarding is completed
-const RequireOnboarding = ({ children }: { children: JSX.Element }) => {
-  // Check if onboarding is completed
-  const onboardingCompleted = localStorage.getItem('zouOnboarding') ? 
-    JSON.parse(localStorage.getItem('zouOnboarding') || '{}').isCompleted : 
-    false;
-  
-  const location = useLocation();
-  
-  // If onboarding is not completed and we're not on the onboarding page, redirect to onboarding
-  if (!onboardingCompleted && location.pathname !== '/onboarding') {
-    return <Navigate to="/onboarding" replace />;
-  }
-  
-  return children;
-};
+const App = () => {
+  // Check if user has completed onboarding
+  const hasCompletedOnboarding = () => {
+    const data = localStorage.getItem('zouUserData');
+    if (data) {
+      const userData = JSON.parse(data);
+      return userData.completedOnboarding;
+    }
+    return false;
+  };
 
-// This is the main app container that wraps the Router
-const AppContainer = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+      <ThemeProvider defaultTheme="dark" attribute="class">
         <LanguageProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
+          <UserDataProvider>
+            <OnboardingProvider>
+              <Router>
+                <Routes>
+                  <Route path="/" element={
+                    hasCompletedOnboarding() ? <Index /> : <Navigate to="/onboarding" />
+                  } />
+                  <Route path="/status" element={<Status />} />
+                  <Route path="/look" element={<Look />} />
+                  <Route path="/skills" element={<Skills />} />
+                  <Route path="/finances" element={<Finances />} />
+                  <Route path="/daily-quests" element={<DailyQuests />} />
+                  <Route path="/badges" element={<Badges />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/onboarding" element={<Onboarding />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Toaster />
+              </Router>
+            </OnboardingProvider>
+          </UserDataProvider>
         </LanguageProvider>
-      </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };
-
-// This component contains all the routes and needs access to Router context
-const AppRoutes = () => {
-  return (
-    <OnboardingProvider>
-      <Routes>
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/" element={
-          <RequireOnboarding>
-            <Index />
-          </RequireOnboarding>
-        } />
-        <Route path="/status" element={
-          <RequireOnboarding>
-            <Status />
-          </RequireOnboarding>
-        } />
-        <Route path="/look" element={
-          <RequireOnboarding>
-            <Look />
-          </RequireOnboarding>
-        } />
-        <Route path="/finances" element={
-          <RequireOnboarding>
-            <Finances />
-          </RequireOnboarding>
-        } />
-        <Route path="/skills" element={
-          <RequireOnboarding>
-            <Skills />
-          </RequireOnboarding>
-        } />
-        <Route path="/daily-quests" element={
-          <RequireOnboarding>
-            <DailyQuests />
-          </RequireOnboarding>
-        } />
-        <Route path="/badges" element={
-          <RequireOnboarding>
-            <Badges />
-          </RequireOnboarding>
-        } />
-        <Route path="/profile" element={
-          <RequireOnboarding>
-            <Profile />
-          </RequireOnboarding>
-        } />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </OnboardingProvider>
-  );
-};
-
-const App = () => <AppContainer />;
 
 export default App;
