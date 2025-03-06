@@ -4,8 +4,8 @@ import { useUserData } from '../context/UserDataContext';
 import { useOnboarding } from '../context/OnboardingContext';
 
 /**
- * Custom hook to synchronize data between onboarding context and user data context
- * This ensures all sections stay in sync when updates happen in any section
+ * Custom hook to synchronize data between profile updates and all other sections
+ * This ensures all sections stay in sync when updates happen in the profile
  */
 export const useSyncUserData = () => {
   const { userData, updateHeroProfile, updateStatusModule, updateLookModule, updateFinanceModule } = useUserData();
@@ -26,9 +26,7 @@ export const useSyncUserData = () => {
     }
     
     // For status module, map the values to compatible types
-    if (userData.statusModule.education?.length > 0 || userData.statusModule.languages?.length > 0 || 
-        userData.statusModule.skills?.length > 0 || userData.statusModule.softSkills?.length > 0) {
-      
+    if (userData.statusModule.languages?.length > 0 || userData.statusModule.softSkills?.length > 0) {
       // Map languages to ensure level is of the correct type
       const mappedLanguages = userData.statusModule.languages?.map(lang => ({
         name: lang.name,
@@ -36,13 +34,13 @@ export const useSyncUserData = () => {
       }));
       
       updateOnboardingStatusModule({
-        languages: mappedLanguages,
+        languages: mappedLanguages || [],
         softSkills: userData.statusModule.softSkills || []
       });
     }
     
     // For look module, ensure style is one of the allowed values
-    if (userData.lookModule.favoriteColors?.length > 0 || userData.lookModule.selectedClothing?.length > 0) {
+    if (userData.lookModule.selectedClothing?.length > 0) {
       const style = (userData.lookModule.style as "classic" | "sporty" | "streetwear") || "classic";
       
       updateOnboardingLookModule({

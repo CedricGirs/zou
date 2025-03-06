@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LanguageProvider } from "./context/LanguageContext";
@@ -15,7 +15,6 @@ import Finances from "./pages/Finances";
 import DailyQuests from "./pages/DailyQuests";
 import Badges from "./pages/Badges";
 import Profile from "./pages/Profile";
-import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
 import "./App.css";
@@ -30,16 +29,6 @@ const DataSyncLayer = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => {
-  // Check if user has completed onboarding
-  const hasCompletedOnboarding = () => {
-    const data = localStorage.getItem('zouUserData');
-    if (data) {
-      const userData = JSON.parse(data);
-      return userData.completedOnboarding;
-    }
-    return false;
-  };
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" attribute="class">
@@ -49,9 +38,7 @@ const App = () => {
               <DataSyncLayer>
                 <Router>
                   <Routes>
-                    <Route path="/" element={
-                      hasCompletedOnboarding() ? <Index /> : <Navigate to="/onboarding" />
-                    } />
+                    <Route path="/" element={<Index />} />
                     <Route path="/status" element={<Status />} />
                     <Route path="/look" element={<Look />} />
                     <Route path="/skills" element={<Skills />} />
@@ -59,7 +46,6 @@ const App = () => {
                     <Route path="/daily-quests" element={<DailyQuests />} />
                     <Route path="/badges" element={<Badges />} />
                     <Route path="/profile" element={<Profile />} />
-                    <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <Toaster />
