@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   PieChart, 
@@ -19,12 +20,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, CreditCard, Filter, Calendar, Info, DollarSign } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Plus, Trash2, CreditCard, Filter, Calendar, Info, DollarSign, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useUserData, Transaction } from "@/context/UserDataContext";
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 
-const TransactionTracker = () => {
+interface TransactionTrackerProps {
+  preselectedMonth?: string;
+}
+
+const TransactionTracker = ({ preselectedMonth }: TransactionTrackerProps) => {
   const { userData, updateFinanceModule } = useUserData();
   const transactions = userData.financeModule.transactions || [];
   
@@ -32,7 +38,7 @@ const TransactionTracker = () => {
   
   const [newTransaction, setNewTransaction] = useState<Partial<Transaction>>({
     date: new Date().toISOString().split('T')[0],
-    month: currentMonth,
+    month: preselectedMonth || currentMonth,
     description: '',
     amount: 0,
     category: 'Autre',
@@ -49,10 +55,21 @@ const TransactionTracker = () => {
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
 
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [selectedMonth, setSelectedMonth] = useState(preselectedMonth || currentMonth);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [transactionType, setTransactionType] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
+  
+  // Update selected month when preselectedMonth changes
+  useEffect(() => {
+    if (preselectedMonth) {
+      setSelectedMonth(preselectedMonth);
+      setNewTransaction(prev => ({
+        ...prev,
+        month: preselectedMonth
+      }));
+    }
+  }, [preselectedMonth]);
 
   useEffect(() => {
     if (transactions.length > 0 && userData.financeModule.annualBudget) {
@@ -119,6 +136,22 @@ const TransactionTracker = () => {
       ...newTransaction,
       month: value
     });
+  };
+  
+  const setTransactionType = (type: 'income' | 'expense') => {
+    // If already an income and clicking income button again, do nothing
+    if (type === 'income' && newTransaction.amount !== undefined && newTransaction.amount > 0) return;
+    // If already an expense and clicking expense button again, do nothing
+    if (type === 'expense' && newTransaction.amount !== undefined && newTransaction.amount < 0) return;
+    
+    // If there's an amount, convert it
+    if (newTransaction.amount) {
+      const currentAmount = Math.abs(newTransaction.amount);
+      setNewTransaction({
+        ...newTransaction,
+        amount: type === 'income' ? currentAmount : -currentAmount
+      });
+    }
   };
 
   const handleAddTransaction = async () => {
@@ -236,18 +269,18 @@ const TransactionTracker = () => {
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center">
           <CreditCard className="mr-2 text-zou-purple" size={20} />
-          <h2 className="font-pixel text-lg">Transactions</h2>
+          <h2 className="font-pixel text-lg">Transactions - {selectedMonth}</h2>
         </div>
         
         <div className="flex items-center space-x-2">
           <Dialog open={showDialog} onOpenChange={setShowDialog}>
             <DialogTrigger asChild>
-              <button className="pixel-button flex items-center">
+              <Button variant="default" size="sm" className="h-9">
                 <Plus size={16} className="mr-1" />
                 Ajouter
-              </button>
+              </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Ajouter une transaction</DialogTitle>
                 <DialogDescription>
@@ -255,26 +288,49 @@ const TransactionTracker = () => {
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="date" className="text-right">Date</Label>
-                  <Input
-                    id="date"
-                    name="date"
-                    type="date"
-                    value={newTransaction.date}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                  />
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="transactionType">Type de transaction</Label>
+                  <div className="flex space-x-2">
+                    <Button 
+                      type="button" 
+                      variant={newTransaction.amount !== undefined && newTransaction.amount > 0 ? "default" : "outline"} 
+                      onClick={() => setTransactionType('income')}
+                      className="flex-1"
+                    >
+                      <ArrowUpRight size={16} className="mr-2 text-green-500" />
+                      Revenu
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant={newTransaction.amount !== undefined && newTransaction.amount < 0 ? "default" : "outline"} 
+                      onClick={() => setTransactionType('expense')}
+                      className="flex-1"
+                    >
+                      <ArrowDownRight size={16} className="mr-2 text-red-500" />
+                      Dépense
+                    </Button>
+                  </div>
                 </div>
                 
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="month" className="text-right">Mois</Label>
-                  <div className="col-span-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="date">Date</Label>
+                    <Input
+                      id="date"
+                      name="date"
+                      type="date"
+                      value={newTransaction.date}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  
+                  <div className="flex flex-col space-y-1.5">
+                    <Label htmlFor="month">Mois</Label>
                     <Select 
                       value={newTransaction.month} 
                       onValueChange={handleMonthChange}
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger>
                         <SelectValue placeholder="Sélectionner un mois" />
                       </SelectTrigger>
                       <SelectContent>
@@ -286,72 +342,75 @@ const TransactionTracker = () => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="description" className="text-right">Description</Label>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="description">Description</Label>
                   <Input
                     id="description"
                     name="description"
                     value={newTransaction.description}
                     onChange={handleInputChange}
-                    className="col-span-3"
+                    placeholder="Ex: Courses au supermarché"
                   />
                 </div>
                 
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="amount" className="text-right">Montant</Label>
-                  <div className="col-span-3 relative">
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="amount">Montant (€)</Label>
+                  <div className="relative">
                     <Input
                       id="amount"
                       name="amount"
                       type="number"
-                      value={newTransaction.amount}
-                      onChange={handleInputChange}
+                      value={Math.abs(newTransaction.amount || 0)}
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        const sign = newTransaction.amount !== undefined && newTransaction.amount < 0 ? -1 : 1;
+                        setNewTransaction({
+                          ...newTransaction,
+                          amount: sign * value
+                        });
+                      }}
                       className="pl-8"
+                      placeholder="0.00"
                     />
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2">€</span>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Utilisez des valeurs positives pour les revenus, négatives pour les dépenses.
-                    </div>
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    {newTransaction.amount !== undefined && newTransaction.amount < 0 ? 
+                      "Dépense: valeur négative" : 
+                      "Revenu: valeur positive"}
+                  </p>
                 </div>
                 
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="category" className="text-right">Catégorie</Label>
-                  <div className="col-span-3">
-                    <Select 
-                      value={newTransaction.category} 
-                      onValueChange={handleCategoryChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner une catégorie" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map(category => (
-                          <SelectItem key={category} value={category}>{category}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="category">Catégorie</Label>
+                  <Select 
+                    value={newTransaction.category} 
+                    onValueChange={handleCategoryChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map(category => (
+                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <div className="col-span-4 flex items-center space-x-2">
-                    <Checkbox 
-                      id="isVerified" 
-                      checked={newTransaction.isVerified}
-                      onCheckedChange={handleCheckboxChange}
-                    />
-                    <Label htmlFor="isVerified">Transaction vérifiée avec relevé bancaire</Label>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="isVerified" 
+                    checked={newTransaction.isVerified}
+                    onCheckedChange={handleCheckboxChange}
+                  />
+                  <Label htmlFor="isVerified">Transaction vérifiée avec relevé bancaire</Label>
                 </div>
               </div>
               <div className="flex justify-end">
-                <button 
-                  className="pixel-button"
-                  onClick={handleAddTransaction}
-                >
+                <Button onClick={handleAddTransaction}>
                   Ajouter la transaction
-                </button>
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -551,13 +610,13 @@ const TransactionTracker = () => {
           <p className="text-muted-foreground text-sm mb-4">
             Ajoutez votre première transaction en cliquant sur le bouton "Ajouter"
           </p>
-          <button 
-            className="pixel-button"
+          <Button 
             onClick={() => setShowDialog(true)}
+            className="mx-auto"
           >
             <Plus size={16} className="mr-1 inline-block" />
             Ajouter une transaction
-          </button>
+          </Button>
         </div>
       )}
     </div>

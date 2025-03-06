@@ -4,7 +4,7 @@ import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, TrendingUp, PiggyBank, CreditCard, Edit, LayoutDashboard } from "lucide-react";
+import { DollarSign, TrendingUp, PiggyBank, CreditCard, Edit, LayoutDashboard, Calendar } from "lucide-react";
 import AnnualBudget from "@/components/finance/AnnualBudget";
 import TransactionTracker from "@/components/finance/TransactionTracker";
 import SavingsTracker from "@/components/finance/SavingsTracker";
@@ -19,11 +19,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from '@/hooks/use-toast';
 
 const Finances = () => {
   const { userData, updateFinanceModule } = useUserData();
   const { t } = useLanguage();
+  
+  // Month selection
+  const months = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+  ];
+  const currentMonth = new Date().toLocaleString('fr-FR', { month: 'long' });
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   
   // Edit states
   const [isEditingIncome, setIsEditingIncome] = useState(false);
@@ -134,13 +143,23 @@ const Finances = () => {
             <h1 className="font-pixel text-2xl mb-2">Finances</h1>
             <p className="text-muted-foreground">Gérez votre budget, vos dépenses et vos objectifs d'épargne</p>
           </div>
-          <div className="hidden md:block">
-            <span className="text-sm text-muted-foreground mr-2">
-              {new Date().toLocaleDateString('fr-FR', { 
-                year: 'numeric',
-                month: 'long'
-              })}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground hidden md:inline">
+              {new Date().toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })}
             </span>
+            <div className="flex items-center">
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-[180px] h-9">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Mois" />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map(month => (
+                    <SelectItem key={month} value={month}>{month}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>
@@ -398,6 +417,9 @@ const Finances = () => {
         </TabsList>
         
         <TabsContent value="dashboard">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-pixel text-lg">Aperçu du mois: {selectedMonth}</h3>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Résumé des dépenses par catégorie */}
             <div className="glass-card p-4">
@@ -515,19 +537,19 @@ const Finances = () => {
         </TabsContent>
         
         <TabsContent value="budget">
-          <AnnualBudget />
+          <AnnualBudget selectedMonth={selectedMonth} />
         </TabsContent>
         
         <TabsContent value="transactions">
-          <TransactionTracker />
+          <TransactionTracker preselectedMonth={selectedMonth} />
         </TabsContent>
         
         <TabsContent value="savings">
-          <SavingsTracker />
+          <SavingsTracker selectedMonth={selectedMonth} />
         </TabsContent>
         
         <TabsContent value="reports">
-          <FinancialReports />
+          <FinancialReports selectedMonth={selectedMonth} />
         </TabsContent>
       </Tabs>
     </MainLayout>
