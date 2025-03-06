@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   PieChart, 
   Pie, 
@@ -55,6 +55,47 @@ const TransactionTracker = () => {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [transactionType, setTransactionType] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
+
+  // Update the monthly budget based on transactions
+  useEffect(() => {
+    if (transactions.length > 0 && userData.financeModule.annualBudget) {
+      updateBudgetFromTransactions();
+    }
+  }, [transactions, userData.financeModule.annualBudget]);
+
+  const updateBudgetFromTransactions = async () => {
+    if (!userData.financeModule.annualBudget) return;
+    
+    // Group transactions by month
+    const transactionsByMonth = transactions.reduce((acc, transaction) => {
+      const month = transaction.month;
+      if (!acc[month]) {
+        acc[month] = { income: 0, expenses: 0 };
+      }
+      
+      if (transaction.amount > 0) {
+        acc[month].income += transaction.amount;
+      } else {
+        acc[month].expenses += Math.abs(transaction.amount);
+      }
+      
+      return acc;
+    }, {} as Record<string, { income: number, expenses: number }>);
+    
+    // Update annual budget with transaction data
+    const updatedBudget = { ...userData.financeModule.annualBudget };
+    
+    Object.entries(transactionsByMonth).forEach(([month, data]) => {
+      if (updatedBudget[month]) {
+        updatedBudget[month] = {
+          income: data.income,
+          expenses: data.expenses
+        };
+      }
+    });
+    
+    await updateFinanceModule({ annualBudget: updatedBudget });
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;

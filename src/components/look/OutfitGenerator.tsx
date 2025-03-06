@@ -46,12 +46,12 @@ const OutfitGenerator = ({ selectedClothing }: OutfitGeneratorProps) => {
         ]
       };
 
-      // Ajouter une veste si disponible, mais pas tous les jours
-      if (jackets.length > 0 && (index % 2 === 0 || index === 6)) {
+      // Ajouter une veste pour certains jours (lundi, mercredi, vendredi, dimanche)
+      if (jackets.length > 0 && (index === 0 || index === 2 || index === 4 || index === 6)) {
         outfit.items.push(jackets[index % jackets.length]);
       }
 
-      // Ajouter des chaussures si disponibles
+      // Ajouter des chaussures
       if (shoes.length > 0) {
         outfit.items.push(shoes[index % shoes.length]);
       }
