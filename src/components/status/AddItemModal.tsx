@@ -8,12 +8,11 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLanguage } from "../../context/LanguageContext";
-import { StatusItem, CourseItem, LanguageItem, SkillItem } from "../../types/course";
 
 interface AddItemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (item: StatusItem) => void;
+  onSave: (item: any) => void;
   type: "course" | "language" | "skill";
 }
 
@@ -35,34 +34,19 @@ const AddItemModal = ({ isOpen, onClose, onSave, type }: AddItemModalProps) => {
       return;
     }
 
-    const baseItem = {
+    const newItem = {
       id: `${type}-${Date.now()}`,
       title,
+      type,
       progress,
-      completed: progress === 100
+      completed: progress === 100,
     };
 
-    let newItem: StatusItem;
-
+    // Ajouter des propriétés spécifiques au type
     if (type === "language") {
-      newItem = {
-        ...baseItem,
-        type: "language" as const,
-        level
-      } as LanguageItem;
+      Object.assign(newItem, { level });
     } else if (type === "course") {
-      newItem = {
-        ...baseItem,
-        type: "course" as const,
-        deadline
-      } as CourseItem;
-    } else {
-      // type === "skill"
-      newItem = {
-        ...baseItem,
-        type: "skill" as const,
-        certificate: undefined
-      } as SkillItem;
+      Object.assign(newItem, { deadline });
     }
 
     onSave(newItem);

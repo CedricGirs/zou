@@ -1,104 +1,55 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import StatusCard from "../components/status/StatusCard";
 import AddItemModal from "../components/status/AddItemModal";
 import { GraduationCap, Globe, Brain, Plus } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { useSyncUserData } from "../hooks/useSyncUserData";
-import { StatusItem, CourseItem, LanguageItem, SkillItem } from "../types/course";
 
 const Status = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const { statusModule, updateStatusModule } = useSyncUserData();
   
-  const [courses, setCourses] = useState<StatusItem[]>([
+  const [courses, setCourses] = useState([
     {
       id: "cs101",
       title: "Computer Science 101",
-      type: "course",
+      type: "course" as const,
       progress: 75,
       deadline: "2023-12-31",
       completed: false
-    } as CourseItem,
+    },
     {
       id: "french",
       title: "French",
-      type: "language",
+      type: "language" as const,
       level: "B1",
       progress: 40,
       completed: false
-    } as LanguageItem,
+    },
     {
       id: "spanish",
       title: "Spanish",
-      type: "language",
+      type: "language" as const,
       level: "A2",
       progress: 20,
       completed: false
-    } as LanguageItem,
+    },
     {
       id: "public-speaking",
       title: "Public Speaking",
-      type: "skill",
+      type: "skill" as const,
       progress: 90,
       completed: true,
       certificate: "certificate.pdf"
-    } as SkillItem
+    }
   ]);
-  
-  useEffect(() => {
-    if (statusModule && statusModule.languages && statusModule.languages.length > 0) {
-      const existingLanguageIds = courses
-        .filter(c => c.type === "language")
-        .map(c => c.id);
-      
-      const newLanguageCourses = statusModule.languages
-        .filter(lang => !existingLanguageIds.includes(lang.name.toLowerCase()))
-        .map(lang => ({
-          id: lang.name.toLowerCase(),
-          title: lang.name,
-          type: "language" as const,
-          level: lang.level,
-          progress: 20,
-          completed: false
-        } as LanguageItem));
-      
-      if (newLanguageCourses.length > 0) {
-        setCourses(prev => [...prev, ...newLanguageCourses]);
-      }
-    }
-  }, [statusModule.languages]);
-  
-  useEffect(() => {
-    if (statusModule && statusModule.softSkills && statusModule.softSkills.length > 0) {
-      const existingSkillIds = courses
-        .filter(c => c.type === "skill")
-        .map(c => c.id);
-      
-      const newSkillCourses = statusModule.softSkills
-        .filter(skill => !existingSkillIds.includes(skill.toLowerCase().replace(/\s+/g, '-')))
-        .map(skill => ({
-          id: skill.toLowerCase().replace(/\s+/g, '-'),
-          title: skill,
-          type: "skill" as const,
-          progress: 10,
-          completed: false,
-          certificate: undefined
-        } as SkillItem));
-      
-      if (newSkillCourses.length > 0) {
-        setCourses(prev => [...prev, ...newSkillCourses]);
-      }
-    }
-  }, [statusModule.softSkills]);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"course" | "language" | "skill">("course");
   
-  const updateCourse = (id: string, updates: Partial<StatusItem>) => {
+  const updateCourse = (id: string, updates: any) => {
     setCourses(courses.map(course => 
       course.id === id ? { ...course, ...updates } : course
     ));
@@ -117,7 +68,7 @@ const Status = () => {
     setModalOpen(true);
   };
   
-  const addNewItem = (item: StatusItem) => {
+  const addNewItem = (item: any) => {
     setCourses([...courses, item]);
     toast({
       title: t("success"),
@@ -130,11 +81,6 @@ const Status = () => {
       <div className="mb-6">
         <h1 className="font-pixel text-2xl mb-2">{t("statusTitle")}</h1>
         <p className="text-muted-foreground">{t("statusSubtitle")}</p>
-        {statusModule.status && (
-          <p className="mt-2 text-zou-purple font-pixel">
-            {t("currentStatus")}: {t(statusModule.status)}
-          </p>
-        )}
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
