@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -98,8 +97,8 @@ const Finances = () => {
     });
     
     toast({
-      title: "Dépenses mises à jour",
-      description: "Vos dépenses mensuelles ont été mises à jour.",
+      title: "Dépenses mis à jour",
+      description: "Vos dépenses mensuelles ont été mis à jour.",
     });
     
     setIsEditingExpenses(false);

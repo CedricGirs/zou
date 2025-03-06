@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   PieChart, 
@@ -57,10 +56,9 @@ const TransactionTracker = ({ preselectedMonth }: TransactionTrackerProps) => {
 
   const [selectedMonth, setSelectedMonth] = useState(preselectedMonth || currentMonth);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-  const [transactionType, setTransactionType] = useState<string | null>(null);
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   
-  // Update selected month when preselectedMonth changes
   useEffect(() => {
     if (preselectedMonth) {
       setSelectedMonth(preselectedMonth);
@@ -138,13 +136,10 @@ const TransactionTracker = ({ preselectedMonth }: TransactionTrackerProps) => {
     });
   };
   
-  const setTransactionType = (type: 'income' | 'expense') => {
-    // If already an income and clicking income button again, do nothing
+  const handleTransactionTypeChange = (type: 'income' | 'expense') => {
     if (type === 'income' && newTransaction.amount !== undefined && newTransaction.amount > 0) return;
-    // If already an expense and clicking expense button again, do nothing
     if (type === 'expense' && newTransaction.amount !== undefined && newTransaction.amount < 0) return;
     
-    // If there's an amount, convert it
     if (newTransaction.amount) {
       const currentAmount = Math.abs(newTransaction.amount);
       setNewTransaction({
@@ -216,9 +211,9 @@ const TransactionTracker = ({ preselectedMonth }: TransactionTrackerProps) => {
       passesFilter = passesFilter && t.category === categoryFilter;
     }
     
-    if (transactionType === 'revenus') {
+    if (transactionTypeFilter === 'revenus') {
       passesFilter = passesFilter && t.amount > 0;
-    } else if (transactionType === 'depenses') {
+    } else if (transactionTypeFilter === 'depenses') {
       passesFilter = passesFilter && t.amount < 0;
     }
     
@@ -294,7 +289,7 @@ const TransactionTracker = ({ preselectedMonth }: TransactionTrackerProps) => {
                     <Button 
                       type="button" 
                       variant={newTransaction.amount !== undefined && newTransaction.amount > 0 ? "default" : "outline"} 
-                      onClick={() => setTransactionType('income')}
+                      onClick={() => handleTransactionTypeChange('income')}
                       className="flex-1"
                     >
                       <ArrowUpRight size={16} className="mr-2 text-green-500" />
@@ -303,7 +298,7 @@ const TransactionTracker = ({ preselectedMonth }: TransactionTrackerProps) => {
                     <Button 
                       type="button" 
                       variant={newTransaction.amount !== undefined && newTransaction.amount < 0 ? "default" : "outline"} 
-                      onClick={() => setTransactionType('expense')}
+                      onClick={() => handleTransactionTypeChange('expense')}
                       className="flex-1"
                     >
                       <ArrowDownRight size={16} className="mr-2 text-red-500" />
@@ -453,8 +448,8 @@ const TransactionTracker = ({ preselectedMonth }: TransactionTrackerProps) => {
         <div className="flex items-center">
           <DollarSign size={16} className="mr-2 text-muted-foreground" />
           <Select 
-            value={transactionType || ''} 
-            onValueChange={(val) => setTransactionType(val || null)}
+            value={transactionTypeFilter || ''} 
+            onValueChange={(val) => setTransactionTypeFilter(val || null)}
           >
             <SelectTrigger className="w-32 h-8 text-xs">
               <SelectValue placeholder="Type" />
