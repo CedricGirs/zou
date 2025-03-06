@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -107,16 +108,17 @@ const Finances = () => {
   };
   
   // Calculate total expenses
-  const totalExpenses = 
-    userData.financeModule.housingExpenses + 
-    userData.financeModule.foodExpenses + 
-    userData.financeModule.transportExpenses + 
-    userData.financeModule.leisureExpenses + 
-    userData.financeModule.fixedExpenses +
-    (userData.financeModule.debtPayments || 0);
+  const totalExpenses = (
+    (userData.financeModule.housingExpenses || 0) + 
+    (userData.financeModule.foodExpenses || 0) + 
+    (userData.financeModule.transportExpenses || 0) + 
+    (userData.financeModule.leisureExpenses || 0) + 
+    (userData.financeModule.fixedExpenses || 0) +
+    (userData.financeModule.debtPayments || 0)
+  );
   
   // Calculate total income
-  const totalIncome = userData.financeModule.monthlyIncome + (userData.financeModule.additionalIncome || 0);
+  const totalIncome = (userData.financeModule.monthlyIncome || 0) + (userData.financeModule.additionalIncome || 0);
   
   return (
     <MainLayout>
@@ -139,6 +141,9 @@ const Finances = () => {
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Modifier les revenus mensuels</DialogTitle>
+              <DialogDescription>
+                Entrez vos différentes sources de revenus mensuels
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
@@ -190,6 +195,9 @@ const Finances = () => {
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Modifier les dépenses mensuelles</DialogTitle>
+              <DialogDescription>
+                Détaillez vos différentes dépenses mensuelles par catégorie
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
@@ -289,6 +297,9 @@ const Finances = () => {
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Modifier l'objectif d'épargne</DialogTitle>
+              <DialogDescription>
+                Définissez votre objectif d'épargne à atteindre
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart, 
   Bar, 
@@ -22,47 +22,122 @@ import { useUserData } from "@/context/UserDataContext";
 const FinancialReports = () => {
   const { userData } = useUserData();
   const [yearFilter, setYearFilter] = useState('2024');
+  const [monthlyData, setMonthlyData] = useState<any[]>([]);
+  const [annualData, setAnnualData] = useState<any[]>([]);
+  const [categoryData, setCategoryData] = useState<any[]>([]);
+  const [savingsRateData, setSavingsRateData] = useState<any[]>([]);
   
-  // Simulated data for demonstration
-  const monthlyData = [
-    { month: 'Jan', income: 5000, expenses: 3500, savings: 1500 },
-    { month: 'Fév', income: 5000, expenses: 3600, savings: 1400 },
-    { month: 'Mars', income: 5000, expenses: 3400, savings: 1600 },
-    { month: 'Avr', income: 5000, expenses: 3300, savings: 1700 },
-    { month: 'Mai', income: 5200, expenses: 3700, savings: 1500 },
-    { month: 'Juin', income: 5200, expenses: 3800, savings: 1400 },
-    { month: 'Juil', income: 5500, expenses: 4000, savings: 1500 },
-    { month: 'Août', income: 5500, expenses: 3900, savings: 1600 },
-    { month: 'Sept', income: 5500, expenses: 3500, savings: 2000 },
-    { month: 'Oct', income: 5500, expenses: 3600, savings: 1900 },
-    { month: 'Nov', income: 5500, expenses: 3700, savings: 1800 },
-    { month: 'Déc', income: 5500, expenses: 4200, savings: 1300 }
-  ];
+  // Process data from userData when it changes
+  useEffect(() => {
+    // Generate monthly data from annual budget
+    if (userData.financeModule.annualBudget) {
+      const monthData = Object.entries(userData.financeModule.annualBudget).map(([month, data]) => ({
+        month: month.substring(0, 3),
+        income: data.income,
+        expenses: data.expenses,
+        savings: data.income - data.expenses
+      }));
+      setMonthlyData(monthData);
+    }
+    
+    // Generate annual data
+    // For now, we'll use static data plus the current year's data aggregated from monthly
+    const currentYearTotal = calculateAnnualTotals();
+    setAnnualData([
+      { year: '2022', income: 55000, expenses: 46000, savings: 9000 },
+      { year: '2023', income: 58000, expenses: 48000, savings: 10000 },
+      { year: '2024', income: currentYearTotal.income, expenses: currentYearTotal.expenses, savings: currentYearTotal.savings }
+    ]);
+    
+    // Generate category data from user's expense breakdown
+    const expensesBreakdown = calculateExpensesBreakdown();
+    setCategoryData(expensesBreakdown);
+    
+    // Generate savings rate data
+    // For historical years, use static data
+    // For current year, calculate from the actual data
+    const currentYearSavingsRate = currentYearTotal.income > 0 
+      ? (currentYearTotal.savings / currentYearTotal.income) * 100 
+      : 0;
+    
+    setSavingsRateData([
+      { year: '2022', rate: 16.4 },
+      { year: '2023', rate: 17.2 },
+      { year: '2024', rate: parseFloat(currentYearSavingsRate.toFixed(1)) }
+    ]);
+  }, [userData]);
   
-  // Annual data
-  const annualData = [
-    { year: '2022', income: 55000, expenses: 46000, savings: 9000 },
-    { year: '2023', income: 58000, expenses: 48000, savings: 10000 },
-    { year: '2024', income: 63000, expenses: 45000, savings: 18000 }
-  ];
+  // Calculate annual totals from monthly data
+  const calculateAnnualTotals = () => {
+    if (!userData.financeModule.annualBudget) {
+      return { income: 0, expenses: 0, savings: 0 };
+    }
+    
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    
+    Object.values(userData.financeModule.annualBudget).forEach(data => {
+      totalIncome += data.income;
+      totalExpenses += data.expenses;
+    });
+    
+    return {
+      income: totalIncome,
+      expenses: totalExpenses,
+      savings: totalIncome - totalExpenses
+    };
+  };
   
-  // Category breakdown
-  const categoryData = [
-    { name: 'Logement', value: 42 },
-    { name: 'Alimentation', value: 18 },
-    { name: 'Transport', value: 10 },
-    { name: 'Loisirs', value: 8 },
-    { name: 'Santé', value: 6 },
-    { name: 'Autres', value: 16 }
-  ];
-  
-  // Savings rate trend
-  const savingsRateData = [
-    { year: '2022', rate: 16.4 },
-    { year: '2023', rate: 17.2 },
-    { year: '2024', rate: 28.6 }
-  ];
-  
+  // Calculate expense breakdown by category
+  const calculateExpensesBreakdown = () => {
+    const totalExpenses = (
+      (userData.financeModule.housingExpenses || 0) +
+      (userData.financeModule.foodExpenses || 0) +
+      (userData.financeModule.transportExpenses || 0) +
+      (userData.financeModule.leisureExpenses || 0) +
+      (userData.financeModule.fixedExpenses || 0) +
+      (userData.financeModule.debtPayments || 0)
+    );
+    
+    if (totalExpenses === 0) {
+      return [
+        { name: 'Logement', value: 0 },
+        { name: 'Alimentation', value: 0 },
+        { name: 'Transport', value: 0 },
+        { name: 'Loisirs', value: 0 },
+        { name: 'Charges fixes', value: 0 },
+        { name: 'Dettes', value: 0 }
+      ];
+    }
+    
+    return [
+      { 
+        name: 'Logement', 
+        value: Math.round((userData.financeModule.housingExpenses || 0) / totalExpenses * 100) 
+      },
+      { 
+        name: 'Alimentation', 
+        value: Math.round((userData.financeModule.foodExpenses || 0) / totalExpenses * 100) 
+      },
+      { 
+        name: 'Transport', 
+        value: Math.round((userData.financeModule.transportExpenses || 0) / totalExpenses * 100) 
+      },
+      { 
+        name: 'Loisirs', 
+        value: Math.round((userData.financeModule.leisureExpenses || 0) / totalExpenses * 100) 
+      },
+      { 
+        name: 'Charges fixes', 
+        value: Math.round((userData.financeModule.fixedExpenses || 0) / totalExpenses * 100) 
+      },
+      { 
+        name: 'Dettes', 
+        value: Math.round((userData.financeModule.debtPayments || 0) / totalExpenses * 100) 
+      }
+    ];
+  };
+
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'];
 
   return (
@@ -123,7 +198,9 @@ const FinancialReports = () => {
               </thead>
               <tbody>
                 {monthlyData.map((data, index) => {
-                  const savingsRate = ((data.savings / data.income) * 100).toFixed(1);
+                  const savingsRate = data.income > 0 
+                    ? ((data.savings / data.income) * 100).toFixed(1) 
+                    : "0";
                   
                   return (
                     <tr key={index} className="hover:bg-muted/50">
@@ -173,7 +250,9 @@ const FinancialReports = () => {
               </thead>
               <tbody>
                 {annualData.map((data, index) => {
-                  const savingsRate = ((data.savings / data.income) * 100).toFixed(1);
+                  const savingsRate = data.income > 0 
+                    ? ((data.savings / data.income) * 100).toFixed(1) 
+                    : "0";
                   
                   return (
                     <tr key={index} className="hover:bg-muted/50">
