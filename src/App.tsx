@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "./context/LanguageContext";
-import { OnboardingProvider } from "./context/OnboardingContext";
+import { UserDataProvider } from "./context/UserDataContext";
 import Index from "./pages/Index";
 import Status from "./pages/Status";
 import Look from "./pages/Look";
@@ -38,7 +38,7 @@ const AppContainer = () => {
 // This component contains all the routes and needs access to Router context
 const AppRoutes = () => {
   return (
-    <OnboardingProvider>
+    <UserDataProvider>
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/status" element={<Status />} />
@@ -50,7 +50,7 @@ const AppRoutes = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </OnboardingProvider>
+    </UserDataProvider>
   );
 };
 

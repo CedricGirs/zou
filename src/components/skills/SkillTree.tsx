@@ -1,6 +1,9 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Sword, Shield, Wand } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { toast } from "@/hooks/use-toast";
+import { playSound } from "@/utils/audioUtils";
 
 interface Skill {
   id: string;
@@ -13,103 +16,116 @@ interface Skill {
   connections: string[];
 }
 
-const SkillTree = () => {
+interface SkillTreeProps {
+  skills: Skill[];
+  onSkillsUpdate: (skills: Skill[]) => Promise<void>;
+}
+
+const defaultSkills: Skill[] = [
+  {
+    id: "pomodoro",
+    name: "Pomodoro Master",
+    description: "Complete 5 daily focused sessions for 7 days",
+    branch: "weapons",
+    level: 1,
+    unlocked: true,
+    position: { x: 20, y: 20 },
+    connections: ["deep-work"]
+  },
+  {
+    id: "deep-work",
+    name: "Deep Work",
+    description: "Complete 2 hours of uninterrupted work for 5 days",
+    branch: "weapons",
+    level: 2,
+    unlocked: false,
+    position: { x: 40, y: 40 },
+    connections: ["flow-state"]
+  },
+  {
+    id: "flow-state",
+    name: "Flow State",
+    description: "Enter flow state 10 times",
+    branch: "weapons",
+    level: 3,
+    unlocked: false,
+    position: { x: 60, y: 20 },
+    connections: []
+  },
+  {
+    id: "meditation",
+    name: "Mind Clarity",
+    description: "Meditate for 10 minutes daily for 10 days",
+    branch: "defense",
+    level: 1,
+    unlocked: true,
+    position: { x: 20, y: 60 },
+    connections: ["exercise"]
+  },
+  {
+    id: "exercise",
+    name: "Physical Strength",
+    description: "Exercise 3 times per week for 4 weeks",
+    branch: "defense",
+    level: 2,
+    unlocked: false,
+    position: { x: 40, y: 80 },
+    connections: ["healthy-diet"]
+  },
+  {
+    id: "healthy-diet",
+    name: "Healthy Diet",
+    description: "Track nutrition for 21 days straight",
+    branch: "defense",
+    level: 3,
+    unlocked: false,
+    position: { x: 60, y: 60 },
+    connections: []
+  },
+  {
+    id: "reading",
+    name: "Book Worm",
+    description: "Read 20 pages daily for 14 days",
+    branch: "magic",
+    level: 1,
+    unlocked: true,
+    position: { x: 20, y: 100 },
+    connections: ["language"]
+  },
+  {
+    id: "language",
+    name: "Language Learner",
+    description: "Practice a language for 15 minutes daily for 30 days",
+    branch: "magic",
+    level: 2,
+    unlocked: false,
+    position: { x: 40, y: 120 },
+    connections: ["knowledge-master"]
+  },
+  {
+    id: "knowledge-master",
+    name: "Knowledge Master",
+    description: "Complete 3 online courses",
+    branch: "magic",
+    level: 3,
+    unlocked: false,
+    position: { x: 60, y: 100 },
+    connections: []
+  }
+];
+
+const SkillTree = ({ skills = [], onSkillsUpdate }: SkillTreeProps) => {
   const { t } = useLanguage();
   
-  const [skills, setSkills] = useState<Skill[]>([
-    {
-      id: "pomodoro",
-      name: "Pomodoro Master",
-      description: "Complete 5 daily focused sessions for 7 days",
-      branch: "weapons",
-      level: 1,
-      unlocked: true,
-      position: { x: 20, y: 20 },
-      connections: ["deep-work"]
-    },
-    {
-      id: "deep-work",
-      name: "Deep Work",
-      description: "Complete 2 hours of uninterrupted work for 5 days",
-      branch: "weapons",
-      level: 2,
-      unlocked: false,
-      position: { x: 40, y: 40 },
-      connections: ["flow-state"]
-    },
-    {
-      id: "flow-state",
-      name: "Flow State",
-      description: "Enter flow state 10 times",
-      branch: "weapons",
-      level: 3,
-      unlocked: false,
-      position: { x: 60, y: 20 },
-      connections: []
-    },
-    {
-      id: "meditation",
-      name: "Mind Clarity",
-      description: "Meditate for 10 minutes daily for 10 days",
-      branch: "defense",
-      level: 1,
-      unlocked: true,
-      position: { x: 20, y: 60 },
-      connections: ["exercise"]
-    },
-    {
-      id: "exercise",
-      name: "Physical Strength",
-      description: "Exercise 3 times per week for 4 weeks",
-      branch: "defense",
-      level: 2,
-      unlocked: false,
-      position: { x: 40, y: 80 },
-      connections: ["healthy-diet"]
-    },
-    {
-      id: "healthy-diet",
-      name: "Healthy Diet",
-      description: "Track nutrition for 21 days straight",
-      branch: "defense",
-      level: 3,
-      unlocked: false,
-      position: { x: 60, y: 60 },
-      connections: []
-    },
-    {
-      id: "reading",
-      name: "Book Worm",
-      description: "Read 20 pages daily for 14 days",
-      branch: "magic",
-      level: 1,
-      unlocked: true,
-      position: { x: 20, y: 100 },
-      connections: ["language"]
-    },
-    {
-      id: "language",
-      name: "Language Learner",
-      description: "Practice a language for 15 minutes daily for 30 days",
-      branch: "magic",
-      level: 2,
-      unlocked: false,
-      position: { x: 40, y: 120 },
-      connections: ["knowledge-master"]
-    },
-    {
-      id: "knowledge-master",
-      name: "Knowledge Master",
-      description: "Complete 3 online courses",
-      branch: "magic",
-      level: 3,
-      unlocked: false,
-      position: { x: 60, y: 100 },
-      connections: []
-    }
-  ]);
-  
+  const [localSkills, setLocalSkills] = useState<Skill[]>(skills.length > 0 ? skills : defaultSkills);
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
+  
+  // Synchroniser les compétences lorsqu'elles changent
+  useEffect(() => {
+    if (skills.length > 0) {
+      setLocalSkills(skills);
+    }
+  }, [skills]);
   
   const getBranchIcon = (branch: string) => {
     switch (branch) {
@@ -139,11 +155,52 @@ const SkillTree = () => {
     }
   };
   
-  const unlockSkill = (skillId: string) => {
-    setSkills(skills.map(skill => 
+  const unlockSkill = async (skillId: string) => {
+    // Vérifier si la compétence peut être débloquée (ses prérequis sont débloqués)
+    const skillToUnlock = localSkills.find(s => s.id === skillId);
+    if (!skillToUnlock) return;
+    
+    // Vérifier les connexions entrantes (compétences qui pointent vers celle-ci)
+    const prerequisites = localSkills.filter(s => 
+      s.connections.includes(skillId)
+    );
+    
+    // Toutes les compétences prérequises doivent être débloquées
+    const canUnlock = prerequisites.every(p => p.unlocked);
+    
+    if (!canUnlock) {
+      toast({
+        title: t("cannotUnlock"),
+        description: t("unlockPrerequisites"),
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Mettre à jour localement
+    const updatedSkills = localSkills.map(skill => 
       skill.id === skillId ? { ...skill, unlocked: true } : skill
-    ));
+    );
+    
+    setLocalSkills(updatedSkills);
     setSelectedSkill(null);
+    
+    // Enregistrer dans Firebase
+    try {
+      await onSkillsUpdate(updatedSkills);
+      playSound('success');
+      toast({
+        title: t("skillUnlocked"),
+        description: skillToUnlock.name,
+      });
+    } catch (error) {
+      console.error("Erreur lors du déblocage de la compétence:", error);
+      toast({
+        title: t("error"),
+        description: t("errorUnlockingSkill"),
+        variant: "destructive",
+      });
+    }
   };
   
   return (
@@ -165,9 +222,9 @@ const SkillTree = () => {
       
       <div className="relative h-[500px] w-full bg-muted/50 rounded-lg p-4 overflow-auto">
         <svg className="absolute top-0 left-0 w-full h-full">
-          {skills.map(skill => 
+          {localSkills.map(skill => 
             skill.connections.map(targetId => {
-              const target = skills.find(s => s.id === targetId);
+              const target = localSkills.find(s => s.id === targetId);
               if (!target) return null;
               
               return (
@@ -186,7 +243,7 @@ const SkillTree = () => {
           )}
         </svg>
         
-        {skills.map(skill => (
+        {localSkills.map(skill => (
           <div 
             key={skill.id}
             className={`

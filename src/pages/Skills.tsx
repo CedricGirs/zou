@@ -1,4 +1,5 @@
 
+import { useEffect, useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import SkillTree from "../components/skills/SkillTree";
 import CustomBadge from "../components/ui/CustomBadge";
@@ -7,15 +8,25 @@ import { badgeData } from "../data/badgeData";
 import { Badge } from "../types/badge";
 import { useToast } from "@/hooks/use-toast";
 import { playSound } from "@/utils/audioUtils";
+import { useUserData } from "../context/UserDataContext";
 
 const Skills = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { userData, updateSkills } = useUserData();
   
-  // Filter badges related to skills and learning
-  const skillBadges = badgeData.filter(badge => 
-    badge.category === "status" || badge.category === "technical" || badge.category === "gamification"
-  ).slice(0, 8);
+  // État local pour les badges
+  const [skillBadges, setSkillBadges] = useState<Badge[]>([]);
+  
+  // Charger les badges au démarrage
+  useEffect(() => {
+    // Filter badges related to skills and learning
+    const filteredBadges = badgeData.filter(badge => 
+      badge.category === "status" || badge.category === "technical" || badge.category === "gamification"
+    ).slice(0, 8);
+    
+    setSkillBadges(filteredBadges);
+  }, []);
   
   const showBadgeDetails = (badge: Badge) => {
     if (badge.unlocked) {
@@ -43,7 +54,10 @@ const Skills = () => {
       
       <div className="glass-card p-4 mb-6">
         <h2 className="font-pixel text-lg mb-4">{t("skillTree")}</h2>
-        <SkillTree />
+        <SkillTree 
+          skills={userData.skills} 
+          onSkillsUpdate={updateSkills} 
+        />
       </div>
       
       <div className="glass-card p-4">

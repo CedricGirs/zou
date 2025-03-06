@@ -1,6 +1,5 @@
 
-import { useEffect } from "react";
-import { useOnboarding } from "../context/OnboardingContext";
+import { useUserData } from "../context/UserDataContext";
 
 /**
  * Hook pour synchroniser les données utilisateur entre les différentes sections
@@ -8,20 +7,18 @@ import { useOnboarding } from "../context/OnboardingContext";
  */
 export const useSyncUserData = () => {
   const { 
-    onboarding, 
+    userData, 
     updateHeroProfile, 
     updateStatusModule, 
     updateLookModule, 
     updateFinanceModule 
-  } = useOnboarding();
-
-  // Ici, nous pouvons ajouter plus de logique de synchronisation si nécessaire
+  } = useUserData();
   
   return {
-    heroProfile: onboarding.heroProfile,
-    statusModule: onboarding.statusModule,
-    lookModule: onboarding.lookModule,
-    financeModule: onboarding.financeModule,
+    heroProfile: userData.heroProfile,
+    statusModule: userData.statusModule,
+    lookModule: userData.lookModule,
+    financeModule: userData.financeModule,
     updateHeroProfile,
     updateStatusModule,
     updateLookModule,
