@@ -3,8 +3,8 @@ import { useEffect } from "react";
 import { useOnboarding } from "../context/OnboardingContext";
 
 /**
- * Hook pour synchroniser les données utilisateur entre les différentes sections
- * lorsque des mises à jour sont effectuées dans le profil
+ * Hook for synchronizing user data between different sections
+ * when updates are made in the profile section
  */
 export const useSyncUserData = () => {
   const { 
@@ -15,7 +15,22 @@ export const useSyncUserData = () => {
     updateFinanceModule 
   } = useOnboarding();
 
-  // Ici, nous pouvons ajouter plus de logique de synchronisation si nécessaire
+  // This hook can be expanded with additional synchronization logic
+  // For example, automatically updating heroProfile when status changes
+  useEffect(() => {
+    // Log updates to help with debugging
+    console.log("User data synchronized", {
+      heroProfile: onboarding.heroProfile,
+      statusModule: onboarding.statusModule,
+      lookModule: onboarding.lookModule,
+      financeModule: onboarding.financeModule
+    });
+  }, [
+    onboarding.heroProfile,
+    onboarding.statusModule,
+    onboarding.lookModule,
+    onboarding.financeModule
+  ]);
   
   return {
     heroProfile: onboarding.heroProfile,

@@ -1,15 +1,16 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import StatusCard from "../components/status/StatusCard";
 import AddItemModal from "../components/status/AddItemModal";
 import { GraduationCap, Globe, Brain, Plus } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import { useSyncUserData } from "../hooks/useSyncUserData";
 
 const Status = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { statusModule } = useSyncUserData();
   
   const [courses, setCourses] = useState([
     {
@@ -46,6 +47,51 @@ const Status = () => {
     }
   ]);
   
+  useEffect(() => {
+    if (statusModule && statusModule.languages && statusModule.languages.length > 0) {
+      const existingLanguageIds = courses
+        .filter(c => c.type === "language")
+        .map(c => c.id);
+      
+      const newLanguageCourses = statusModule.languages
+        .filter(lang => !existingLanguageIds.includes(lang.name.toLowerCase()))
+        .map(lang => ({
+          id: lang.name.toLowerCase(),
+          title: lang.name,
+          type: "language" as const,
+          level: lang.level,
+          progress: 20,
+          completed: false
+        }));
+      
+      if (newLanguageCourses.length > 0) {
+        setCourses(prev => [...prev, ...newLanguageCourses]);
+      }
+    }
+  }, [statusModule.languages]);
+  
+  useEffect(() => {
+    if (statusModule && statusModule.softSkills && statusModule.softSkills.length > 0) {
+      const existingSkillIds = courses
+        .filter(c => c.type === "skill")
+        .map(c => c.id);
+      
+      const newSkillCourses = statusModule.softSkills
+        .filter(skill => !existingSkillIds.includes(skill.toLowerCase().replace(/\s+/g, '-')))
+        .map(skill => ({
+          id: skill.toLowerCase().replace(/\s+/g, '-'),
+          title: skill,
+          type: "skill" as const,
+          progress: 10,
+          completed: false
+        }));
+      
+      if (newSkillCourses.length > 0) {
+        setCourses(prev => [...prev, ...newSkillCourses]);
+      }
+    }
+  }, [statusModule.softSkills]);
+  
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"course" | "language" | "skill">("course");
   
@@ -81,6 +127,11 @@ const Status = () => {
       <div className="mb-6">
         <h1 className="font-pixel text-2xl mb-2">{t("statusTitle")}</h1>
         <p className="text-muted-foreground">{t("statusSubtitle")}</p>
+        {statusModule.status && (
+          <p className="mt-2 text-zou-purple font-pixel">
+            {t("currentStatus")}: {t(statusModule.status)}
+          </p>
+        )}
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
