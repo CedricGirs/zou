@@ -23,6 +23,12 @@ export interface StatusModule {
     level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
   }>;
   softSkills: string[];
+  gauges?: {
+    fun: number;
+    social: number;
+    energy: number;
+    hygiene: number;
+  };
 }
 
 export interface LookModule {
@@ -127,6 +133,12 @@ const defaultStatusModule: StatusModule = {
   status: 'student',
   languages: [],
   softSkills: [],
+  gauges: {
+    fun: 75,
+    social: 60,
+    energy: 45,
+    hygiene: 90
+  }
 };
 
 const defaultLookModule: LookModule = {
