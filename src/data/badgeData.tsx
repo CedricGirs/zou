@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Badge } from '../types/badge';
 import { 
   BookOpen, Globe, GraduationCap, MessageSquare, Brain, 
-  Shirt, Dumbbell, Sparkles, Scissors, Timer,
+  Shirt, Dumbbell, Sparkles, Scissors, 
   DollarSign, Calculator, PiggyBank, Wallet, TrendingDown,
   Zap, Award, Star, Users, Battery,
   Calendar, Sunrise, Droplet, Heart, Book,
@@ -335,7 +334,7 @@ export const badgeData: Badge[] = [
   },
   { 
     id: "speedrun", 
-    icon: <Timer1 size={16} />, 
+    icon: <Timer size={16} />, 
     name: "Speedrun", 
     description: "Reach level 20 in 30 days", 
     rarity: "epic", 
@@ -346,7 +345,7 @@ export const badgeData: Badge[] = [
     id: "loot-queen", 
     icon: <Package size={16} />, 
     name: "Loot Queen", 
-    description: "Win 10 random rewards in 1 day", 
+    description: "Win 10 random rewards in a day", 
     rarity: "rare", 
     unlocked: false,
     category: "humor"
