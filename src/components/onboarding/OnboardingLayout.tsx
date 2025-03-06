@@ -12,6 +12,7 @@ interface OnboardingLayoutProps {
   showNextButton?: boolean;
   onNext?: () => boolean; // Return false to prevent navigation
   nextDisabled?: boolean;
+  onComplete?: () => void; // Added this prop
 }
 
 const OnboardingLayout = ({
@@ -22,6 +23,7 @@ const OnboardingLayout = ({
   showNextButton = true,
   onNext,
   nextDisabled = false,
+  onComplete, // Added this prop to the destructuring
 }: OnboardingLayoutProps) => {
   const { onboarding, nextStep, prevStep, totalSteps } = useOnboarding();
   const { t } = useLanguage();
@@ -30,6 +32,12 @@ const OnboardingLayout = ({
     if (onNext && !onNext()) {
       return;
     }
+    
+    if (onboarding.currentStep === totalSteps && onComplete) {
+      onComplete();
+      return;
+    }
+    
     nextStep();
   };
   
