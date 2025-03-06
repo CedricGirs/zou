@@ -55,8 +55,10 @@ const Onboarding = () => {
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
+      return true; // Added to match the expected return type
     } else {
       completeOnboarding();
+      return true; // Added to match the expected return type
     }
   };
 
