@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useLanguage } from "../context/LanguageContext";
 import { 
@@ -7,11 +8,34 @@ import {
 import ClothingSelector from "../components/look/ClothingSelector";
 import OutfitGenerator from "../components/look/OutfitGenerator";
 import { Clothing } from "../types/clothing";
+import { useUserData } from "@/context/UserDataContext";
 
 const Look = () => {
   const { t } = useLanguage();
+  const { userData } = useUserData();
   const [selectedClothingIds, setSelectedClothingIds] = useState<string[]>([]);
   const [showOutfits, setShowOutfits] = useState<boolean>(false);
+  
+  // Ajouter automatiquement les vêtements de la garde-robe de l'utilisateur
+  useEffect(() => {
+    const userWardrobe = userData.lookModule.wardrobe;
+    if (userWardrobe.length > 0) {
+      // Faire correspondre les noms des vêtements avec les IDs
+      const matchingIds = clothingItems
+        .filter(item => userWardrobe.some(w => 
+          w.toLowerCase().includes(item.name.toLowerCase()) || 
+          item.name.toLowerCase().includes(w.toLowerCase())
+        ))
+        .map(item => item.id);
+      
+      if (matchingIds.length > 0) {
+        setSelectedClothingIds(matchingIds);
+        if (matchingIds.length >= 4) {
+          setShowOutfits(true);
+        }
+      }
+    }
+  }, [userData.lookModule.wardrobe]);
   
   // Données des vêtements
   const clothingItems: Clothing[] = [
@@ -63,6 +87,7 @@ const Look = () => {
         <ClothingSelector 
           clothing={clothingItems}
           onSelectionChange={handleSelectionChange}
+          initialSelection={selectedClothingIds}
         />
       </div>
       

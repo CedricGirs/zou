@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import MainLayout from "../components/layout/MainLayout";
@@ -11,6 +12,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { playSound, preloadSounds } from "@/utils/audioUtils";
 import { badgeData } from "../data/badgeData";
 import { Badge } from "../types/badge";
+import { useUserData } from "@/context/UserDataContext";
 
 // Interface for quests
 interface Quest {
@@ -35,6 +37,7 @@ const getUserRank = (level: number): string => {
 const Index = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { userData } = useUserData();
   const [level, setLevel] = useState(5);
   const [currentXP, setCurrentXP] = useState(350);
   const [dailyQuests, setDailyQuests] = useState<Quest[]>([]);
@@ -155,8 +158,8 @@ const Index = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="md:col-span-1">
           <div className="glass-card p-6 flex flex-col items-center">
-            <Avatar size="lg" showLevel level={level} />
-            <h2 className="mt-4 mb-1 text-xl">{t("welcome")}</h2>
+            <Avatar size="lg" seed={userData.heroProfile.avatarSeed} showLevel level={level} />
+            <h2 className="mt-4 mb-1 text-xl">{userData.heroProfile.username || t("welcome")}</h2>
             <p className="text-sm text-muted-foreground mb-2 font-pixel text-zou-purple">{userRank}</p>
             <XPBar currentXP={currentXP} maxXP={maxXP} />
             <div className="mt-6 w-full">

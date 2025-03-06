@@ -10,19 +10,30 @@ import { badgeData } from "../data/badgeData";
 import CustomBadge from "../components/ui/CustomBadge";
 import { useToast } from "@/hooks/use-toast";
 import { playSound } from "@/utils/audioUtils";
-import { useSyncUserData } from "../hooks/useSyncUserData";
-import HeroProfileStep from "../components/onboarding/HeroProfileStep";
-import StatusModuleStep from "../components/onboarding/StatusModuleStep";
-import LookModuleStep from "../components/onboarding/LookModuleStep";
-import FinanceModuleStep from "../components/onboarding/FinanceModuleStep";
+import { useUserData } from "../context/UserDataContext";
+import { StatusItem } from "@/context/UserDataContext";
+import EditHeroProfileForm from "../components/profile/EditHeroProfileForm";
+import EditStatusModuleForm from "../components/profile/EditStatusModuleForm";
+import EditLookModuleForm from "../components/profile/EditLookModuleForm";
+import EditFinanceModuleForm from "../components/profile/EditFinanceModuleForm";
 
 const Profile = () => {
+  const { 
+    userData, 
+    updateHeroProfile, 
+    updateStatusModule, 
+    updateLookModule, 
+    updateFinanceModule,
+    updateStatusItems
+  } = useUserData();
+  
   const { 
     heroProfile, 
     statusModule, 
     lookModule, 
-    financeModule 
-  } = useSyncUserData();
+    financeModule,
+    statusItems
+  } = userData;
   
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -91,7 +102,7 @@ const Profile = () => {
                 {t("saveChanges")}
               </Button>
             </div>
-            <HeroProfileStep />
+            <EditHeroProfileForm onSave={handleSaveChanges} />
           </div>
         );
       case "statusModule":
@@ -104,7 +115,7 @@ const Profile = () => {
                 {t("saveChanges")}
               </Button>
             </div>
-            <StatusModuleStep />
+            <EditStatusModuleForm onSave={handleSaveChanges} />
           </div>
         );
       case "lookModule":
@@ -117,7 +128,7 @@ const Profile = () => {
                 {t("saveChanges")}
               </Button>
             </div>
-            <LookModuleStep />
+            <EditLookModuleForm onSave={handleSaveChanges} />
           </div>
         );
       case "financeModule":
@@ -130,7 +141,7 @@ const Profile = () => {
                 {t("saveChanges")}
               </Button>
             </div>
-            <FinanceModuleStep />
+            <EditFinanceModuleForm onSave={handleSaveChanges} />
           </div>
         );
       default:

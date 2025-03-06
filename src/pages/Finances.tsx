@@ -1,21 +1,41 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { DollarSign, TrendingUp, PiggyBank, Plus, AlertCircle } from "lucide-react";
+import { useUserData } from "@/context/UserDataContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 const Finances = () => {
-  // Mock data for budget categories
+  const { userData } = useUserData();
+  const { t } = useLanguage();
+  
+  // Mock data for budget categories, taking initial values from user data
   const [budget, setBudget] = useState({
-    income: 5000,
+    income: userData.financeModule.monthlyIncome || 5000,
     categories: [
-      { id: "housing", name: "Housing", budget: 1500, spent: 1450, color: "bg-zou-purple" },
-      { id: "food", name: "Food", budget: 600, spent: 580, color: "bg-zou-orange" },
-      { id: "transport", name: "Transport", budget: 400, spent: 320, color: "bg-zou-blue" },
-      { id: "leisure", name: "Leisure", budget: 300, spent: 350, color: "bg-zou-pink" },
-      { id: "savings", name: "Savings", budget: 1000, spent: 800, color: "bg-zou-green" },
-      { id: "other", name: "Other", budget: 200, spent: 180, color: "bg-gray-400" }
+      { id: "housing", name: "Housing", budget: userData.financeModule.fixedExpenses * 0.5 || 1500, spent: 1450, color: "bg-zou-purple" },
+      { id: "food", name: "Food", budget: userData.financeModule.fixedExpenses * 0.2 || 600, spent: 580, color: "bg-zou-orange" },
+      { id: "transport", name: "Transport", budget: userData.financeModule.fixedExpenses * 0.15 || 400, spent: 320, color: "bg-zou-blue" },
+      { id: "leisure", name: "Leisure", budget: userData.financeModule.fixedExpenses * 0.1 || 300, spent: 350, color: "bg-zou-pink" },
+      { id: "savings", name: "Savings", budget: userData.financeModule.savingsGoal || 1000, spent: 800, color: "bg-zou-green" },
+      { id: "other", name: "Other", budget: userData.financeModule.fixedExpenses * 0.05 || 200, spent: 180, color: "bg-gray-400" }
     ]
   });
+  
+  // Update budget when userData changes
+  useEffect(() => {
+    if (userData.financeModule) {
+      setBudget(prev => ({
+        income: userData.financeModule.monthlyIncome,
+        categories: prev.categories.map(cat => {
+          if (cat.id === "savings") {
+            return { ...cat, budget: userData.financeModule.savingsGoal };
+          }
+          return cat;
+        })
+      }));
+    }
+  }, [userData.financeModule]);
   
   // Mock data for savings goals
   const [savingsGoals, setSavingsGoals] = useState([
@@ -156,7 +176,7 @@ const Finances = () => {
             <div className="space-y-2">
               {[
                 { id: "t1", description: "Grocery Store", amount: -85.20, category: "Food", date: "Nov 15" },
-                { id: "t2", description: "Monthly Salary", amount: 5000, category: "Income", date: "Nov 1" },
+                { id: "t2", description: "Monthly Salary", amount: userData.financeModule.monthlyIncome, category: "Income", date: "Nov 1" },
                 { id: "t3", description: "Restaurant", amount: -45.80, category: "Leisure", date: "Oct 28" }
               ].map(transaction => (
                 <div key={transaction.id} className="flex items-center justify-between p-2 border-b border-border">

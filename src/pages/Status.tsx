@@ -1,62 +1,43 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import StatusCard from "../components/status/StatusCard";
 import AddItemModal from "../components/status/AddItemModal";
 import { GraduationCap, Globe, Brain, Plus } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import { useUserData } from "@/context/UserDataContext";
+import { StatusItem } from "@/context/UserDataContext";
 
 const Status = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { userData, updateStatusItems } = useUserData();
   
-  const [courses, setCourses] = useState([
-    {
-      id: "cs101",
-      title: "Computer Science 101",
-      type: "course" as const,
-      progress: 75,
-      deadline: "2023-12-31",
-      completed: false
-    },
-    {
-      id: "french",
-      title: "French",
-      type: "language" as const,
-      level: "B1",
-      progress: 40,
-      completed: false
-    },
-    {
-      id: "spanish",
-      title: "Spanish",
-      type: "language" as const,
-      level: "A2",
-      progress: 20,
-      completed: false
-    },
-    {
-      id: "public-speaking",
-      title: "Public Speaking",
-      type: "skill" as const,
-      progress: 90,
-      completed: true,
-      certificate: "certificate.pdf"
-    }
-  ]);
-  
+  // Utiliser les status items depuis le context
+  const [items, setItems] = useState<StatusItem[]>(userData.statusItems);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"course" | "language" | "skill">("course");
   
-  const updateCourse = (id: string, updates: any) => {
-    setCourses(courses.map(course => 
-      course.id === id ? { ...course, ...updates } : course
-    ));
+  // Synchroniser avec les données du context quand elles changent
+  useEffect(() => {
+    setItems(userData.statusItems);
+  }, [userData.statusItems]);
+  
+  const updateItem = async (id: string, updates: Partial<StatusItem>) => {
+    const updatedItems = items.map(item => 
+      item.id === id ? { ...item, ...updates } : item
+    ) as StatusItem[];
+    
+    setItems(updatedItems);
+    await updateStatusItems(updatedItems);
   };
   
-  const deleteItem = (id: string) => {
-    setCourses(courses.filter(course => course.id !== id));
+  const deleteItem = async (id: string) => {
+    const filteredItems = items.filter(item => item.id !== id) as StatusItem[];
+    setItems(filteredItems);
+    await updateStatusItems(filteredItems);
+    
     toast({
       title: t("success"),
       description: t("itemDeleted"),
@@ -68,8 +49,11 @@ const Status = () => {
     setModalOpen(true);
   };
   
-  const addNewItem = (item: any) => {
-    setCourses([...courses, item]);
+  const addNewItem = async (item: StatusItem) => {
+    const newItems = [...items, item] as StatusItem[];
+    setItems(newItems);
+    await updateStatusItems(newItems);
+    
     toast({
       title: t("success"),
       description: `${item.title} ${t("added")}`,
@@ -91,11 +75,11 @@ const Status = () => {
           </div>
           
           <div className="space-y-4">
-            {courses.filter(c => c.type === "course").map(course => (
+            {items.filter(c => c.type === "course").map(course => (
               <StatusCard 
                 key={course.id}
                 item={course}
-                onUpdate={updateCourse}
+                onUpdate={updateItem}
                 onDelete={deleteItem}
               />
             ))}
@@ -117,11 +101,11 @@ const Status = () => {
           </div>
           
           <div className="space-y-4">
-            {courses.filter(c => c.type === "language").map(course => (
+            {items.filter(c => c.type === "language").map(course => (
               <StatusCard 
                 key={course.id}
                 item={course}
-                onUpdate={updateCourse}
+                onUpdate={updateItem}
                 onDelete={deleteItem}
               />
             ))}
@@ -143,11 +127,11 @@ const Status = () => {
           </div>
           
           <div className="space-y-4">
-            {courses.filter(c => c.type === "skill").map(course => (
+            {items.filter(c => c.type === "skill").map(course => (
               <StatusCard 
                 key={course.id}
                 item={course}
-                onUpdate={updateCourse}
+                onUpdate={updateItem}
                 onDelete={deleteItem}
               />
             ))}
