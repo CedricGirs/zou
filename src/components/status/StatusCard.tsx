@@ -97,7 +97,7 @@ const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
         </div>
       </div>
       
-      {item.type === "language" && (
+      {"level" in item && (
         <div className="flex items-center space-x-2 mb-3">
           <span className="text-xs font-medium">Level:</span>
           <div className="flex space-x-1">

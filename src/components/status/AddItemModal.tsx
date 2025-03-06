@@ -47,20 +47,21 @@ const AddItemModal = ({ isOpen, onClose, onSave, type }: AddItemModalProps) => {
     if (type === "language") {
       newItem = {
         ...baseItem,
-        type,
+        type: "language" as const,
         level
       } as LanguageItem;
     } else if (type === "course") {
       newItem = {
         ...baseItem,
-        type,
+        type: "course" as const,
         deadline
       } as CourseItem;
     } else {
       // type === "skill"
       newItem = {
         ...baseItem,
-        type
+        type: "skill" as const,
+        certificate: undefined
       } as SkillItem;
     }
 

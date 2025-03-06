@@ -55,16 +55,16 @@ const Status = () => {
         .filter(c => c.type === "language")
         .map(c => c.id);
       
-      const newLanguageCourses: LanguageItem[] = statusModule.languages
+      const newLanguageCourses = statusModule.languages
         .filter(lang => !existingLanguageIds.includes(lang.name.toLowerCase()))
         .map(lang => ({
           id: lang.name.toLowerCase(),
           title: lang.name,
-          type: "language",
+          type: "language" as const,
           level: lang.level,
           progress: 20,
           completed: false
-        }));
+        } as LanguageItem));
       
       if (newLanguageCourses.length > 0) {
         setCourses(prev => [...prev, ...newLanguageCourses]);
@@ -78,15 +78,16 @@ const Status = () => {
         .filter(c => c.type === "skill")
         .map(c => c.id);
       
-      const newSkillCourses: SkillItem[] = statusModule.softSkills
+      const newSkillCourses = statusModule.softSkills
         .filter(skill => !existingSkillIds.includes(skill.toLowerCase().replace(/\s+/g, '-')))
         .map(skill => ({
           id: skill.toLowerCase().replace(/\s+/g, '-'),
           title: skill,
-          type: "skill",
+          type: "skill" as const,
           progress: 10,
-          completed: false
-        }));
+          completed: false,
+          certificate: undefined
+        } as SkillItem));
       
       if (newSkillCourses.length > 0) {
         setCourses(prev => [...prev, ...newSkillCourses]);
