@@ -1,7 +1,8 @@
 
 import { useState } from "react";
-import { CheckCircle, X, Upload, Clock, Trash2 } from "lucide-react";
+import { CheckCircle, X, Upload, Clock, Trash2, ArrowUp } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface CourseItem {
   id: string;
@@ -20,8 +21,20 @@ interface StatusCardProps {
   onDelete: (id: string) => void;
 }
 
+// Language level definitions
+const languageLevels = ["A1", "A2", "B1", "B2", "C1", "C2"];
+const levelToProgress = {
+  "A1": 17,
+  "A2": 33,
+  "B1": 50,
+  "B2": 67,
+  "C1": 83,
+  "C2": 100
+};
+
 const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [showUpload, setShowUpload] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   
@@ -58,6 +71,28 @@ const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
       onDelete(item.id);
     }
   };
+
+  // Function to increment language level
+  const incrementLanguageLevel = () => {
+    if (item.type === "language" && item.level) {
+      const currentLevelIndex = languageLevels.indexOf(item.level);
+      if (currentLevelIndex < languageLevels.length - 1) {
+        const newLevel = languageLevels[currentLevelIndex + 1];
+        const newProgress = levelToProgress[newLevel as keyof typeof levelToProgress];
+        
+        onUpdate(item.id, { 
+          level: newLevel,
+          progress: newProgress,
+          completed: newLevel === "C2"
+        });
+        
+        toast({
+          title: t("success"),
+          description: `${t("levelUpgraded")} ${item.level} → ${newLevel}`,
+        });
+      }
+    }
+  };
   
   return (
     <div className={`
@@ -91,20 +126,23 @@ const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
       </div>
       
       {item.type === "language" && item.level && (
-        <div className="flex items-center space-x-2 mb-3">
-          <span className="text-xs font-medium">Level:</span>
-          <div className="flex space-x-1">
-            {["A1", "A2", "B1", "B2", "C1", "C2"].map(level => (
-              <div 
-                key={level}
-                className={`
-                  w-6 h-6 rounded-full flex items-center justify-center text-xs
-                  ${level === item.level ? 'bg-zou-purple text-white' : 'bg-muted'}
-                `}
-              >
-                {level.charAt(1)}
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center">
+              <span className="text-xs font-medium mr-2">{t("level")}:</span>
+              <div className="bg-zou-purple text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold">
+                {item.level}
               </div>
-            ))}
+            </div>
+            {item.level !== "C2" && (
+              <button 
+                onClick={incrementLanguageLevel}
+                className="text-zou-purple hover:bg-zou-purple/10 p-1 rounded-full transition-colors"
+                title={t('upgradeLevel')}
+              >
+                <ArrowUp size={16} />
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -131,6 +169,7 @@ const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
             value={item.progress} 
             onChange={(e) => handleProgressChange(Number(e.target.value))}
             className="w-full h-2 accent-zou-purple cursor-pointer"
+            disabled={item.type === "language"}
           />
         </div>
         
