@@ -1,9 +1,10 @@
+
 import { useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import Avatar from "../components/dashboard/Avatar";
 import LifeGauges from "../components/dashboard/LifeGauges";
 import XPBar from "../components/dashboard/XPBar";
-import Badge from "../components/ui/badge";
+import CustomBadge from "../components/ui/CustomBadge";
 import { Book, Award, Dumbbell, Globe, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "../context/LanguageContext";
@@ -154,7 +155,7 @@ const Index = () => {
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {recentBadges.map(badge => (
-                  <Badge 
+                  <CustomBadge 
                     key={badge.id}
                     icon={badge.icon}
                     name={badge.name}

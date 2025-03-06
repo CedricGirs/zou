@@ -1,6 +1,7 @@
+
 import MainLayout from "../components/layout/MainLayout";
 import SkillTree from "../components/skills/SkillTree";
-import Badge from "../components/ui/badge";
+import CustomBadge from "../components/ui/CustomBadge";
 import { BookOpen, Globe, Lightbulb, Heart, Code, Brain, Trophy, Dumbbell } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -90,7 +91,7 @@ const Skills = () => {
         <h2 className="font-pixel text-lg mb-4">{t("badgesAchievements")}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {badges.map(badge => (
-            <Badge 
+            <CustomBadge 
               key={badge.id}
               icon={badge.icon}
               name={badge.name}
