@@ -20,7 +20,7 @@ const EditStatusModuleForm = ({ onSave }: EditStatusModuleFormProps) => {
   const [languages, setLanguages] = useState<StatusModule['languages']>([...userData.statusModule.languages]);
   const [softSkills, setSoftSkills] = useState<string[]>([...userData.statusModule.softSkills]);
   
-  const [newLanguage, setNewLanguage] = useState({ name: "", level: "A1" as const });
+  const [newLanguage, setNewLanguage] = useState<{ name: string; level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" }>({ name: "", level: "A1" });
   const [newSkill, setNewSkill] = useState("");
   
   const handleStatusChange = (newStatus: StatusModule['status']) => {
@@ -118,7 +118,10 @@ const EditStatusModuleForm = ({ onSave }: EditStatusModuleFormProps) => {
           />
           <select
             value={newLanguage.level}
-            onChange={(e) => setNewLanguage({ ...newLanguage, level: e.target.value as "A1" | "A2" | "B1" | "B2" | "C1" | "C2" })}
+            onChange={(e) => setNewLanguage({ 
+              ...newLanguage, 
+              level: e.target.value as "A1" | "A2" | "B1" | "B2" | "C1" | "C2" 
+            })}
             className="rounded-md border border-input bg-background px-3 py-2"
           >
             <option value="A1">A1</option>

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Clothing } from "../../types/clothing";
 import ClothingItem from "./ClothingItem";
 import { useToast } from "@/hooks/use-toast";
@@ -7,11 +7,19 @@ import { useToast } from "@/hooks/use-toast";
 interface ClothingSelectorProps {
   clothing: Clothing[];
   onSelectionChange: (selectedIds: string[]) => void;
+  initialSelection?: string[];
 }
 
-const ClothingSelector = ({ clothing, onSelectionChange }: ClothingSelectorProps) => {
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+const ClothingSelector = ({ clothing, onSelectionChange, initialSelection = [] }: ClothingSelectorProps) => {
+  const [selectedItems, setSelectedItems] = useState<string[]>(initialSelection);
   const { toast } = useToast();
+
+  // Initialize selection with initialSelection prop
+  useEffect(() => {
+    if (initialSelection && initialSelection.length > 0) {
+      setSelectedItems(initialSelection);
+    }
+  }, [initialSelection]);
 
   const toggleItem = (id: string) => {
     setSelectedItems(prev => {
