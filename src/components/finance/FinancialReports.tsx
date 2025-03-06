@@ -21,19 +21,13 @@ import { useUserData } from "@/context/UserDataContext";
 
 const FinancialReports = () => {
   const { userData } = useUserData();
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    // Default to current month
-    return new Date().toLocaleString('fr-FR', { month: 'long' });
-  });
+  const [yearFilter, setYearFilter] = useState('2024');
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
+  const [annualData, setAnnualData] = useState<any[]>([]);
   const [categoryData, setCategoryData] = useState<any[]>([]);
+  const [savingsRateData, setSavingsRateData] = useState<any[]>([]);
   
-  const months = [
-    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-  ];
-  
-  // Process data from userData when it changes or month selection changes
+  // Process data from userData when it changes
   useEffect(() => {
     // Generate monthly data from annual budget
     if (userData.financeModule.annualBudget) {
@@ -46,152 +40,134 @@ const FinancialReports = () => {
       setMonthlyData(monthData);
     }
     
-    // Generate category data from current month transactions
+    // Generate annual data
+    // For now, we'll use static data plus the current year's data aggregated from monthly
+    const currentYearTotal = calculateAnnualTotals();
+    setAnnualData([
+      { year: '2022', income: 55000, expenses: 46000, savings: 9000 },
+      { year: '2023', income: 58000, expenses: 48000, savings: 10000 },
+      { year: '2024', income: currentYearTotal.income, expenses: currentYearTotal.expenses, savings: currentYearTotal.savings }
+    ]);
+    
+    // Generate category data from user's expense breakdown
     const expensesBreakdown = calculateExpensesBreakdown();
     setCategoryData(expensesBreakdown);
-  }, [userData, selectedMonth]);
+    
+    // Generate savings rate data
+    // For historical years, use static data
+    // For current year, calculate from the actual data
+    const currentYearSavingsRate = currentYearTotal.income > 0 
+      ? (currentYearTotal.savings / currentYearTotal.income) * 100 
+      : 0;
+    
+    setSavingsRateData([
+      { year: '2022', rate: 16.4 },
+      { year: '2023', rate: 17.2 },
+      { year: '2024', rate: parseFloat(currentYearSavingsRate.toFixed(1)) }
+    ]);
+  }, [userData]);
   
-  // Calculate expense breakdown by category for selected month
-  const calculateExpensesBreakdown = () => {
-    // Filter transactions for the selected month
-    const monthTransactions = (userData.financeModule.transactions || [])
-      .filter(t => t.month === selectedMonth && t.amount < 0);
-    
-    // Group by category and calculate totals
-    const categoryTotals: Record<string, number> = {};
-    let totalExpenses = 0;
-    
-    monthTransactions.forEach(transaction => {
-      const category = transaction.category;
-      const amount = Math.abs(transaction.amount);
-      
-      if (!categoryTotals[category]) {
-        categoryTotals[category] = 0;
-      }
-      
-      categoryTotals[category] += amount;
-      totalExpenses += amount;
-    });
-    
-    // If no transactions, use the expense breakdown from user profile
-    if (totalExpenses === 0) {
-      const totalExpenses = (
-        (userData.financeModule.housingExpenses || 0) +
-        (userData.financeModule.foodExpenses || 0) +
-        (userData.financeModule.transportExpenses || 0) +
-        (userData.financeModule.leisureExpenses || 0) +
-        (userData.financeModule.fixedExpenses || 0) +
-        (userData.financeModule.debtPayments || 0)
-      );
-      
-      if (totalExpenses === 0) {
-        return [
-          { name: 'Logement', value: 0 },
-          { name: 'Alimentation', value: 0 },
-          { name: 'Transport', value: 0 },
-          { name: 'Loisirs', value: 0 },
-          { name: 'Charges fixes', value: 0 },
-          { name: 'Dettes', value: 0 }
-        ];
-      }
-      
-      return [
-        { 
-          name: 'Logement', 
-          value: Math.round((userData.financeModule.housingExpenses || 0) / totalExpenses * 100) 
-        },
-        { 
-          name: 'Alimentation', 
-          value: Math.round((userData.financeModule.foodExpenses || 0) / totalExpenses * 100) 
-        },
-        { 
-          name: 'Transport', 
-          value: Math.round((userData.financeModule.transportExpenses || 0) / totalExpenses * 100) 
-        },
-        { 
-          name: 'Loisirs', 
-          value: Math.round((userData.financeModule.leisureExpenses || 0) / totalExpenses * 100) 
-        },
-        { 
-          name: 'Charges fixes', 
-          value: Math.round((userData.financeModule.fixedExpenses || 0) / totalExpenses * 100) 
-        },
-        { 
-          name: 'Dettes', 
-          value: Math.round((userData.financeModule.debtPayments || 0) / totalExpenses * 100) 
-        }
-      ];
+  // Calculate annual totals from monthly data
+  const calculateAnnualTotals = () => {
+    if (!userData.financeModule.annualBudget) {
+      return { income: 0, expenses: 0, savings: 0 };
     }
     
-    // Convert to percentage
-    return Object.entries(categoryTotals).map(([name, value]) => ({
-      name,
-      value: Math.round((value / totalExpenses) * 100)
-    }));
-  };
-
-  // Get month's data 
-  const getSelectedMonthData = () => {
-    if (!userData.financeModule.annualBudget) return { income: 0, expenses: 0, savings: 0 };
-    const monthData = userData.financeModule.annualBudget[selectedMonth];
-    if (!monthData) return { income: 0, expenses: 0, savings: 0 };
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    
+    Object.values(userData.financeModule.annualBudget).forEach(data => {
+      totalIncome += data.income;
+      totalExpenses += data.expenses;
+    });
     
     return {
-      income: monthData.income,
-      expenses: monthData.expenses,
-      savings: monthData.income - monthData.expenses
+      income: totalIncome,
+      expenses: totalExpenses,
+      savings: totalIncome - totalExpenses
     };
   };
   
-  const monthData = getSelectedMonthData();
+  // Calculate expense breakdown by category
+  const calculateExpensesBreakdown = () => {
+    const totalExpenses = (
+      (userData.financeModule.housingExpenses || 0) +
+      (userData.financeModule.foodExpenses || 0) +
+      (userData.financeModule.transportExpenses || 0) +
+      (userData.financeModule.leisureExpenses || 0) +
+      (userData.financeModule.fixedExpenses || 0) +
+      (userData.financeModule.debtPayments || 0)
+    );
+    
+    if (totalExpenses === 0) {
+      return [
+        { name: 'Logement', value: 0 },
+        { name: 'Alimentation', value: 0 },
+        { name: 'Transport', value: 0 },
+        { name: 'Loisirs', value: 0 },
+        { name: 'Charges fixes', value: 0 },
+        { name: 'Dettes', value: 0 }
+      ];
+    }
+    
+    return [
+      { 
+        name: 'Logement', 
+        value: Math.round((userData.financeModule.housingExpenses || 0) / totalExpenses * 100) 
+      },
+      { 
+        name: 'Alimentation', 
+        value: Math.round((userData.financeModule.foodExpenses || 0) / totalExpenses * 100) 
+      },
+      { 
+        name: 'Transport', 
+        value: Math.round((userData.financeModule.transportExpenses || 0) / totalExpenses * 100) 
+      },
+      { 
+        name: 'Loisirs', 
+        value: Math.round((userData.financeModule.leisureExpenses || 0) / totalExpenses * 100) 
+      },
+      { 
+        name: 'Charges fixes', 
+        value: Math.round((userData.financeModule.fixedExpenses || 0) / totalExpenses * 100) 
+      },
+      { 
+        name: 'Dettes', 
+        value: Math.round((userData.financeModule.debtPayments || 0) / totalExpenses * 100) 
+      }
+    ];
+  };
+
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'];
 
   return (
     <div className="glass-card p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="font-pixel text-lg">Rapport Financier</h2>
+        <h2 className="font-pixel text-lg">Rapports Financiers</h2>
         
-        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+        <Select value={yearFilter} onValueChange={setYearFilter}>
           <SelectTrigger className="w-32">
-            <SelectValue placeholder="Mois" />
+            <SelectValue placeholder="Année" />
           </SelectTrigger>
           <SelectContent>
-            {months.map(month => (
-              <SelectItem key={month} value={month}>{month}</SelectItem>
-            ))}
+            <SelectItem value="2022">2022</SelectItem>
+            <SelectItem value="2023">2023</SelectItem>
+            <SelectItem value="2024">2024</SelectItem>
           </SelectContent>
         </Select>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div className="pixel-card bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
-          <h3 className="text-sm font-medium mb-2">Revenus</h3>
-          <div className="font-pixel text-xl text-zou-purple">{monthData.income.toLocaleString()} €</div>
-        </div>
-        
-        <div className="pixel-card bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
-          <h3 className="text-sm font-medium mb-2">Dépenses</h3>
-          <div className="font-pixel text-xl text-zou-orange">{monthData.expenses.toLocaleString()} €</div>
-        </div>
-        
-        <div className="pixel-card bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
-          <h3 className="text-sm font-medium mb-2">Épargne</h3>
-          <div className={`font-pixel text-xl ${monthData.savings >= 0 ? 'text-zou-green' : 'text-red-500'}`}>
-            {monthData.savings.toLocaleString()} €
-          </div>
-        </div>
-      </div>
-      
       <Tabs defaultValue="monthly" className="w-full">
         <TabsList className="mb-4">
-          <TabsTrigger value="monthly">Aperçu</TabsTrigger>
+          <TabsTrigger value="monthly">Mensuel</TabsTrigger>
+          <TabsTrigger value="annual">Annuel</TabsTrigger>
           <TabsTrigger value="categories">Catégories</TabsTrigger>
           <TabsTrigger value="savings">Épargne</TabsTrigger>
         </TabsList>
         
         <TabsContent value="monthly" className="space-y-4">
           <div className="mb-4">
-            <h3 className="text-sm font-semibold mb-2">Aperçu Mensuel - {selectedMonth}</h3>
+            <h3 className="text-sm font-semibold mb-2">Aperçu Mensuel - {yearFilter}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={monthlyData}
@@ -241,10 +217,62 @@ const FinancialReports = () => {
           </div>
         </TabsContent>
         
+        <TabsContent value="annual">
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold mb-2">Comparaison Annuelle</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={annualData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="year" />
+                <YAxis />
+                <Tooltip formatter={(value) => `${value} €`} />
+                <Legend />
+                <Bar dataKey="income" name="Revenus" fill="#8884d8" />
+                <Bar dataKey="expenses" name="Dépenses" fill="#ff7c43" />
+                <Bar dataKey="savings" name="Épargne" fill="#82ca9d" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-muted">
+                  <th className="border p-2 text-left">Année</th>
+                  <th className="border p-2 text-right">Revenus</th>
+                  <th className="border p-2 text-right">Dépenses</th>
+                  <th className="border p-2 text-right">Épargne</th>
+                  <th className="border p-2 text-center">Taux d'épargne</th>
+                </tr>
+              </thead>
+              <tbody>
+                {annualData.map((data, index) => {
+                  const savingsRate = data.income > 0 
+                    ? ((data.savings / data.income) * 100).toFixed(1) 
+                    : "0";
+                  
+                  return (
+                    <tr key={index} className="hover:bg-muted/50">
+                      <td className="border p-2">{data.year}</td>
+                      <td className="border p-2 text-right">{data.income} €</td>
+                      <td className="border p-2 text-right">{data.expenses} €</td>
+                      <td className="border p-2 text-right">{data.savings} €</td>
+                      <td className="border p-2 text-center">{savingsRate}%</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </TabsContent>
+        
         <TabsContent value="categories">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm font-semibold mb-2">Répartition des Dépenses - {selectedMonth}</h3>
+              <h3 className="text-sm font-semibold mb-2">Répartition des Dépenses</h3>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -270,7 +298,7 @@ const FinancialReports = () => {
             </div>
             
             <div>
-              <h3 className="text-sm font-semibold mb-2">Détails des Catégories - {selectedMonth}</h3>
+              <h3 className="text-sm font-semibold mb-2">Détails des Catégories</h3>
               <div className="space-y-4">
                 {categoryData.map((category, index) => (
                   <div key={index} className="pixel-card p-3">
@@ -304,52 +332,54 @@ const FinancialReports = () => {
         
         <TabsContent value="savings">
           <div className="mb-6">
-            <h3 className="text-sm font-semibold mb-2">Épargne - {selectedMonth}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="pixel-card p-6">
-                <h3 className="text-lg font-semibold text-center mb-4">{selectedMonth}</h3>
+            <h3 className="text-sm font-semibold mb-2">Évolution du Taux d'Épargne</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart
+                data={savingsRateData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="year" />
+                <YAxis />
+                <Tooltip formatter={(value) => `${value}%`} />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="rate" 
+                  name="Taux d'épargne" 
+                  stroke="#8884d8" 
+                  activeDot={{ r: 8 }} 
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {savingsRateData.map((data, index) => (
+              <div key={index} className="pixel-card p-4">
+                <h3 className="text-lg font-semibold text-center mb-2">{data.year}</h3>
                 <div className="flex flex-col items-center">
                   <div className="text-3xl font-bold text-zou-purple mb-2">
-                    {monthData.income > 0 
-                      ? ((monthData.savings / monthData.income) * 100).toFixed(1) 
-                      : "0"}%
+                    {data.rate}%
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    Taux d'épargne mensuel
+                    Taux d'épargne annuel
                   </div>
-                  <div className="mt-4 w-full">
-                    <div className="text-sm font-medium mb-1 flex justify-between">
-                      <span>Épargne réalisée</span>
-                      <span>{monthData.savings.toLocaleString()} €</span>
+                  {index > 0 && (
+                    <div className={`mt-2 text-sm ${
+                      data.rate > savingsRateData[index - 1].rate 
+                        ? 'text-green-500' 
+                        : 'text-red-500'
+                    }`}>
+                      {data.rate > savingsRateData[index - 1].rate 
+                        ? `+${(data.rate - savingsRateData[index - 1].rate).toFixed(1)}%` 
+                        : `${(data.rate - savingsRateData[index - 1].rate).toFixed(1)}%`} 
+                      par rapport à l'année précédente
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div 
-                        className="bg-zou-purple h-2.5 rounded-full"
-                        style={{ width: `${Math.min(monthData.income > 0 ? (monthData.savings / monthData.income) * 100 : 0, 100)}%` }}
-                      ></div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
-              
-              <div className="pixel-card p-6">
-                <h3 className="text-lg font-semibold mb-4">Conseils d'épargne</h3>
-                <ul className="space-y-2">
-                  <li className="flex items-start">
-                    <span className="bg-zou-purple text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">1</span>
-                    <span>Visez un taux d'épargne d'au moins 20% de vos revenus</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="bg-zou-purple text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">2</span>
-                    <span>Constituez un fonds d'urgence équivalent à 3-6 mois de dépenses</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="bg-zou-purple text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">3</span>
-                    <span>Automatisez vos virements d'épargne en début de mois</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
+            ))}
           </div>
         </TabsContent>
       </Tabs>

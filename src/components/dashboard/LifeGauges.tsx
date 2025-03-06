@@ -1,20 +1,33 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, Users, Battery, Droplet } from "lucide-react";
-import { useUserData } from "@/context/UserDataContext";
 
 interface LifeGaugesProps {
   compact?: boolean;
 }
 
 const LifeGauges = ({ compact = false }: LifeGaugesProps) => {
-  const { userData } = useUserData();
-  const [gauges] = useState({
-    fun: userData.statusModule?.gauges?.fun || 75,
-    social: userData.statusModule?.gauges?.social || 60,
-    energy: userData.statusModule?.gauges?.energy || 45,
-    hygiene: userData.statusModule?.gauges?.hygiene || 90
+  // Mock data - in a real app, this would come from an API or state
+  const [gauges, setGauges] = useState({
+    fun: 75,
+    social: 60,
+    energy: 45,
+    hygiene: 90
   });
+  
+  // For demo purposes, randomly fluctuate values
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGauges(prev => ({
+        fun: Math.max(20, Math.min(100, prev.fun + (Math.random() * 10 - 5))),
+        social: Math.max(20, Math.min(100, prev.social + (Math.random() * 10 - 5))),
+        energy: Math.max(20, Math.min(100, prev.energy + (Math.random() * 10 - 5))),
+        hygiene: Math.max(20, Math.min(100, prev.hygiene + (Math.random() * 10 - 5)))
+      }));
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
   
   const gaugeItems = [
     { label: "Fun", value: gauges.fun, icon: Heart, color: "bg-fun" },
