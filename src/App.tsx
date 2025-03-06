@@ -11,6 +11,8 @@ import Status from "./pages/Status";
 import Look from "./pages/Look";
 import Finances from "./pages/Finances";
 import Skills from "./pages/Skills";
+import DailyQuests from "./pages/DailyQuests";
+import Badges from "./pages/Badges";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
@@ -79,6 +81,16 @@ const AppRoutes = () => {
         <Route path="/skills" element={
           <RequireOnboarding>
             <Skills />
+          </RequireOnboarding>
+        } />
+        <Route path="/daily-quests" element={
+          <RequireOnboarding>
+            <DailyQuests />
+          </RequireOnboarding>
+        } />
+        <Route path="/badges" element={
+          <RequireOnboarding>
+            <Badges />
           </RequireOnboarding>
         } />
         <Route path="*" element={<NotFound />} />

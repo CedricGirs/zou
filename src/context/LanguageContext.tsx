@@ -1,10 +1,13 @@
+import { createContext, useContext, useState, ReactNode } from "react";
 
-import { createContext, useState, useContext, ReactNode } from 'react';
+type Language = "en" | "fr";
 
-// Define language options
-export type Language = 'en' | 'fr';
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (language: Language) => void;
+  t: (key: string) => string;
+}
 
-// Translation dictionary
 const translations = {
   en: {
     // Dashboard/Home
@@ -131,6 +134,31 @@ const translations = {
     tutorial: 'Interactive Tutorial',
     tutorialDesc: 'Learn how to use Zou for maximum benefits',
     comingSoon: 'This step will be available in the next update!',
+    
+    // New translations
+    manageQuests: "Manage Quests",
+    addNewQuest: "Add New Quest",
+    questTitle: "Quest Title",
+    add: "Add",
+    noQuestsYet: "No quests yet",
+    addYourFirstQuest: "Add your first quest to get started",
+    questAdded: "Quest Added",
+    newQuestAdded: "New quest has been added",
+    questCompleted: "Quest Completed",
+    questDeleted: "Quest Deleted",
+    questHasBeenDeleted: "Quest has been deleted",
+    allQuestsCompleted: "All quests completed!",
+    addMoreQuests: "Add more quests",
+    completed: "Completed",
+    viewAllBadges: "View All Badges",
+    badges: "Badges",
+    searchBadges: "Search badges",
+    allCategories: "All Categories",
+    special: "Special",
+    noBadgesFound: "No badges found",
+    error: "Error",
+    pleaseEnterQuestTitle: "Please enter a quest title",
+    delete: "Delete",
   },
   fr: {
     // Dashboard/Home
@@ -257,24 +285,40 @@ const translations = {
     tutorial: 'Tutoriel Interactif',
     tutorialDesc: 'Apprenez à utiliser Zou pour en tirer le maximum d\'avantages',
     comingSoon: 'Cette étape sera disponible dans la prochaine mise à jour !',
+    
+    // New translations
+    manageQuests: "Gérer les quêtes",
+    addNewQuest: "Ajouter une quête",
+    questTitle: "Titre de la quête",
+    add: "Ajouter",
+    noQuestsYet: "Pas encore de quêtes",
+    addYourFirstQuest: "Ajoutez votre première quête pour commencer",
+    questAdded: "Quête ajoutée",
+    newQuestAdded: "Nouvelle quête ajoutée",
+    questCompleted: "Quête complétée",
+    questDeleted: "Quête supprimée",
+    questHasBeenDeleted: "La quête a été supprimée",
+    allQuestsCompleted: "Toutes les quêtes sont complétées !",
+    addMoreQuests: "Ajouter plus de quêtes",
+    completed: "Complété",
+    viewAllBadges: "Voir tous les badges",
+    badges: "Badges",
+    searchBadges: "Rechercher des badges",
+    allCategories: "Toutes les catégories",
+    special: "Spécial",
+    noBadgesFound: "Aucun badge trouvé",
+    error: "Erreur",
+    pleaseEnterQuestTitle: "Veuillez entrer un titre de quête",
+    delete: "Supprimer",
   }
-};
-
-// Create the context
-type LanguageContextType = {
-  language: Language;
-  setLanguage: (language: Language) => void;
-  t: (key: keyof typeof translations.en) => string;
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-// Create provider component
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguage] = useState<Language>('fr');
 
-  // Translation function
-  const t = (key: keyof typeof translations.en): string => {
+  const t = (key: string): string => {
     return translations[language][key] || key;
   };
 
@@ -285,7 +329,6 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Custom hook to use the language context
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {

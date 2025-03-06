@@ -11,6 +11,7 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children }: MainLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNavVisible, setIsNavVisible] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const location = useLocation();
 
@@ -63,6 +64,15 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     }
   }, [location.pathname]);
 
+  // Toggle navigation visibility when sidebar is opened/closed on mobile
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setIsNavVisible(!isSidebarOpen);
+    } else {
+      setIsNavVisible(true);
+    }
+  }, [isSidebarOpen]);
+
   return (
     <div className={`app-container ${theme}`}>
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
@@ -74,7 +84,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         </div>
       </main>
       
-      <BottomNav />
+      <BottomNav isVisible={isNavVisible} />
     </div>
   );
 };
