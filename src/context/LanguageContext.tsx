@@ -46,6 +46,9 @@ const translations = {
     itemAdded: 'Item has been added',
     titleRequired: 'Title is required',
     added: 'has been added',
+    delete: 'Delete',
+    deleteConfirm: 'Are you sure you want to delete this item?',
+    itemDeleted: 'Item has been deleted',
     
     // Skills page
     skillsTitle: 'Skills',
@@ -74,7 +77,6 @@ const translations = {
     level: 'LVL',
     xp: 'XP',
     menu: 'MENU',
-    progress: 'Progress',
     certificate: 'Certificate verified',
     upload: 'UPLOAD',
     cert: 'CERT',
@@ -120,6 +122,9 @@ const translations = {
     itemAdded: 'L\'élément a été ajouté',
     titleRequired: 'Le titre est requis',
     added: 'a été ajouté',
+    delete: 'Supprimer',
+    deleteConfirm: 'Êtes-vous sûr de vouloir supprimer cet élément ?',
+    itemDeleted: 'L\'élément a été supprimé',
     
     // Skills page
     skillsTitle: 'Compétences',
@@ -148,7 +153,6 @@ const translations = {
     level: 'NIV',
     xp: 'XP',
     menu: 'MENU',
-    progress: 'Progression',
     certificate: 'Certificat vérifié',
     upload: 'TÉLÉCHARGER',
     cert: 'CERT',

@@ -55,6 +55,14 @@ const Status = () => {
     ));
   };
   
+  const deleteItem = (id: string) => {
+    setCourses(courses.filter(course => course.id !== id));
+    toast({
+      title: t("success"),
+      description: t("itemDeleted"),
+    });
+  };
+  
   const openAddModal = (type: "course" | "language" | "skill") => {
     setModalType(type);
     setModalOpen(true);
@@ -88,6 +96,7 @@ const Status = () => {
                 key={course.id}
                 item={course}
                 onUpdate={updateCourse}
+                onDelete={deleteItem}
               />
             ))}
           </div>
@@ -113,6 +122,7 @@ const Status = () => {
                 key={course.id}
                 item={course}
                 onUpdate={updateCourse}
+                onDelete={deleteItem}
               />
             ))}
           </div>
@@ -138,6 +148,7 @@ const Status = () => {
                 key={course.id}
                 item={course}
                 onUpdate={updateCourse}
+                onDelete={deleteItem}
               />
             ))}
           </div>

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { CheckCircle, X, Upload, Clock } from "lucide-react";
+import { CheckCircle, X, Upload, Clock, Trash2 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 interface CourseItem {
@@ -17,9 +17,10 @@ interface CourseItem {
 interface StatusCardProps {
   item: CourseItem;
   onUpdate: (id: string, updates: Partial<CourseItem>) => void;
+  onDelete: (id: string) => void;
 }
 
-const StatusCard = ({ item, onUpdate }: StatusCardProps) => {
+const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
   const { t } = useLanguage();
   const [showUpload, setShowUpload] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -51,6 +52,12 @@ const StatusCard = ({ item, onUpdate }: StatusCardProps) => {
       setFile(null);
     }
   };
+
+  const handleDelete = () => {
+    if (confirm(t('deleteConfirm'))) {
+      onDelete(item.id);
+    }
+  };
   
   return (
     <div className={`
@@ -73,6 +80,13 @@ const StatusCard = ({ item, onUpdate }: StatusCardProps) => {
               {new Date(item.deadline).toLocaleDateString()}
             </div>
           )}
+          <button 
+            onClick={handleDelete}
+            className="text-red-500 hover:text-red-700 transition-colors"
+            title={t('delete')}
+          >
+            <Trash2 size={14} />
+          </button>
         </div>
       </div>
       
