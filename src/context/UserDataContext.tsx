@@ -31,6 +31,24 @@ export interface LookModule {
   style: 'classic' | 'sporty' | 'streetwear';
 }
 
+export interface Transaction {
+  id: string;
+  date: string;
+  month: string;
+  description: string;
+  amount: number;
+  category: string;
+  isVerified: boolean;
+}
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  target: number;
+  saved: number;
+  deadline: string;
+}
+
 export interface FinanceModule {
   monthlyIncome: number;
   fixedExpenses: number;
@@ -42,6 +60,14 @@ export interface FinanceModule {
   leisureExpenses?: number;
   debtPayments?: number;
   emergencyFund?: number;
+  transactions?: Transaction[];
+  savingsGoals?: SavingsGoal[];
+  annualBudget?: {
+    [month: string]: {
+      income: number;
+      expenses: number;
+    }
+  };
 }
 
 export interface CourseItem {
@@ -119,7 +145,26 @@ const defaultFinanceModule: FinanceModule = {
   foodExpenses: 0,
   leisureExpenses: 0,
   debtPayments: 0,
-  emergencyFund: 0
+  emergencyFund: 0,
+  transactions: [],
+  savingsGoals: [
+    { id: "emergency", name: "Fonds d'urgence", target: 5000, saved: 1500, deadline: "2024-12-31" },
+    { id: "vacation", name: "Vacances", target: 2000, saved: 800, deadline: "2024-06-30" }
+  ],
+  annualBudget: {
+    "Janvier": { income: 5000, expenses: 3500 },
+    "Février": { income: 5000, expenses: 3600 },
+    "Mars": { income: 5000, expenses: 3400 },
+    "Avril": { income: 5000, expenses: 3300 },
+    "Mai": { income: 5000, expenses: 3700 },
+    "Juin": { income: 5000, expenses: 3800 },
+    "Juillet": { income: 5000, expenses: 4000 },
+    "Août": { income: 5000, expenses: 3900 },
+    "Septembre": { income: 5000, expenses: 3500 },
+    "Octobre": { income: 5000, expenses: 3600 },
+    "Novembre": { income: 5000, expenses: 3700 },
+    "Décembre": { income: 5000, expenses: 4200 }
+  }
 };
 
 // État utilisateur par défaut
