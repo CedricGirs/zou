@@ -1,30 +1,46 @@
-
 import { useEffect } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useOnboarding } from "../context/OnboardingContext";
 import OnboardingLayout from "../components/onboarding/OnboardingLayout";
 import HeroProfileStep from "../components/onboarding/HeroProfileStep";
 import StatusModuleStep from "../components/onboarding/StatusModuleStep";
+import LookModuleStep from "../components/onboarding/LookModuleStep";
+import FinanceModuleStep from "../components/onboarding/FinanceModuleStep";
 import { useLanguage } from "../context/LanguageContext";
 
 const Onboarding = () => {
-  const { onboarding, totalSteps } = useOnboarding();
+  const { onboarding, totalSteps, setOnboardingCompleted, nextStep, prevStep } = useOnboarding();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   
   useEffect(() => {
-    // If onboarding is already completed, redirect to home
-    if (onboarding.isCompleted) {
+    const params = new URLSearchParams(location.search);
+    const stepParam = params.get('step');
+    
+    if (stepParam) {
+      const step = parseInt(stepParam);
+      if (!isNaN(step) && step >= 1 && step <= totalSteps) {
+        while (onboarding.currentStep < step) {
+          nextStep();
+        }
+        while (onboarding.currentStep > step) {
+          prevStep();
+        }
+      }
+    }
+  }, [location.search]);
+  
+  useEffect(() => {
+    if (onboarding.isCompleted && !location.pathname.includes('onboarding')) {
       navigate('/');
     }
-  }, [onboarding.isCompleted, navigate]);
+  }, [onboarding.isCompleted, navigate, location.pathname]);
   
-  // If onboarding is completed, redirect to home
-  if (onboarding.isCompleted) {
+  if (onboarding.isCompleted && !location.pathname.includes('onboarding')) {
     return <Navigate to="/" />;
   }
   
-  // Return the appropriate step based on the current step
   const renderStep = () => {
     switch (onboarding.currentStep) {
       case 1:
@@ -34,7 +50,6 @@ const Onboarding = () => {
             subtitle={t("createHeroProfileDesc")}
             showPrevButton={false}
             onNext={() => {
-              // Validate that username is not empty
               return !!onboarding.heroProfile.username.trim();
             }}
           >
@@ -42,7 +57,6 @@ const Onboarding = () => {
           </OnboardingLayout>
         );
       case 2:
-        // Status module step
         return (
           <OnboardingLayout
             title={t("statusModule")}
@@ -52,41 +66,35 @@ const Onboarding = () => {
           </OnboardingLayout>
         );
       case 3:
-        // Look module step
         return (
           <OnboardingLayout
             title={t("lookModule")}
             subtitle={t("lookModuleDesc")}
           >
-            <div className="text-center py-10">
-              <p className="text-muted-foreground">{t("comingSoon")}</p>
-              {/* In a real implementation, we would have a LookModuleStep component here */}
-            </div>
+            <LookModuleStep />
           </OnboardingLayout>
         );
       case 4:
-        // Finance module step
         return (
           <OnboardingLayout
             title={t("financeModule")}
             subtitle={t("financeModuleDesc")}
           >
-            <div className="text-center py-10">
-              <p className="text-muted-foreground">{t("comingSoon")}</p>
-              {/* In a real implementation, we would have a FinanceModuleStep component here */}
-            </div>
+            <FinanceModuleStep />
           </OnboardingLayout>
         );
       case 5:
-        // Tutorial step
         return (
           <OnboardingLayout
             title={t("tutorial")}
             subtitle={t("tutorialDesc")}
+            onComplete={() => {
+              setOnboardingCompleted(true);
+            }}
           >
             <div className="text-center py-10">
-              <p className="text-muted-foreground">{t("comingSoon")}</p>
-              {/* In a real implementation, we would have a TutorialStep component here */}
+              <p className="text-muted-foreground">{t("congratsOnboarding")}</p>
+              <p className="mt-4">{t("readyToStart")}</p>
             </div>
           </OnboardingLayout>
         );

@@ -1,12 +1,37 @@
-
 import { useState } from "react";
 import { useOnboarding } from "../../context/OnboardingContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { Plus, X, Check } from "lucide-react";
+import { Plus, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const LANGUAGE_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+const COMMON_SOFT_SKILLS = [
+  "Communication",
+  "Teamwork",
+  "Problem-solving",
+  "Time management",
+  "Leadership",
+  "Adaptability",
+  "Creativity",
+  "Critical thinking",
+  "Emotional intelligence",
+  "Work ethic",
+  "Attention to detail",
+  "Conflict resolution",
+  "Organization",
+  "Decision-making",
+  "Negotiation",
+];
 
 const StatusModuleStep = () => {
   const { onboarding, updateStatusModule } = useOnboarding();
@@ -16,12 +41,11 @@ const StatusModuleStep = () => {
   const [languages, setLanguages] = useState(onboarding.statusModule.languages);
   const [softSkills, setSoftSkills] = useState(onboarding.statusModule.softSkills);
   
-  // New language form state
   const [newLanguage, setNewLanguage] = useState("");
   const [newLanguageLevel, setNewLanguageLevel] = useState<"A1" | "A2" | "B1" | "B2" | "C1" | "C2">("A1");
   
-  // New soft skill form state
   const [newSkill, setNewSkill] = useState("");
+  const [selectedSkill, setSelectedSkill] = useState("");
   
   const handleStatusChange = (newStatus: 'student' | 'employee' | 'career-change') => {
     setStatus(newStatus);
@@ -48,18 +72,42 @@ const StatusModuleStep = () => {
   };
   
   const addSoftSkill = () => {
-    if (!newSkill.trim()) return;
+    let skillToAdd = "";
     
-    const updatedSkills = [...softSkills, newSkill.trim()];
+    if (selectedSkill) {
+      skillToAdd = selectedSkill;
+      setSelectedSkill("");
+    } else if (newSkill.trim()) {
+      skillToAdd = newSkill.trim();
+      setNewSkill("");
+    } else {
+      return;
+    }
+    
+    if (softSkills.includes(skillToAdd)) {
+      return;
+    }
+    
+    const updatedSkills = [...softSkills, skillToAdd];
     setSoftSkills(updatedSkills);
     updateStatusModule({ softSkills: updatedSkills });
-    setNewSkill("");
   };
   
   const removeSoftSkill = (indexToRemove: number) => {
     const updatedSkills = softSkills.filter((_, index) => index !== indexToRemove);
     setSoftSkills(updatedSkills);
     updateStatusModule({ softSkills: updatedSkills });
+  };
+  
+  const handleSkillSelect = (value: string) => {
+    setSelectedSkill(value);
+    
+    if (value && !softSkills.includes(value)) {
+      const updatedSkills = [...softSkills, value];
+      setSoftSkills(updatedSkills);
+      updateStatusModule({ softSkills: updatedSkills });
+      setSelectedSkill("");
+    }
   };
   
   return (
@@ -162,21 +210,38 @@ const StatusModuleStep = () => {
           )}
         </div>
         
-        <div className="flex gap-2">
-          <Input
-            value={newSkill}
-            onChange={(e) => setNewSkill(e.target.value)}
-            placeholder={t("skillName")}
-            className="flex-1"
-          />
+        <div className="space-y-4">
+          <Select value={selectedSkill} onValueChange={handleSkillSelect}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={t("selectSkill")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {COMMON_SOFT_SKILLS.map((skill) => (
+                  <SelectItem key={skill} value={skill}>
+                    {skill}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
           
-          <button 
-            onClick={addSoftSkill}
-            className="pixel-button-secondary p-2"
-            disabled={!newSkill.trim()}
-          >
-            <Plus size={16} />
-          </button>
+          <div className="flex gap-2">
+            <Input
+              value={newSkill}
+              onChange={(e) => setNewSkill(e.target.value)}
+              placeholder={t("customSkillName")}
+              className="flex-1"
+            />
+            
+            <button 
+              onClick={addSoftSkill}
+              className="pixel-button-secondary p-2"
+              disabled={!newSkill.trim()}
+            >
+              <Plus size={16} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
