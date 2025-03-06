@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
-import { DollarSign, TrendingUp, PiggyBank, Plus, AlertCircle } from "lucide-react";
+import { DollarSign, TrendingUp, PiggyBank, Plus, AlertCircle, CreditCard, Wallet, BadgeDollarSign } from "lucide-react";
 import { useUserData } from "@/context/UserDataContext";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -9,30 +9,120 @@ const Finances = () => {
   const { userData } = useUserData();
   const { t } = useLanguage();
   
-  // Mock data for budget categories, taking initial values from user data
+  // Budget categories based on user data
   const [budget, setBudget] = useState({
-    income: userData.financeModule.monthlyIncome || 5000,
+    income: userData.financeModule.monthlyIncome + (userData.financeModule.additionalIncome || 0) || 5000,
     categories: [
-      { id: "housing", name: "Housing", budget: userData.financeModule.fixedExpenses * 0.5 || 1500, spent: 1450, color: "bg-zou-purple" },
-      { id: "food", name: "Food", budget: userData.financeModule.fixedExpenses * 0.2 || 600, spent: 580, color: "bg-zou-orange" },
-      { id: "transport", name: "Transport", budget: userData.financeModule.fixedExpenses * 0.15 || 400, spent: 320, color: "bg-zou-blue" },
-      { id: "leisure", name: "Leisure", budget: userData.financeModule.fixedExpenses * 0.1 || 300, spent: 350, color: "bg-zou-pink" },
-      { id: "savings", name: "Savings", budget: userData.financeModule.savingsGoal || 1000, spent: 800, color: "bg-zou-green" },
-      { id: "other", name: "Other", budget: userData.financeModule.fixedExpenses * 0.05 || 200, spent: 180, color: "bg-gray-400" }
+      { 
+        id: "housing", 
+        name: "Housing", 
+        budget: userData.financeModule.housingExpenses || 1500, 
+        spent: userData.financeModule.housingExpenses ? userData.financeModule.housingExpenses * 0.95 : 1450, 
+        color: "bg-zou-purple" 
+      },
+      { 
+        id: "food", 
+        name: "Food", 
+        budget: userData.financeModule.foodExpenses || 600, 
+        spent: userData.financeModule.foodExpenses ? userData.financeModule.foodExpenses * 0.97 : 580, 
+        color: "bg-zou-orange" 
+      },
+      { 
+        id: "transport", 
+        name: "Transport", 
+        budget: userData.financeModule.transportExpenses || 400, 
+        spent: userData.financeModule.transportExpenses ? userData.financeModule.transportExpenses * 0.8 : 320, 
+        color: "bg-zou-blue" 
+      },
+      { 
+        id: "leisure", 
+        name: "Leisure", 
+        budget: userData.financeModule.leisureExpenses || 300, 
+        spent: userData.financeModule.leisureExpenses ? userData.financeModule.leisureExpenses * 1.05 : 350, 
+        color: "bg-zou-pink" 
+      },
+      { 
+        id: "debt", 
+        name: "Debt Payments", 
+        budget: userData.financeModule.debtPayments || 200, 
+        spent: userData.financeModule.debtPayments || 200, 
+        color: "bg-red-400" 
+      },
+      { 
+        id: "savings", 
+        name: "Savings", 
+        budget: userData.financeModule.savingsGoal || 1000, 
+        spent: userData.financeModule.savingsGoal ? userData.financeModule.savingsGoal * 0.8 : 800, 
+        color: "bg-zou-green" 
+      },
+      { 
+        id: "other", 
+        name: "Other", 
+        budget: userData.financeModule.fixedExpenses || 200, 
+        spent: userData.financeModule.fixedExpenses ? userData.financeModule.fixedExpenses * 0.9 : 180, 
+        color: "bg-gray-400" 
+      }
     ]
   });
   
   // Update budget when userData changes
   useEffect(() => {
     if (userData.financeModule) {
+      const totalIncome = userData.financeModule.monthlyIncome + (userData.financeModule.additionalIncome || 0);
+      
       setBudget(prev => ({
-        income: userData.financeModule.monthlyIncome,
-        categories: prev.categories.map(cat => {
-          if (cat.id === "savings") {
-            return { ...cat, budget: userData.financeModule.savingsGoal };
+        income: totalIncome,
+        categories: [
+          { 
+            id: "housing", 
+            name: "Housing", 
+            budget: userData.financeModule.housingExpenses || prev.categories[0].budget, 
+            spent: userData.financeModule.housingExpenses ? userData.financeModule.housingExpenses * 0.95 : prev.categories[0].spent, 
+            color: "bg-zou-purple" 
+          },
+          { 
+            id: "food", 
+            name: "Food", 
+            budget: userData.financeModule.foodExpenses || prev.categories[1].budget, 
+            spent: userData.financeModule.foodExpenses ? userData.financeModule.foodExpenses * 0.97 : prev.categories[1].spent, 
+            color: "bg-zou-orange" 
+          },
+          { 
+            id: "transport", 
+            name: "Transport", 
+            budget: userData.financeModule.transportExpenses || prev.categories[2].budget, 
+            spent: userData.financeModule.transportExpenses ? userData.financeModule.transportExpenses * 0.8 : prev.categories[2].spent, 
+            color: "bg-zou-blue" 
+          },
+          { 
+            id: "leisure", 
+            name: "Leisure", 
+            budget: userData.financeModule.leisureExpenses || prev.categories[3].budget, 
+            spent: userData.financeModule.leisureExpenses ? userData.financeModule.leisureExpenses * 1.05 : prev.categories[3].spent, 
+            color: "bg-zou-pink" 
+          },
+          { 
+            id: "debt", 
+            name: "Debt Payments", 
+            budget: userData.financeModule.debtPayments || (prev.categories[4] ? prev.categories[4].budget : 200), 
+            spent: userData.financeModule.debtPayments || (prev.categories[4] ? prev.categories[4].spent : 200), 
+            color: "bg-red-400" 
+          },
+          { 
+            id: "savings", 
+            name: "Savings", 
+            budget: userData.financeModule.savingsGoal || prev.categories[5].budget, 
+            spent: userData.financeModule.savingsGoal ? userData.financeModule.savingsGoal * 0.8 : prev.categories[5].spent, 
+            color: "bg-zou-green" 
+          },
+          { 
+            id: "other", 
+            name: "Other", 
+            budget: userData.financeModule.fixedExpenses || prev.categories[6].budget, 
+            spent: userData.financeModule.fixedExpenses ? userData.financeModule.fixedExpenses * 0.9 : prev.categories[6].spent, 
+            color: "bg-gray-400" 
           }
-          return cat;
-        })
+        ]
       }));
     }
   }, [userData.financeModule]);
@@ -66,11 +156,17 @@ const Finances = () => {
               <div className="pixel-card flex flex-col items-center">
                 <h3 className="text-sm font-medium mb-1">Income</h3>
                 <span className="font-pixel text-xl text-zou-purple">${budget.income}</span>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Main: ${userData.financeModule.monthlyIncome} / Additional: ${userData.financeModule.additionalIncome || 0}
+                </div>
               </div>
               
               <div className="pixel-card flex flex-col items-center">
                 <h3 className="text-sm font-medium mb-1">Spent</h3>
                 <span className="font-pixel text-xl text-zou-orange">${totalSpent}</span>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {((totalSpent / budget.income) * 100).toFixed(0)}% of income
+                </div>
               </div>
               
               <div className="pixel-card flex flex-col items-center">
@@ -78,6 +174,9 @@ const Finances = () => {
                 <span className={`font-pixel text-xl ${remainingBudget >= 0 ? 'text-zou-green' : 'text-red-500'}`}>
                   ${remainingBudget}
                 </span>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {Math.abs((remainingBudget / budget.income) * 100).toFixed(0)}% of income
+                </div>
               </div>
             </div>
             
@@ -127,7 +226,39 @@ const Finances = () => {
             </div>
             
             <div className="space-y-4">
-              {savingsGoals.map(goal => {
+              {/* Emergency Fund Card */}
+              {userData.financeModule.emergencyFund > 0 && (
+                <div className="pixel-card">
+                  <h3 className="text-sm font-medium mb-2">Emergency Fund</h3>
+                  
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>${userData.financeModule.emergencyFund * 0.6} / ${userData.financeModule.emergencyFund}</span>
+                    <span>60% complete</span>
+                  </div>
+                  
+                  <div className="progress-bar mb-2">
+                    <div 
+                      className="progress-bar-fill bg-blue-500"
+                      style={{ width: '60%' }}
+                    ></div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">
+                      High priority
+                    </span>
+                    <button className="text-xs pixel-button py-1">
+                      ADD FUNDS
+                    </button>
+                  </div>
+                </div>
+              )}
+            
+              {/* Savings Goals */}
+              {[
+                { id: "vacation", name: "Vacation", target: 2000, saved: 1200, deadline: "2023-12-31" },
+                { id: "laptop", name: "New Laptop", target: 1500, saved: 500, deadline: "2024-03-15" }
+              ].map(goal => {
                 const percentSaved = (goal.saved / goal.target) * 100;
                 const deadline = new Date(goal.deadline);
                 const remainingDays = Math.ceil((deadline.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));

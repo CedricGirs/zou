@@ -35,6 +35,13 @@ export interface FinanceModule {
   monthlyIncome: number;
   fixedExpenses: number;
   savingsGoal: number;
+  additionalIncome?: number;
+  housingExpenses?: number;
+  transportExpenses?: number;
+  foodExpenses?: number;
+  leisureExpenses?: number;
+  debtPayments?: number;
+  emergencyFund?: number;
 }
 
 export interface CourseItem {
@@ -106,6 +113,13 @@ const defaultFinanceModule: FinanceModule = {
   monthlyIncome: 0,
   fixedExpenses: 0,
   savingsGoal: 0,
+  additionalIncome: 0,
+  housingExpenses: 0,
+  transportExpenses: 0,
+  foodExpenses: 0,
+  leisureExpenses: 0,
+  debtPayments: 0,
+  emergencyFund: 0
 };
 
 // État utilisateur par défaut
