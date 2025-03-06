@@ -4,6 +4,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useOnboarding } from "../context/OnboardingContext";
 import OnboardingLayout from "../components/onboarding/OnboardingLayout";
 import HeroProfileStep from "../components/onboarding/HeroProfileStep";
+import StatusModuleStep from "../components/onboarding/StatusModuleStep";
 import { useLanguage } from "../context/LanguageContext";
 
 const Onboarding = () => {
@@ -47,10 +48,7 @@ const Onboarding = () => {
             title={t("statusModule")}
             subtitle={t("statusModuleDesc")}
           >
-            <div className="text-center py-10">
-              <p className="text-muted-foreground">{t("comingSoon")}</p>
-              {/* In a real implementation, we would have a StatusModuleStep component here */}
-            </div>
+            <StatusModuleStep />
           </OnboardingLayout>
         );
       case 3:

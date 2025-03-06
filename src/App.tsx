@@ -13,6 +13,7 @@ import Finances from "./pages/Finances";
 import Skills from "./pages/Skills";
 import DailyQuests from "./pages/DailyQuests";
 import Badges from "./pages/Badges";
+import Profile from "./pages/Profile";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
@@ -91,6 +92,11 @@ const AppRoutes = () => {
         <Route path="/badges" element={
           <RequireOnboarding>
             <Badges />
+          </RequireOnboarding>
+        } />
+        <Route path="/profile" element={
+          <RequireOnboarding>
+            <Profile />
           </RequireOnboarding>
         } />
         <Route path="*" element={<NotFound />} />
