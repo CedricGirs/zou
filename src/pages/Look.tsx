@@ -1,8 +1,6 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useLanguage } from "../context/LanguageContext";
-import { useUserData } from "../context/UserDataContext";
 import { 
   Shirt, ShoppingBag, Tally1, Tally2, Tally3, Tally4 
 } from "lucide-react";
@@ -12,21 +10,8 @@ import { Clothing } from "../types/clothing";
 
 const Look = () => {
   const { t } = useLanguage();
-  const { userData, updateLookModule } = useUserData();
-  const [selectedClothingIds, setSelectedClothingIds] = useState<string[]>(
-    userData.lookModule.selectedClothing || []
-  );
-  const [showOutfits, setShowOutfits] = useState<boolean>(selectedClothingIds.length >= 4);
-  
-  // Load selected clothing from user data
-  useEffect(() => {
-    if (userData.lookModule.selectedClothing?.length > 0) {
-      setSelectedClothingIds(userData.lookModule.selectedClothing);
-      if (userData.lookModule.selectedClothing.length >= 4) {
-        setShowOutfits(true);
-      }
-    }
-  }, [userData.lookModule.selectedClothing]);
+  const [selectedClothingIds, setSelectedClothingIds] = useState<string[]>([]);
+  const [showOutfits, setShowOutfits] = useState<boolean>(false);
   
   // Données des vêtements
   const clothingItems: Clothing[] = [
@@ -57,8 +42,6 @@ const Look = () => {
 
   const handleSelectionChange = (selected: string[]) => {
     setSelectedClothingIds(selected);
-    updateLookModule({ selectedClothing: selected });
-    
     if (selected.length >= 4) {
       setShowOutfits(true);
     }

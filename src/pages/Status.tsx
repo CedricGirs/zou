@@ -1,16 +1,14 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import StatusCard from "../components/status/StatusCard";
 import AddItemModal from "../components/status/AddItemModal";
 import { GraduationCap, Globe, Brain, Plus } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
-import { useUserData } from "../context/UserDataContext";
 import { useToast } from "@/hooks/use-toast";
 
 const Status = () => {
   const { t } = useLanguage();
-  const { userData, updateStatusModule } = useUserData();
   const { toast } = useToast();
   
   const [courses, setCourses] = useState([
@@ -48,63 +46,6 @@ const Status = () => {
     }
   ]);
   
-  // Load data from userData if available
-  useEffect(() => {
-    // If we have any skills or languages in userData, add them to courses
-    const userItems = [];
-    
-    // Add skills from userData
-    if (userData.statusModule.skills?.length > 0) {
-      userData.statusModule.skills.forEach((skill, index) => {
-        userItems.push({
-          id: `skill-${index}`,
-          title: skill,
-          type: "skill" as const,
-          progress: 10,
-          completed: false
-        });
-      });
-    }
-    
-    // Add languages from userData
-    if (userData.statusModule.languages?.length > 0) {
-      userData.statusModule.languages.forEach((lang) => {
-        userItems.push({
-          id: `lang-${lang.name}`,
-          title: lang.name,
-          type: "language" as const,
-          level: lang.level,
-          progress: 10,
-          completed: false
-        });
-      });
-    }
-    
-    // Add education from userData
-    if (userData.statusModule.education?.length > 0) {
-      userData.statusModule.education.forEach((edu, index) => {
-        userItems.push({
-          id: `edu-${index}`,
-          title: edu,
-          type: "course" as const,
-          progress: 10,
-          deadline: new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString().split('T')[0],
-          completed: false
-        });
-      });
-    }
-    
-    if (userItems.length > 0) {
-      // Combine with existing courses, avoiding duplicates by title
-      const existingTitles = courses.map(c => c.title.toLowerCase());
-      const newItems = userItems.filter(item => !existingTitles.includes(item.title.toLowerCase()));
-      
-      if (newItems.length > 0) {
-        setCourses(prevCourses => [...prevCourses, ...newItems]);
-      }
-    }
-  }, [userData.statusModule]);
-  
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"course" | "language" | "skill">("course");
   
@@ -129,22 +70,6 @@ const Status = () => {
   
   const addNewItem = (item: any) => {
     setCourses([...courses, item]);
-    
-    // Update user data when adding new items
-    if (item.type === "skill") {
-      updateStatusModule({
-        skills: [...(userData.statusModule.skills || []), item.title]
-      });
-    } else if (item.type === "language") {
-      updateStatusModule({
-        languages: [...(userData.statusModule.languages || []), { name: item.title, level: item.level || "A1" }]
-      });
-    } else if (item.type === "course") {
-      updateStatusModule({
-        education: [...(userData.statusModule.education || []), item.title]
-      });
-    }
-    
     toast({
       title: t("success"),
       description: `${item.title} ${t("added")}`,

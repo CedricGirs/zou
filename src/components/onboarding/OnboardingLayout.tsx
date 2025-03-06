@@ -8,46 +8,38 @@ interface OnboardingLayoutProps {
   children: ReactNode;
   title: string;
   subtitle: string;
-  currentStep: number;
-  totalSteps: number;
   showPrevButton?: boolean;
   showNextButton?: boolean;
-  onNext?: () => boolean; // Return boolean to indicate success
-  onPrevious?: () => void;
+  onNext?: () => boolean; // Return false to prevent navigation
   nextDisabled?: boolean;
-  onComplete?: () => void; // For completing onboarding
+  onComplete?: () => void; // Added this prop
 }
 
 const OnboardingLayout = ({
   children,
   title,
   subtitle,
-  currentStep,
-  totalSteps,
   showPrevButton = true,
   showNextButton = true,
   onNext,
-  onPrevious,
   nextDisabled = false,
-  onComplete,
+  onComplete, // Added this prop to the destructuring
 }: OnboardingLayoutProps) => {
-  const { onboarding } = useOnboarding();
+  const { onboarding, nextStep, prevStep, totalSteps } = useOnboarding();
   const { t } = useLanguage();
   
   const handleNext = () => {
-    if (onNext) {
-      return onNext();
+    if (onNext && !onNext()) {
+      return;
     }
-    return true;
-  };
-  
-  const handlePrevious = () => {
-    if (onPrevious) {
-      onPrevious();
+    
+    if (onboarding.currentStep === totalSteps && onComplete) {
+      onComplete();
+      return;
     }
+    
+    nextStep();
   };
-  
-  const isLastStep = currentStep === totalSteps - 1;
   
   return (
     <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-gradient-to-br from-zou-purple/10 to-purple-300/10">
@@ -56,7 +48,7 @@ const OnboardingLayout = ({
         <div className="absolute top-0 left-0 w-full h-1 bg-muted-foreground/20">
           <div 
             className="h-full bg-zou-purple transition-all duration-500"
-            style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+            style={{ width: `${(onboarding.currentStep / totalSteps) * 100}%` }}
           ></div>
         </div>
         
@@ -68,7 +60,7 @@ const OnboardingLayout = ({
           
           <div className="flex justify-center mt-4 text-xs text-muted-foreground">
             <span className="pixel-border px-2 py-1">
-              {t("step")} {currentStep + 1}/{totalSteps}
+              {t("step")} {onboarding.currentStep}/{totalSteps}
             </span>
           </div>
         </div>
@@ -78,10 +70,10 @@ const OnboardingLayout = ({
         </div>
         
         <div className="flex justify-between mt-8">
-          {showPrevButton && currentStep > 0 ? (
+          {showPrevButton && onboarding.currentStep > 1 ? (
             <button 
               className="pixel-button-secondary flex items-center"
-              onClick={handlePrevious}
+              onClick={prevStep}
             >
               <ChevronLeft size={16} className="mr-1" />
               {t("back")}
@@ -93,10 +85,10 @@ const OnboardingLayout = ({
           {showNextButton && (
             <button 
               className="pixel-button flex items-center"
-              onClick={isLastStep && onComplete ? onComplete : handleNext}
+              onClick={handleNext}
               disabled={nextDisabled}
             >
-              {isLastStep ? t("finish") : t("next")}
+              {onboarding.currentStep === totalSteps ? t("finish") : t("next")}
               <ChevronRight size={16} className="ml-1" />
             </button>
           )}

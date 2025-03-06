@@ -1,8 +1,7 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useOnboarding } from "../../context/OnboardingContext";
 import { useLanguage } from "../../context/LanguageContext";
-import { useUserData } from "../../context/UserDataContext";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import Avatar from "../dashboard/Avatar";
@@ -10,34 +9,18 @@ import { Shuffle, Sword, Brain, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const HeroProfileStep = () => {
-  const { onboarding, updateHeroProfile: updateOnboardingHeroProfile } = useOnboarding();
-  const { userData, updateHeroProfile: updateUserHeroProfile } = useUserData();
+  const { onboarding, updateHeroProfile } = useOnboarding();
   const { t } = useLanguage();
   const { toast } = useToast();
-  
-  const [username, setUsername] = useState(userData.heroProfile.username || onboarding.heroProfile.username);
-  const [avatarSeed, setAvatarSeed] = useState(userData.heroProfile.avatarSeed || onboarding.heroProfile.avatarSeed);
-  const [primaryFocus, setPrimaryFocus] = useState(userData.heroProfile.primaryFocus || onboarding.heroProfile.primaryFocus);
-  const [ambitionLevel, setAmbitionLevel] = useState(userData.heroProfile.ambitionLevel || onboarding.heroProfile.ambitionLevel);
-  const [selectedClass, setSelectedClass] = useState(userData.heroProfile.class || onboarding.heroProfile.class);
-  
-  // Sync data between onboarding context and user data context
-  useEffect(() => {
-    // If we have data in userData, use that as the source of truth
-    if (userData.heroProfile.username) {
-      setUsername(userData.heroProfile.username);
-      setAvatarSeed(userData.heroProfile.avatarSeed);
-      setPrimaryFocus(userData.heroProfile.primaryFocus);
-      setAmbitionLevel(userData.heroProfile.ambitionLevel);
-      setSelectedClass(userData.heroProfile.class);
-    }
-  }, [userData.heroProfile]);
+  const [username, setUsername] = useState(onboarding.heroProfile.username);
+  const [avatarSeed, setAvatarSeed] = useState(onboarding.heroProfile.avatarSeed);
+  const [primaryFocus, setPrimaryFocus] = useState(onboarding.heroProfile.primaryFocus);
+  const [ambitionLevel, setAmbitionLevel] = useState(onboarding.heroProfile.ambitionLevel);
+  const [selectedClass, setSelectedClass] = useState(onboarding.heroProfile.class);
   
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newUsername = e.target.value;
-    setUsername(newUsername);
-    updateOnboardingHeroProfile({ username: newUsername });
-    updateUserHeroProfile({ username: newUsername });
+    setUsername(e.target.value);
+    updateHeroProfile({ username: e.target.value });
   };
   
   const generateRandomAvatar = () => {
@@ -47,8 +30,7 @@ const HeroProfileStep = () => {
     ];
     const randomSeed = seeds[Math.floor(Math.random() * seeds.length)];
     setAvatarSeed(randomSeed);
-    updateOnboardingHeroProfile({ avatarSeed: randomSeed });
-    updateUserHeroProfile({ avatarSeed: randomSeed });
+    updateHeroProfile({ avatarSeed: randomSeed });
     
     toast({
       title: t("avatarUpdated"),
@@ -58,20 +40,17 @@ const HeroProfileStep = () => {
   
   const handlePrimaryFocusChange = (focus: 'status' | 'look' | 'finances' | 'mix') => {
     setPrimaryFocus(focus);
-    updateOnboardingHeroProfile({ primaryFocus: focus });
-    updateUserHeroProfile({ primaryFocus: focus });
+    updateHeroProfile({ primaryFocus: focus });
   };
   
   const handleAmbitionLevelChange = (level: 'casual' | 'pro' | 'hardcore') => {
     setAmbitionLevel(level);
-    updateOnboardingHeroProfile({ ambitionLevel: level });
-    updateUserHeroProfile({ ambitionLevel: level });
+    updateHeroProfile({ ambitionLevel: level });
   };
   
   const handleClassSelect = (heroClass: 'warrior' | 'mage' | 'healer') => {
     setSelectedClass(heroClass);
-    updateOnboardingHeroProfile({ class: heroClass });
-    updateUserHeroProfile({ class: heroClass });
+    updateHeroProfile({ class: heroClass });
   };
   
   const validateStep = () => {

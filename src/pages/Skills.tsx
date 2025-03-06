@@ -1,10 +1,8 @@
 
-import { useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import SkillTree from "../components/skills/SkillTree";
 import CustomBadge from "../components/ui/CustomBadge";
 import { useLanguage } from "../context/LanguageContext";
-import { useUserData } from "../context/UserDataContext";
 import { badgeData } from "../data/badgeData";
 import { Badge } from "../types/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -12,19 +10,12 @@ import { playSound } from "@/utils/audioUtils";
 
 const Skills = () => {
   const { t } = useLanguage();
-  const { userData } = useUserData();
   const { toast } = useToast();
   
   // Filter badges related to skills and learning
   const skillBadges = badgeData.filter(badge => 
     badge.category === "status" || badge.category === "technical" || badge.category === "gamification"
   ).slice(0, 8);
-  
-  // Update skill tree to unlock skills based on user data
-  useEffect(() => {
-    // If user has set skills or education in status module, we could unlock related skills
-    // This logic can be expanded as needed
-  }, [userData.statusModule]);
   
   const showBadgeDetails = (badge: Badge) => {
     if (badge.unlocked) {
