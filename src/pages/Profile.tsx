@@ -1,23 +1,32 @@
 
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
-import { useOnboarding } from "../context/OnboardingContext";
 import { useLanguage } from "../context/LanguageContext";
 import Avatar from "../components/dashboard/Avatar";
 import { Button } from "../components/ui/button";
-import { ArrowRight, Edit, Settings, Award, Medal } from "lucide-react";
+import { ArrowRight, Edit, Settings, Award, Medal, Save } from "lucide-react";
 import { Badge } from "../types/badge";
 import { badgeData } from "../data/badgeData";
 import CustomBadge from "../components/ui/CustomBadge";
 import { useToast } from "@/hooks/use-toast";
 import { playSound } from "@/utils/audioUtils";
+import { useSyncUserData } from "../hooks/useSyncUserData";
+import HeroProfileStep from "../components/onboarding/HeroProfileStep";
+import StatusModuleStep from "../components/onboarding/StatusModuleStep";
+import LookModuleStep from "../components/onboarding/LookModuleStep";
+import FinanceModuleStep from "../components/onboarding/FinanceModuleStep";
 
 const Profile = () => {
-  const { onboarding } = useOnboarding();
+  const { 
+    heroProfile, 
+    statusModule, 
+    lookModule, 
+    financeModule 
+  } = useSyncUserData();
+  
   const { t } = useLanguage();
   const { toast } = useToast();
-  
-  const { heroProfile, statusModule, lookModule, financeModule } = onboarding;
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   
   // Get recently unlocked badges (up to 3)
   const recentBadges = badgeData
@@ -56,9 +65,78 @@ const Profile = () => {
       });
     }
   };
+
+  const handleSaveChanges = () => {
+    playSound('click');
+    toast({
+      title: t("success"),
+      description: t("profileUpdated"),
+      duration: 3000
+    });
+    setActiveSection(null);
+  };
   
   // Get user rank (level 1 for now, later will be dynamic)
   const userRank = getUserRank(1);
+  
+  const renderEditSection = () => {
+    switch (activeSection) {
+      case "heroProfile":
+        return (
+          <div className="glass-card p-6 mb-6 animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-pixel text-lg">{t("editHeroProfile")}</h2>
+              <Button onClick={handleSaveChanges} size="sm" className="flex items-center gap-2">
+                <Save size={16} />
+                {t("saveChanges")}
+              </Button>
+            </div>
+            <HeroProfileStep />
+          </div>
+        );
+      case "statusModule":
+        return (
+          <div className="glass-card p-6 mb-6 animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-pixel text-lg">{t("editStatusModule")}</h2>
+              <Button onClick={handleSaveChanges} size="sm" className="flex items-center gap-2">
+                <Save size={16} />
+                {t("saveChanges")}
+              </Button>
+            </div>
+            <StatusModuleStep />
+          </div>
+        );
+      case "lookModule":
+        return (
+          <div className="glass-card p-6 mb-6 animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-pixel text-lg">{t("editLookModule")}</h2>
+              <Button onClick={handleSaveChanges} size="sm" className="flex items-center gap-2">
+                <Save size={16} />
+                {t("saveChanges")}
+              </Button>
+            </div>
+            <LookModuleStep />
+          </div>
+        );
+      case "financeModule":
+        return (
+          <div className="glass-card p-6 mb-6 animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-pixel text-lg">{t("editFinanceModule")}</h2>
+              <Button onClick={handleSaveChanges} size="sm" className="flex items-center gap-2">
+                <Save size={16} />
+                {t("saveChanges")}
+              </Button>
+            </div>
+            <FinanceModuleStep />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
   
   return (
     <MainLayout>
@@ -66,6 +144,8 @@ const Profile = () => {
         <h1 className="text-2xl font-pixel mb-2">{t("profileTitle")}</h1>
         <p className="text-muted-foreground">{t("profileDescription")}</p>
       </div>
+      
+      {renderEditSection()}
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="md:col-span-1">
@@ -75,12 +155,13 @@ const Profile = () => {
               <h2 className="mt-4 mb-1 text-xl">{heroProfile.username}</h2>
               <p className="text-sm text-muted-foreground font-pixel text-zou-purple">{userRank}</p>
               
-              <Link to="/onboarding" className="mt-4">
-                <Button className="flex items-center gap-2">
-                  <Edit size={16} />
-                  {t("editProfile")}
-                </Button>
-              </Link>
+              <Button 
+                className="flex items-center gap-2 mt-4"
+                onClick={() => setActiveSection("heroProfile")}
+              >
+                <Edit size={16} />
+                {t("editProfile")}
+              </Button>
             </div>
           </div>
         </div>
@@ -89,9 +170,13 @@ const Profile = () => {
           <div className="glass-card p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-pixel text-lg">{t("heroProfile")}</h2>
-              <Link to="/onboarding" className="text-zou-purple hover:underline text-sm flex items-center">
+              <Button
+                variant="link" 
+                className="text-zou-purple p-0 h-auto"
+                onClick={() => setActiveSection("heroProfile")}
+              >
                 {t("edit")} <ArrowRight size={14} className="ml-1" />
-              </Link>
+              </Button>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -113,9 +198,13 @@ const Profile = () => {
           <div className="glass-card p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-pixel text-lg">{t("statusModule")}</h2>
-              <Link to="/onboarding?step=2" className="text-zou-purple hover:underline text-sm flex items-center">
+              <Button
+                variant="link" 
+                className="text-zou-purple p-0 h-auto"
+                onClick={() => setActiveSection("statusModule")}
+              >
                 {t("edit")} <ArrowRight size={14} className="ml-1" />
-              </Link>
+              </Button>
             </div>
             
             <div>
@@ -152,16 +241,80 @@ const Profile = () => {
           
           <div className="glass-card p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
+              <h2 className="font-pixel text-lg">{t("lookModule")}</h2>
+              <Button
+                variant="link" 
+                className="text-zou-purple p-0 h-auto"
+                onClick={() => setActiveSection("lookModule")}
+              >
+                {t("edit")} <ArrowRight size={14} className="ml-1" />
+              </Button>
+            </div>
+            
+            <div>
+              <p className="text-sm text-muted-foreground">{t("style")}</p>
+              <p>{t(lookModule.style)}</p>
+              
+              <div className="mt-4">
+                <p className="text-sm text-muted-foreground">{t("sportsFrequency")}</p>
+                <p>{lookModule.sportsFrequency}</p>
+              </div>
+              
+              {lookModule.wardrobe.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm text-muted-foreground">{t("wardrobe")}</p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {lookModule.wardrobe.map((item, i) => (
+                      <span key={i} className="pixel-card p-1 px-2 text-xs">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="glass-card p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-pixel text-lg">{t("financeModule")}</h2>
+              <Button
+                variant="link" 
+                className="text-zou-purple p-0 h-auto"
+                onClick={() => setActiveSection("financeModule")}
+              >
+                {t("edit")} <ArrowRight size={14} className="ml-1" />
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">{t("monthlyIncome")}</p>
+                <p>${financeModule.monthlyIncome}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t("fixedExpenses")}</p>
+                <p>${financeModule.fixedExpenses}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t("savingsGoal")}</p>
+                <p>${financeModule.savingsGoal}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="glass-card p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <Award size={18} className="text-zou-purple mr-2" />
                 <h2 className="font-pixel text-lg">{t("recentBadges")}</h2>
               </div>
-              <Link 
-                to="/badges" 
+              <a 
+                href="/badges" 
                 className="text-zou-purple hover:underline text-sm flex items-center"
               >
                 {t("viewAllBadges")} <ArrowRight size={14} className="ml-1" />
-              </Link>
+              </a>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -181,12 +334,12 @@ const Profile = () => {
                 <div className="col-span-full text-center py-6 text-muted-foreground">
                   <Medal size={32} className="mx-auto mb-2 opacity-50" />
                   <p>{t("noBadgesYet")}</p>
-                  <Link 
-                    to="/badges" 
+                  <a 
+                    href="/badges" 
                     className="inline-flex items-center mt-2 text-zou-purple hover:underline"
                   >
                     {t("exploreBadges")}
-                  </Link>
+                  </a>
                 </div>
               )}
             </div>
@@ -199,12 +352,10 @@ const Profile = () => {
             </div>
             
             <div className="space-y-4">
-              <Link to="/onboarding" className="block">
-                <Button className="w-full justify-between">
-                  {t("restartOnboarding")}
-                  <ArrowRight size={16} />
-                </Button>
-              </Link>
+              <Button className="w-full justify-between">
+                {t("resetProgress")}
+                <ArrowRight size={16} />
+              </Button>
             </div>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "./context/LanguageContext";
 import { OnboardingProvider } from "./context/OnboardingContext";
 import Index from "./pages/Index";
@@ -14,27 +14,9 @@ import Skills from "./pages/Skills";
 import DailyQuests from "./pages/DailyQuests";
 import Badges from "./pages/Badges";
 import Profile from "./pages/Profile";
-import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
-
-// Component to check if onboarding is completed
-const RequireOnboarding = ({ children }: { children: JSX.Element }) => {
-  // Check if onboarding is completed
-  const onboardingCompleted = localStorage.getItem('zouOnboarding') ? 
-    JSON.parse(localStorage.getItem('zouOnboarding') || '{}').isCompleted : 
-    false;
-  
-  const location = useLocation();
-  
-  // If onboarding is not completed and we're not on the onboarding page, redirect to onboarding
-  if (!onboardingCompleted && location.pathname !== '/onboarding') {
-    return <Navigate to="/onboarding" replace />;
-  }
-  
-  return children;
-};
 
 // This is the main app container that wraps the Router
 const AppContainer = () => {
@@ -58,47 +40,14 @@ const AppRoutes = () => {
   return (
     <OnboardingProvider>
       <Routes>
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/" element={
-          <RequireOnboarding>
-            <Index />
-          </RequireOnboarding>
-        } />
-        <Route path="/status" element={
-          <RequireOnboarding>
-            <Status />
-          </RequireOnboarding>
-        } />
-        <Route path="/look" element={
-          <RequireOnboarding>
-            <Look />
-          </RequireOnboarding>
-        } />
-        <Route path="/finances" element={
-          <RequireOnboarding>
-            <Finances />
-          </RequireOnboarding>
-        } />
-        <Route path="/skills" element={
-          <RequireOnboarding>
-            <Skills />
-          </RequireOnboarding>
-        } />
-        <Route path="/daily-quests" element={
-          <RequireOnboarding>
-            <DailyQuests />
-          </RequireOnboarding>
-        } />
-        <Route path="/badges" element={
-          <RequireOnboarding>
-            <Badges />
-          </RequireOnboarding>
-        } />
-        <Route path="/profile" element={
-          <RequireOnboarding>
-            <Profile />
-          </RequireOnboarding>
-        } />
+        <Route path="/" element={<Index />} />
+        <Route path="/status" element={<Status />} />
+        <Route path="/look" element={<Look />} />
+        <Route path="/finances" element={<Finances />} />
+        <Route path="/skills" element={<Skills />} />
+        <Route path="/daily-quests" element={<DailyQuests />} />
+        <Route path="/badges" element={<Badges />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </OnboardingProvider>
