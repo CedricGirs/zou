@@ -13,7 +13,6 @@ import Finances from "./pages/Finances";
 import Skills from "./pages/Skills";
 import DailyQuests from "./pages/DailyQuests";
 import Badges from "./pages/Badges";
-import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,7 +46,6 @@ const AppRoutes = () => {
         <Route path="/skills" element={<Skills />} />
         <Route path="/daily-quests" element={<DailyQuests />} />
         <Route path="/badges" element={<Badges />} />
-        <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </UserDataProvider>
