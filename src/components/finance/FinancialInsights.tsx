@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Transaction, BudgetTemplate } from "@/context/UserDataContext";
@@ -932,4 +933,22 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
             </div>
           </CardContent>
           <CardFooter className="bg-gray-50 flex justify-between">
-            <span className="text-xs text-muted-
+            <span className="text-xs text-muted-foreground">
+              Dépenses mensuelles totales: {
+                transactions
+                  ?.filter(t => t.type === 'expense')
+                  .reduce((sum, t) => sum + t.amount, 0) || 0
+              } €
+            </span>
+            <div className="flex items-center text-xs text-purple-600">
+              <Trophy size={12} className="mr-1 text-amber-500" />
+              <span>+20 XP pour catégorisation complète</span>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default FinancialInsights;
