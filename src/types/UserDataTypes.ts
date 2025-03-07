@@ -12,6 +12,7 @@ export interface UserData {
   financeModule: FinanceModule;
   statusItems: StatusItem[];
   skills: any[]; // You can define a more precise type if necessary
+  lastSyncTimestamp?: string; // Timestamp de la dernière synchronisation
 }
 
 export interface UserDataContextType {
@@ -23,4 +24,13 @@ export interface UserDataContextType {
   updateFinanceModule: (updates: Partial<FinanceModule>) => Promise<void>;
   updateStatusItems: (items: StatusItem[]) => Promise<void>;
   updateSkills: (skills: any[]) => Promise<void>;
+}
+
+// Interface pour le contexte de synchronisation des données
+export interface SyncContextType {
+  isOnline: boolean;
+  isSyncing: boolean;
+  lastSyncTime: Date | null;
+  synchronizeData: () => Promise<boolean>;
+  hasPendingChanges: boolean;
 }

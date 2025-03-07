@@ -13,6 +13,8 @@ import { UserData, UserDataContextType } from '@/types/UserDataTypes';
 // Import default data and utilities
 import { defaultUserData } from '@/data/defaultUserData';
 import { saveUserData, loadUserData, playUpdateSound } from '@/utils/userDataUtils';
+import { useSyncUserData } from '@/hooks/useSyncUserData';
+import { toast } from '@/hooks/use-toast';
 
 // Re-export all types for backward compatibility
 export type { 
@@ -43,21 +45,41 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
   const [userData, setUserData] = useState<UserData>(defaultUserData);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Utiliser notre hook de synchronisation
+  const { 
+    isOnline, 
+    isSyncing, 
+    lastSyncTime, 
+    synchronizeData, 
+    hasPendingChanges 
+  } = useSyncUserData(userData.uid, userData, setUserData);
+
   // Load user data on startup
   useEffect(() => {
     const initializeUserData = async () => {
-      const { userData: loadedData, error } = await loadUserData();
+      const { userData: loadedData, error } = await loadUserData('guest');
       
       if (loadedData) {
         setUserData(loadedData);
+        console.log("Données utilisateur chargées:", loadedData);
       } else {
         // If no data found, create new document with default data
         try {
+          console.log("Création de nouvelles données utilisateur");
           const userDocRef = doc(db, 'users', 'guest');
-          await setDoc(userDocRef, defaultUserData);
+          await setDoc(userDocRef, {
+            ...defaultUserData,
+            lastSyncTimestamp: new Date().toISOString(),
+          });
           setUserData(defaultUserData);
         } catch (err) {
           console.error("Error creating new user data:", err);
+          toast({
+            title: "Erreur d'initialisation",
+            description: "Impossible de créer vos données. Mode hors ligne activé.",
+            variant: "destructive",
+          });
+          setUserData(defaultUserData);
         }
       }
       
@@ -67,14 +89,42 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     initializeUserData();
   }, []);
 
-  // Update functions
+  // Synchroniser les données périodiquement
+  useEffect(() => {
+    // Synchroniser toutes les 5 minutes ou si des changements sont en attente
+    const syncInterval = setInterval(() => {
+      if (hasPendingChanges) {
+        synchronizeData();
+      }
+    }, 5 * 60 * 1000);
+    
+    return () => clearInterval(syncInterval);
+  }, [hasPendingChanges, synchronizeData]);
+
+  // Synchroniser les données avant de fermer l'application
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (hasPendingChanges) {
+        // Essayer de synchroniser avant de fermer
+        localStorage.setItem('zouUserData', JSON.stringify(userData));
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [userData, hasPendingChanges]);
+
+  // Update functions with synchronized data saving
   const updateHeroProfile = async (updates: Partial<HeroProfile>) => {
     const newData = {
       ...userData,
       heroProfile: { ...userData.heroProfile, ...updates },
     };
     setUserData(newData);
-    await saveUserData(newData);
+    await synchronizeData();
     playUpdateSound();
   };
 
@@ -84,7 +134,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
       statusModule: { ...userData.statusModule, ...updates },
     };
     setUserData(newData);
-    await saveUserData(newData);
+    await synchronizeData();
   };
 
   const updateLookModule = async (updates: Partial<LookModule>) => {
@@ -93,7 +143,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
       lookModule: { ...userData.lookModule, ...updates },
     };
     setUserData(newData);
-    await saveUserData(newData);
+    await synchronizeData();
   };
 
   const updateFinanceModule = async (updates: Partial<FinanceModule>) => {
@@ -102,7 +152,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
       financeModule: { ...userData.financeModule, ...updates },
     };
     setUserData(newData);
-    await saveUserData(newData);
+    await synchronizeData();
   };
 
   const updateStatusItems = async (items: StatusItem[]) => {
@@ -111,7 +161,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
       statusItems: items,
     };
     setUserData(newData);
-    await saveUserData(newData);
+    await synchronizeData();
   };
 
   const updateSkills = async (skills: any[]) => {
@@ -120,7 +170,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
       skills,
     };
     setUserData(newData);
-    await saveUserData(newData);
+    await synchronizeData();
   };
 
   return (

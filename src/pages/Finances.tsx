@@ -9,6 +9,9 @@ import FinanceQuests from "@/components/finance/FinanceQuests";
 import FinanceTabs from "@/components/finance/FinanceTabs";
 import FinanceAchievements from "@/components/finance/FinanceAchievements";
 import { useFinanceFunctions } from "@/hooks/useFinanceFunctions";
+import { toast } from "@/hooks/use-toast";
+import { ArrowDownUp, RefreshCw, WifiOff } from "lucide-react";
+import { useSyncUserData } from "@/hooks/useSyncUserData";
 
 const Finances = () => {
   const { userData, loading } = useUserData();
@@ -17,10 +20,42 @@ const Finances = () => {
     setSelectedMonth,
     currentMonthData,
     setCurrentMonthData,
+    updateCurrentMonthData,
+    addTransaction,
     completeQuestStep,
     unlockAchievement,
     savingsGoal
   } = useFinanceFunctions();
+  
+  // Vérifier l'état de la connexion
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast({
+        title: "Connexion rétablie",
+        description: "Les données seront désormais synchronisées automatiquement."
+      });
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast({
+        title: "Mode hors ligne",
+        description: "Les modifications seront enregistrées localement.",
+        variant: "destructive",
+      });
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
   
   if (loading) {
     return (
@@ -38,6 +73,13 @@ const Finances = () => {
   return (
     <MainLayout>
       <div className="flex flex-col space-y-6">
+        {!isOnline && (
+          <div className="bg-amber-100 border border-amber-300 text-amber-800 px-4 py-3 rounded-lg flex items-center gap-2">
+            <WifiOff size={18} />
+            <span>Mode hors ligne: Les modifications seront enregistrées localement et synchronisées à la reconnexion.</span>
+          </div>
+        )}
+        
         <FinanceHeader 
           selectedMonth={selectedMonth}
           setSelectedMonth={setSelectedMonth}
@@ -53,6 +95,8 @@ const Finances = () => {
           selectedMonth={selectedMonth}
           currentMonthData={currentMonthData}
           setCurrentMonthData={setCurrentMonthData}
+          updateCurrentMonthData={updateCurrentMonthData}
+          addTransaction={addTransaction}
           savingsGoal={savingsGoal}
           unlockAchievement={unlockAchievement}
           completeQuestStep={completeQuestStep}
