@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -24,7 +25,6 @@ import { Button } from "@/components/ui/button";
 import AnnualBudget from "@/components/finance/AnnualBudget";
 import TransactionTracker from "@/components/finance/TransactionTracker";
 import SavingsTracker from "@/components/finance/SavingsTracker";
-import FinancialReports from "@/components/finance/FinancialReports";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import FinancialInsights from "@/components/finance/FinancialInsights";
 import CustomBadge from "@/components/ui/CustomBadge";
@@ -47,7 +47,6 @@ import { Transaction, FinanceModule } from "@/context/UserDataContext";
 const Finances = () => {
   const { userData, loading, updateFinanceModule } = useUserData();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: fr }));
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [monthlyData, setMonthlyData] = useState<{
     transactions: Transaction[];
@@ -60,18 +59,17 @@ const Finances = () => {
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
-  
-  const years = ['2022', '2023', '2024', '2025'];
 
   useEffect(() => {
     if (loading || !userData?.financeModule) return;
     
     const loadMonthData = async () => {
       setIsDataLoading(true);
-      console.log(`Chargement des données pour ${selectedMonth} ${selectedYear}`);
+      console.log(`Chargement des données pour ${selectedMonth}`);
       
       try {
-        const monthKey = `${selectedMonth}_${selectedYear}`;
+        const currentYear = new Date().getFullYear().toString();
+        const monthKey = `${selectedMonth}_${currentYear}`;
         const savedMonthData = userData.financeModule.monthlyData?.[monthKey];
         
         if (savedMonthData) {
@@ -116,13 +114,14 @@ const Finances = () => {
     };
     
     loadMonthData();
-  }, [selectedMonth, selectedYear, userData?.financeModule, loading, updateFinanceModule]);
+  }, [selectedMonth, userData?.financeModule, loading, updateFinanceModule]);
 
   const saveCurrentMonthData = async () => {
     if (!userData?.financeModule || !monthlyData) return;
     
     try {
-      const monthKey = `${selectedMonth}_${selectedYear}`;
+      const currentYear = new Date().getFullYear().toString();
+      const monthKey = `${selectedMonth}_${currentYear}`;
       
       const currentMonthlyData = userData.financeModule.monthlyData || {};
       
@@ -157,17 +156,7 @@ const Finances = () => {
     playSound('click');
     toast({
       title: "Mois sélectionné",
-      description: `Données financières pour ${value} ${selectedYear} chargées.`,
-    });
-  };
-  
-  const handleYearChange = async (value: string) => {
-    await saveCurrentMonthData();
-    setSelectedYear(value);
-    playSound('click');
-    toast({
-      title: "Année sélectionnée",
-      description: `Données financières pour ${selectedMonth} ${value} chargées.`,
+      description: `Données financières pour ${value} chargées.`,
     });
   };
 
@@ -461,17 +450,6 @@ const Finances = () => {
               </SelectContent>
             </Select>
             
-            <Select value={selectedYear} onValueChange={handleYearChange}>
-              <SelectTrigger className="w-[80px]">
-                <SelectValue placeholder="Année" />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map(year => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
             <Button variant="outline" size="sm" onClick={handleExportData}>
               <Trophy size={16} className="mr-2 text-amber-500" />
               Récompenses
@@ -533,7 +511,7 @@ const Finances = () => {
         </Card>
         
         <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="mb-4 grid grid-cols-5 gap-2">
+          <TabsList className="mb-4 grid grid-cols-4 gap-2">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <ChartPie size={16} />
               <span className="hidden md:inline">Dashboard</span>
@@ -549,10 +527,6 @@ const Finances = () => {
             <TabsTrigger value="savings" className="flex items-center gap-2">
               <PiggyBank size={16} />
               <span className="hidden md:inline">Épargne</span>
-            </TabsTrigger>
-            <TabsTrigger value="reports" className="flex items-center gap-2">
-              <TrendingUp size={16} />
-              <span className="hidden md:inline">Rapports</span>
             </TabsTrigger>
           </TabsList>
           
@@ -580,14 +554,14 @@ const Finances = () => {
           <TabsContent value="budget">
             <AnnualBudget 
               selectedMonth={selectedMonth}
-              selectedYear={selectedYear}
+              selectedYear={new Date().getFullYear().toString()}
             />
           </TabsContent>
           
           <TabsContent value="transactions">
             <TransactionTracker 
               selectedMonth={selectedMonth} 
-              selectedYear={selectedYear}
+              selectedYear={new Date().getFullYear().toString()}
               transactions={transactions}
               completeQuestStep={completeQuestStep}
               addTransaction={addTransaction}
@@ -600,13 +574,6 @@ const Finances = () => {
               unlockAchievement={unlockAchievement}
               completeQuestStep={completeQuestStep}
               monthlyIncome={monthlyIncome}
-            />
-          </TabsContent>
-          
-          <TabsContent value="reports">
-            <FinancialReports 
-              selectedMonth={selectedMonth}
-              selectedYear={selectedYear}
             />
           </TabsContent>
         </Tabs>

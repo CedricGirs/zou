@@ -79,7 +79,7 @@ const AnnualBudget = ({ selectedMonth, selectedYear }: AnnualBudgetProps) => {
       
       toast({
         title: "Budget mis à jour",
-        description: `Budget pour ${selectedMonth} ${selectedYear} sauvegardé avec succès.`
+        description: `Budget pour ${selectedMonth} sauvegardé avec succès.`
       });
     } catch (error) {
       console.error("Erreur lors de la sauvegarde du budget:", error);
@@ -94,7 +94,7 @@ const AnnualBudget = ({ selectedMonth, selectedYear }: AnnualBudgetProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Budget {selectedMonth} {selectedYear}</CardTitle>
+        <CardTitle>Budget {selectedMonth}</CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
