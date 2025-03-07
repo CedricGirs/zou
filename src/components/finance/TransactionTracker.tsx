@@ -38,12 +38,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { MonthlyData } from "@/types/FinanceTypes";
 
 interface TransactionTrackerProps {
   selectedMonth: string;
   transactions: Transaction[];
   updateMonthData: (data: any) => void;
   completeQuestStep?: (questId: string, progress: number) => Promise<void>;
+  addTransaction: (transaction: any) => Promise<MonthlyData>;
 }
 
 const TransactionTracker = ({ 
