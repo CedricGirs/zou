@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useUserData } from "@/context/UserDataContext";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { Download, FileBarChart2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -85,6 +85,13 @@ const FinancialReports = ({ selectedMonth, selectedYear }: FinancialReportsProps
     { name: 'Dépenses', value: monthlyData.expenses },
     { name: 'Solde', value: monthlyData.balance }
   ];
+  
+  // Helper function to get color for comparison data
+  const getComparisonColor = (name: string) => {
+    if (name === 'Revenus') return '#22c55e';
+    if (name === 'Dépenses') return '#ef4444';
+    return monthlyData.balance >= 0 ? '#3b82f6' : '#f97316';
+  };
 
   return (
     <Card>
@@ -125,16 +132,11 @@ const FinancialReports = ({ selectedMonth, selectedYear }: FinancialReportsProps
                     <YAxis />
                     <Tooltip formatter={(value) => `${value} €`} />
                     <Legend />
-                    <Bar 
-                      dataKey="value" 
-                      fill={(entry) => {
-                        const name = entry.name;
-                        if (name === 'Revenus') return '#22c55e';
-                        if (name === 'Dépenses') return '#ef4444';
-                        return monthlyData.balance >= 0 ? '#3b82f6' : '#f97316';
-                      }}
-                      name="Montant (€)" 
-                    />
+                    <Bar dataKey="value" name="Montant (€)">
+                      {comparisonData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={getComparisonColor(entry.name)} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
