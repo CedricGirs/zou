@@ -63,6 +63,18 @@ export interface BudgetTemplate {
   income: number;
   expenses: number;
   description?: string;
+  incomeItems?: {
+    id: string;
+    description: string;
+    amount: number;
+    category: string;
+  }[];
+  expenseItems?: {
+    id: string;
+    description: string;
+    amount: number;
+    category: string;
+  }[];
 }
 
 export interface FinanceAchievement {

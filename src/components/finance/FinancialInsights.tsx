@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Transaction } from "@/context/UserDataContext";
+import { Transaction, BudgetTemplate } from "@/context/UserDataContext";
 import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus, Trash2, Edit2, Check as CheckIcon, Save } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,6 @@ interface FinancialInsightsProps {
 const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialInsightsProps) => {
   const { userData, updateFinanceModule } = useUserData();
   
-  // États pour les formulaires d'ajout
   const [newIncome, setNewIncome] = useState({
     description: '',
     amount: 0,
@@ -42,19 +41,16 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     category: 'Logement'
   });
 
-  // État pour l'édition d'une transaction
   const [editingTransaction, setEditingTransaction] = useState<{
     id: string;
     amount: number;
     type: 'income' | 'expense';
   } | null>(null);
   
-  // État pour le dialogue de création de template
   const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
   
-  // Catégories de revenus et dépenses
   const incomeCategories = [
     'Salaire', 'Freelance', 'Dividendes', 'Loyers', 'Cadeaux', 'Remboursements', 'Autres'
   ];
@@ -63,7 +59,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     'Logement', 'Alimentation', 'Transport', 'Loisirs', 'Santé', 'Éducation', 'Vêtements', 'Cadeaux', 'Autre'
   ];
   
-  // Gestion des formulaires
   const handleIncomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     setNewIncome({
@@ -94,7 +89,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
   
-  // Calcul des totaux
   const recalculateTotals = (updatedTransactions: Transaction[]) => {
     const totalIncome = updatedTransactions
       .filter(t => t.type === 'income')
@@ -116,7 +110,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     };
   };
   
-  // Ajouter revenu
   const addIncome = async () => {
     if (!newIncome.description || newIncome.amount <= 0) {
       toast({
@@ -127,7 +120,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
       return;
     }
     
-    // Créer une transaction de type revenu
     const transaction: Transaction = {
       id: uuidv4(),
       date: new Date().toISOString().split('T')[0],
@@ -139,11 +131,9 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
       isVerified: false
     };
     
-    // Mise à jour des transactions pour ce mois
     const updatedTransactions = [...transactions, transaction];
     const updatedData = recalculateTotals(updatedTransactions);
     
-    // Mettre à jour les données du mois
     updateMonthData(updatedData);
     
     toast({
@@ -151,7 +141,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
       description: `${newIncome.description} : ${newIncome.amount}€ a été ajouté avec succès.`
     });
     
-    // Réinitialiser le formulaire
     setNewIncome({
       description: '',
       amount: 0,
@@ -159,7 +148,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
   
-  // Ajouter dépense
   const addExpense = async () => {
     if (!newExpense.description || newExpense.amount <= 0) {
       toast({
@@ -170,7 +158,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
       return;
     }
     
-    // Créer une transaction de type dépense
     const transaction: Transaction = {
       id: uuidv4(),
       date: new Date().toISOString().split('T')[0],
@@ -182,11 +169,9 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
       isVerified: false
     };
     
-    // Mise à jour des transactions pour ce mois
     const updatedTransactions = [...transactions, transaction];
     const updatedData = recalculateTotals(updatedTransactions);
     
-    // Mettre à jour les données du mois
     updateMonthData(updatedData);
     
     toast({
@@ -194,7 +179,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
       description: `${newExpense.description} : ${newExpense.amount}€ a été ajoutée avec succès.`
     });
     
-    // Réinitialiser le formulaire
     setNewExpense({
       description: '',
       amount: 0,
@@ -202,13 +186,10 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
 
-  // Nouvelle fonction pour supprimer une transaction
   const deleteTransaction = async (transactionId: string) => {
-    // Filtrer pour obtenir les transactions mises à jour
     const updatedTransactions = transactions.filter(t => t.id !== transactionId);
     const updatedData = recalculateTotals(updatedTransactions);
     
-    // Mettre à jour les données du mois
     updateMonthData(updatedData);
     
     toast({
@@ -217,7 +198,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
 
-  // Fonction pour commencer à éditer une transaction
   const startEditTransaction = (transaction: Transaction) => {
     setEditingTransaction({
       id: transaction.id,
@@ -226,11 +206,9 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
 
-  // Fonction pour sauvegarder une transaction éditée
   const saveEditedTransaction = async () => {
     if (!editingTransaction) return;
 
-    // Trouver et mettre à jour la transaction
     const updatedTransactions = transactions.map(t => {
       if (t.id === editingTransaction.id) {
         return {
@@ -243,7 +221,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
 
     const updatedData = recalculateTotals(updatedTransactions);
     
-    // Mettre à jour les données du mois
     updateMonthData(updatedData);
     
     toast({
@@ -254,7 +231,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     setEditingTransaction(null);
   };
 
-  // Gérer le changement de montant dans le formulaire d'édition
   const handleEditAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!editingTransaction) return;
     
@@ -264,7 +240,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
 
-  // Nouvelles fonctions pour la création de template
   const handleCreateTemplate = async () => {
     if (!templateName.trim()) {
       toast({
@@ -275,15 +250,18 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
       return;
     }
 
-    // Extraire les données de revenus et dépenses des transactions actuelles
     const incomeTransactions = transactions.filter(t => t.type === 'income');
     const expenseTransactions = transactions.filter(t => t.type === 'expense');
 
-    // Créer le nouveau template
-    const newTemplate = {
+    const totalIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalExpenses = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+    const newTemplate: BudgetTemplate = {
       id: uuidv4(),
       name: templateName,
       description: templateDescription,
+      income: totalIncome,
+      expenses: totalExpenses,
       incomeItems: incomeTransactions.map(t => ({
         id: uuidv4(),
         description: t.description,
@@ -298,19 +276,16 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
       }))
     };
 
-    // Ajouter le template à la liste des templates
     const currentTemplates = userData?.financeModule?.budgetTemplates || [];
     await updateFinanceModule({
       budgetTemplates: [...currentTemplates, newTemplate]
     });
 
-    // Notifier l'utilisateur
     toast({
       title: "Template créé",
       description: `Le template "${templateName}" a été créé avec succès.`,
     });
 
-    // Réinitialiser et fermer
     setTemplateName('');
     setTemplateDescription('');
     setIsCreateTemplateOpen(false);
