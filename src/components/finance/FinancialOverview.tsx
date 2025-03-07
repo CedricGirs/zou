@@ -50,21 +50,36 @@ const FinancialOverview = ({
   const [actualExpenses, setActualExpenses] = useState(0);
   const [savingsPercentage, setSavingsPercentage] = useState(0);
   const [currentSavings, setCurrentSavings] = useState(0);
+  const [totalCumulativeSavings, setTotalCumulativeSavings] = useState(0);
 
   useEffect(() => {
-    // Définir les valeurs à partir des props
+    // Calculate current month data
     setActualIncome(income);
     setActualExpenses(expenses);
     
-    // Calculer l'épargne actuelle
+    // Calculer l'épargne du mois actuel
     const calculatedSavings = income - expenses;
-    setCurrentSavings(calculatedSavings > 0 ? calculatedSavings : 0);
     
-    // Calculer le pourcentage d'épargne
+    // Calculer le pourcentage d'épargne du mois actuel
     const savingsPercent = income > 0 ? Math.round((calculatedSavings / income) * 100) : 0;
     setSavingsPercentage(savingsPercent);
     
-  }, [income, expenses, selectedMonth]);
+    // Calculate cumulative savings from all months
+    if (userData.financeModule?.monthlyData) {
+      let totalSavings = 0;
+      
+      // Sum up positive balance (savings) from all months
+      Object.values(userData.financeModule.monthlyData).forEach(monthData => {
+        const monthSavings = monthData.income - monthData.expenses;
+        if (monthSavings > 0) {
+          totalSavings += monthSavings;
+        }
+      });
+      
+      setTotalCumulativeSavings(totalSavings);
+    }
+    
+  }, [income, expenses, selectedMonth, userData.financeModule?.monthlyData]);
 
   const handleOpenSavingsGoalDialog = () => {
     setSavingsGoalValue(userData.financeModule?.savingsGoal || 0);
@@ -80,8 +95,11 @@ const FinancialOverview = ({
     });
     
     // Advance the quest if it exists
-    if (completeQuestStep) {
-      completeQuestStep("create_savings", 50);
+    if (completeQuestStep && userData.financeModule?.quests) {
+      const createSavingsQuest = userData.financeModule.quests.find(q => q.id === "create_savings");
+      if (createSavingsQuest) {
+        completeQuestStep("create_savings", 50);
+      }
     }
     
     setIsEditingSavingsGoal(false);
@@ -90,7 +108,7 @@ const FinancialOverview = ({
   // Calculate progress percentage towards savings goal
   const calculateSavingsProgress = () => {
     if (!userData.financeModule?.savingsGoal || userData.financeModule.savingsGoal <= 0) return 0;
-    const progress = (currentSavings / userData.financeModule.savingsGoal) * 100;
+    const progress = (totalCumulativeSavings / userData.financeModule.savingsGoal) * 100;
     return Math.min(progress, 100); // Cap at 100%
   };
 
@@ -144,7 +162,7 @@ const FinancialOverview = ({
           
           <div className="space-y-2">
             <div className="flex justify-between items-center text-sm">
-              <span>Économies actuelles: {currentSavings} €</span>
+              <span>Économies cumulées: {totalCumulativeSavings} €</span>
               <span className="font-medium">{savingsProgress.toFixed(0)}%</span>
             </div>
             <Progress 
@@ -158,7 +176,7 @@ const FinancialOverview = ({
                 <span>{getMotivationalMessage()}</span>
               </div>
               <span className="text-xs text-muted-foreground">
-                Reste: {Math.max(0, (userData.financeModule?.savingsGoal || 0) - currentSavings)} €
+                Reste: {Math.max(0, (userData.financeModule?.savingsGoal || 0) - totalCumulativeSavings)} €
               </span>
             </div>
           </div>
