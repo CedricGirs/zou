@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Transaction } from "@/context/UserDataContext";
-import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus, Trash2 } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus, Trash2, Edit2, Check as CheckIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -40,6 +39,13 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
     amount: 0,
     category: 'Logement'
   });
+
+  // État pour l'édition d'une transaction
+  const [editingTransaction, setEditingTransaction] = useState<{
+    id: string;
+    amount: number;
+    type: 'income' | 'expense';
+  } | null>(null);
   
   // Catégories de revenus et dépenses
   const incomeCategories = [
@@ -220,6 +226,56 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
     });
   };
 
+  // Fonction pour commencer à éditer une transaction
+  const startEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction({
+      id: transaction.id,
+      amount: transaction.amount,
+      type: transaction.type
+    });
+  };
+
+  // Fonction pour sauvegarder une transaction éditée
+  const saveEditedTransaction = async () => {
+    if (!editingTransaction) return;
+
+    // Trouver et mettre à jour la transaction
+    const updatedTransactions = userData?.financeModule?.transactions.map(t => {
+      if (t.id === editingTransaction.id) {
+        // Calculer la différence pour mettre à jour les totaux
+        const amountDifference = editingTransaction.amount - t.amount;
+        
+        return {
+          ...t,
+          amount: editingTransaction.amount
+        };
+      }
+      return t;
+    });
+
+    // Mettre à jour les données
+    await updateFinanceModule({ 
+      transactions: updatedTransactions
+    });
+    
+    toast({
+      title: "Transaction modifiée",
+      description: `Le montant a été mis à jour avec succès.`
+    });
+    
+    setEditingTransaction(null);
+  };
+
+  // Gérer le changement de montant dans le formulaire d'édition
+  const handleEditAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!editingTransaction) return;
+    
+    setEditingTransaction({
+      ...editingTransaction,
+      amount: Number(e.target.value)
+    });
+  };
+
   return (
     <div className="space-y-6">      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -254,15 +310,45 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
                             <p className="text-xs text-muted-foreground">{income.category}</p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-green-600 font-medium">{income.amount} €</span>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8"
-                              onClick={() => deleteTransaction(income.id, 'income')}
-                            >
-                              <Trash2 size={16} className="text-red-500" />
-                            </Button>
+                            {editingTransaction && editingTransaction.id === income.id ? (
+                              <>
+                                <Input
+                                  type="number"
+                                  value={editingTransaction.amount}
+                                  onChange={handleEditAmountChange}
+                                  className="w-24 h-8"
+                                  min={0}
+                                />
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={saveEditedTransaction}
+                                >
+                                  <CheckIcon size={16} className="text-green-500" />
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-green-600 font-medium">{income.amount} €</span>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={() => startEditTransaction(income)}
+                                >
+                                  <Edit2 size={16} className="text-blue-500" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={() => deleteTransaction(income.id, 'income')}
+                                >
+                                  <Trash2 size={16} className="text-red-500" />
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </div>
                       ))
@@ -372,15 +458,45 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
                             <p className="text-xs text-muted-foreground">{expense.category}</p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-red-600 font-medium">{expense.amount} €</span>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8"
-                              onClick={() => deleteTransaction(expense.id, 'expense')}
-                            >
-                              <Trash2 size={16} className="text-red-500" />
-                            </Button>
+                            {editingTransaction && editingTransaction.id === expense.id ? (
+                              <>
+                                <Input
+                                  type="number"
+                                  value={editingTransaction.amount}
+                                  onChange={handleEditAmountChange}
+                                  className="w-24 h-8"
+                                  min={0}
+                                />
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={saveEditedTransaction}
+                                >
+                                  <CheckIcon size={16} className="text-green-500" />
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-red-600 font-medium">{expense.amount} €</span>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={() => startEditTransaction(expense)}
+                                >
+                                  <Edit2 size={16} className="text-blue-500" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={() => deleteTransaction(expense.id, 'expense')}
+                                >
+                                  <Trash2 size={16} className="text-red-500" />
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </div>
                       ))

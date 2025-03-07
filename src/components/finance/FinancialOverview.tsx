@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap } from 'lucide-react';
+import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap, Award, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUserData } from '@/context/UserDataContext';
 import { useState, useEffect } from 'react';
@@ -47,6 +47,7 @@ const FinancialOverview = ({
   const [actualIncome, setActualIncome] = useState(0);
   const [actualExpenses, setActualExpenses] = useState(0);
   const [savingsPercentage, setSavingsPercentage] = useState(0);
+  const [currentSavings, setCurrentSavings] = useState(0);
 
   useEffect(() => {
     // Calculate totals from the transactions
@@ -64,6 +65,7 @@ const FinancialOverview = ({
       
       // Calculate savings percentage
       const calculatedSavings = incomeTotal - expensesTotal;
+      setCurrentSavings(calculatedSavings > 0 ? calculatedSavings : 0);
       const savingsPercent = incomeTotal > 0 ? Math.round((calculatedSavings / incomeTotal) * 100) : 0;
       setSavingsPercentage(savingsPercent);
       
@@ -102,83 +104,92 @@ const FinancialOverview = ({
     setIsEditingSavingsGoal(false);
   };
 
+  // Calculate progress percentage towards savings goal
+  const calculateSavingsProgress = () => {
+    if (!userData.financeModule?.savingsGoal || userData.financeModule.savingsGoal <= 0) return 0;
+    const progress = (currentSavings / userData.financeModule.savingsGoal) * 100;
+    return Math.min(progress, 100); // Cap at 100%
+  };
+
+  const savingsProgress = calculateSavingsProgress();
+
+  // Get a dynamic color for the progress bar based on progress
+  const getProgressVariant = () => {
+    if (savingsProgress < 25) return "danger";
+    if (savingsProgress < 50) return "warning";
+    if (savingsProgress < 75) return "purple";
+    return "success";
+  };
+
+  // Get a motivational message based on savings progress
+  const getMotivationalMessage = () => {
+    if (savingsProgress < 10) return "Commencez à épargner dès maintenant!";
+    if (savingsProgress < 30) return "Bon début, continuez comme ça!";
+    if (savingsProgress < 60) return "Vous êtes sur la bonne voie!";
+    if (savingsProgress < 90) return "Presque là, encore un effort!";
+    return "Félicitations, objectif atteint! 🎉";
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {/* Income Card - Now read-only */}
-      <div className="glass-card p-4 flex flex-col gap-2 relative group overflow-hidden">
-        <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-green-400 to-green-600"></div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-          <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-500">
-            <DollarSign size={16} />
-          </div>
-          <span>Revenus mensuels</span>
-        </div>
-        <div className="text-2xl font-semibold text-primary">{actualIncome} €</div>
-        <div className="flex items-center gap-1 text-xs text-green-500">
-          <ArrowUp size={12} />
-          <span>Total des revenus</span>
-        </div>
-      </div>
-      
-      {/* Expenses Card - Now read-only */}
-      <div className="glass-card p-4 flex flex-col gap-2 relative group overflow-hidden">
-        <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-orange-400 to-orange-600"></div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-          <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500">
-            <ArrowDown size={16} />
-          </div>
-          <span>Dépenses mensuelles</span>
-        </div>
-        <div className="text-2xl font-semibold text-destructive">{actualExpenses} €</div>
-        <div className="flex items-center gap-1 text-xs text-orange-500">
-          <ArrowDown size={12} />
-          <span>Total des dépenses</span>
-        </div>
-      </div>
-      
-      {/* Savings Rate - Calculated from income and expenses */}
-      <div className="glass-card p-4 flex flex-col gap-2 relative group overflow-hidden">
-        <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-blue-400 to-blue-600"></div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
-            <PiggyBank size={16} />
-          </div>
-          <span>Taux d'épargne</span>
-        </div>
-        <div className="text-2xl font-semibold text-primary">{savingsPercentage}%</div>
-        <div className="flex items-center gap-1 text-xs text-blue-500">
-          <TrendingUp size={12} />
-          <span>Épargne: {actualIncome > 0 ? Math.round((actualIncome - actualExpenses) / actualIncome * 100) : 0}% des revenus</span>
-        </div>
-      </div>
-      
-      {/* Savings Goal - Still interactive */}
+    <div className="grid grid-cols-1 gap-4">      
+      {/* Savings Goal - Interactive with progress bar */}
       <Dialog open={isEditingSavingsGoal} onOpenChange={setIsEditingSavingsGoal}>
         <div 
           onClick={handleOpenSavingsGoalDialog}
-          className="glass-card p-4 flex flex-col gap-2 hover:shadow-md transition-all cursor-pointer relative group overflow-hidden col-span-3"
+          className="glass-card p-6 flex flex-col gap-4 hover:shadow-md transition-all cursor-pointer relative group overflow-hidden"
         >
           <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <Edit size={16} />
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-500">
-              <Target size={16} />
+          
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-500">
+                <Target size={20} />
+              </div>
+              <div>
+                <h3 className="font-semibold">Objectif épargne</h3>
+                <p className="text-sm text-muted-foreground">Suivi de votre progression</p>
+              </div>
             </div>
-            <span>Objectif épargne</span>
+            <div className="text-right">
+              <div className="text-2xl font-bold">{userData.financeModule?.savingsGoal || 0} €</div>
+              <p className="text-sm text-purple-600">Objectif</p>
+            </div>
           </div>
-          <div className="text-2xl font-semibold text-primary">{userData.financeModule?.savingsGoal || 0} €</div>
-          <div className="flex items-center gap-1 text-xs text-purple-500">
-            <TrendingUp size={12} />
-            <span>Cliquez pour définir un objectif</span>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span>Économies actuelles: {currentSavings} €</span>
+              <span className="font-medium">{savingsProgress.toFixed(0)}%</span>
+            </div>
+            <Progress 
+              value={savingsProgress} 
+              className="h-3" 
+              variant={getProgressVariant()}
+            />
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-1 text-xs">
+                <Sparkles size={14} className="text-amber-500" />
+                <span>{getMotivationalMessage()}</span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                Reste: {Math.max(0, (userData.financeModule?.savingsGoal || 0) - currentSavings)} €
+              </span>
+            </div>
           </div>
-          <div className="mt-2 p-1.5 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-between">
+          
+          <div className="mt-2 p-2 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-between">
             <div className="flex items-center text-xs text-purple-700">
               <Trophy size={12} className="mr-1 text-amber-500" />
-              <span>+20 XP</span>
+              <span>+20 XP pour un objectif atteint</span>
             </div>
-            <span className="text-xs text-purple-600">Mission: Fixer un objectif d'épargne</span>
+            <div className="flex items-center">
+              {savingsProgress >= 100 && (
+                <Award size={16} className="ml-2 text-amber-500 animate-pulse" />
+              )}
+            </div>
           </div>
         </div>
         
@@ -207,8 +218,12 @@ const FinancialOverview = ({
                 Progression
               </Label>
               <div className="col-span-3">
-                <Progress value={0} className="h-2" />
-                <p className="text-xs text-muted-foreground mt-1">0% réalisé</p>
+                <Progress 
+                  value={savingsProgress} 
+                  className="h-2" 
+                  variant={getProgressVariant()}
+                />
+                <p className="text-xs text-muted-foreground mt-1">{savingsProgress.toFixed(0)}% réalisé</p>
               </div>
             </div>
           </div>
