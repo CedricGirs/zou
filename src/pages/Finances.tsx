@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -31,14 +30,10 @@ const Finances = () => {
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
   
-  const currentMonthIndex = months.indexOf(selectedMonth);
-  const previousMonth = currentMonthIndex > 0 ? months[currentMonthIndex - 1] : months[11];
-  const nextMonth = currentMonthIndex < 11 ? months[currentMonthIndex + 1] : months[0];
-  
   // Charger les données pour le mois sélectionné
   useEffect(() => {
     if (!loading && userData?.financeModule) {
-      console.log(`Chargement initial des données pour ${selectedMonth}`);
+      console.log(`Chargement des données pour ${selectedMonth} depuis useEffect`);
       
       // Récupérer les données du mois sélectionné ou initialiser à 0 si aucune donnée n'existe
       const monthData = userData.financeModule.monthlyData?.[selectedMonth] || {
@@ -61,9 +56,10 @@ const Finances = () => {
     console.log(`Tentative de sauvegarde des données pour ${selectedMonth}:`, currentMonthData);
     
     try {
+      // Créer une copie des données mensuelles existantes
       const monthlyData = {
         ...(userData.financeModule.monthlyData || {}),
-        [selectedMonth]: currentMonthData
+        [selectedMonth]: {...currentMonthData}
       };
       
       console.log(`Structure complète des données mensuelles après mise à jour:`, monthlyData);
@@ -82,7 +78,7 @@ const Finances = () => {
     
     console.log(`Changement de mois: de ${selectedMonth} à ${month}`);
     
-    // Sauvegarder les données du mois actuel
+    // Sauvegarder les données du mois actuel avant de changer
     const saveResult = await saveMonthData();
     if (!saveResult) {
       console.error(`Échec de la sauvegarde des données pour ${selectedMonth}`);
@@ -94,10 +90,9 @@ const Finances = () => {
       return;
     }
     
-    // Changer le mois sélectionné
+    // Changer le mois sélectionné - useEffect se déclenchera ensuite
     setSelectedMonth(month);
     
-    // Charger les données du nouveau mois - la mise à jour des données se fera via l'effet useEffect
     toast({
       title: `${month} sélectionné`,
       description: `Chargement des données pour ${month}...`,
@@ -163,6 +158,7 @@ const Finances = () => {
     }
   }, [loading]);
   
+  // Helpers pour les achievements et quêtes
   const unlockAchievement = async (achievementId: string): Promise<void> => {
     if (!userData.financeModule) return;
     
@@ -279,8 +275,7 @@ const Finances = () => {
           
           <MonthSelector
             selectedMonth={selectedMonth}
-            previousMonth={previousMonth}
-            nextMonth={nextMonth}
+            months={months}
             handleMonthChange={handleMonthChange}
             transactionsCount={currentMonthData.transactions.length}
           />
