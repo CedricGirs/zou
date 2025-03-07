@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   BarChart, 
@@ -345,7 +344,11 @@ const AnnualBudget = () => {
               {formatCurrency(totalIncome)}
             </span>
             <div className="mt-2">
-              <Progress value={(totalIncome / (totalIncome + totalExpenses)) * 100} className="h-2 bg-purple-100" indicatorClassName="bg-gradient-to-r from-purple-500 to-violet-500" />
+              <Progress 
+                value={(totalIncome / (totalIncome + totalExpenses)) * 100} 
+                className="h-2" 
+                variant="income"
+              />
             </div>
           </div>
           
@@ -355,7 +358,11 @@ const AnnualBudget = () => {
               {formatCurrency(totalExpenses)}
             </span>
             <div className="mt-2">
-              <Progress value={(totalExpenses / (totalIncome + totalExpenses)) * 100} className="h-2 bg-orange-100" indicatorClassName="bg-gradient-to-r from-orange-500 to-red-500" />
+              <Progress 
+                value={(totalExpenses / (totalIncome + totalExpenses)) * 100} 
+                className="h-2" 
+                variant="expense"
+              />
             </div>
           </div>
           
@@ -365,7 +372,11 @@ const AnnualBudget = () => {
               {formatCurrency(totalSavings)}
             </span>
             <div className="mt-2">
-              <Progress value={(totalSavings / totalIncome) * 100} className="h-2 bg-emerald-100" indicatorClassName="bg-gradient-to-r from-emerald-500 to-green-500" />
+              <Progress 
+                value={(totalSavings / totalIncome) * 100} 
+                className="h-2" 
+                variant="savings"
+              />
             </div>
           </div>
         </div>
