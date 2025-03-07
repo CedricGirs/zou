@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Transaction } from "@/context/UserDataContext";
+import { Transaction } from "@/types/finance";
 import { Save } from 'lucide-react';
 
 interface TemplateFormProps {
