@@ -1,4 +1,3 @@
-
 import { useEffect, useCallback, useState } from 'react';
 import { useUserData } from '@/context/UserDataContext';
 import { toast } from '@/hooks/use-toast';
@@ -26,58 +25,90 @@ export const useFinanceXP = () => {
     return completedAchievements.length * XP_PER_ACHIEVEMENT;
   }, [userData?.financeModule?.achievements]);
 
-  // Normalisation stricte du nom des mois
   const normalizeMonthName = useCallback((month: string): string => {
     if (!month || typeof month !== 'string') return "";
     
-    // Conversion en minuscules pour standardisation
     const monthLower = month.toLowerCase().trim();
     
-    // Tableau de mois standard avec accents
     const standardMonths = [
       "janvier", "février", "mars", "avril", "mai", "juin",
       "juillet", "août", "septembre", "octobre", "novembre", "décembre"
     ];
     
-    // Variantes d'orthographe possibles pour chaque mois
-    const monthVariants: {[key: string]: string} = {
-      "january": "janvier", "jan": "janvier", "janv": "janvier",
-      "february": "février", "feb": "février", "fev": "février", "févr": "février", "fév": "février",
-      "march": "mars", "mar": "mars",
-      "april": "avril", "apr": "avril", "avr": "avril",
-      "may": "mai",
-      "june": "juin", "jun": "juin",
-      "july": "juillet", "jul": "juillet", "juil": "juillet",
-      "august": "août", "aug": "août", "aout": "août", "aoû": "août",
-      "september": "septembre", "sep": "septembre", "sept": "septembre",
-      "october": "octobre", "oct": "octobre",
-      "november": "novembre", "nov": "novembre",
-      "december": "décembre", "dec": "décembre", "déc": "décembre"
-    };
-    
-    // Vérifier si le mois est déjà dans le format standard
     if (standardMonths.includes(monthLower)) {
-      // Première lettre en majuscule, reste en minuscules
       return monthLower.charAt(0).toUpperCase() + monthLower.slice(1);
     }
     
-    // Vérifier si c'est une variante connue
-    if (monthVariants[monthLower]) {
-      const standardMonth = monthVariants[monthLower];
-      return standardMonth.charAt(0).toUpperCase() + standardMonth.slice(1);
-    }
+    const monthVariants: {[key: string]: string} = {
+      "january": "Janvier", "jan": "Janvier", "janv": "Janvier",
+      "february": "Février", "feb": "Février", "fev": "Février", "févr": "Février",
+      "march": "Mars", "mar": "Mars",
+      "april": "Avril", "apr": "Avril", "avr": "Avril",
+      "may": "Mai",
+      "june": "Juin", "jun": "Juin",
+      "july": "Juillet", "jul": "Juillet", "juil": "Juillet",
+      "august": "Août", "aug": "Août", "aout": "Août",
+      "september": "Septembre", "sep": "Septembre", "sept": "Septembre",
+      "october": "Octobre", "oct": "Octobre",
+      "november": "Novembre", "nov": "Novembre",
+      "december": "Décembre", "dec": "Décembre", "déc": "Décembre"
+    };
     
-    // Traitement spécial pour "Mars" qui est souvent mal écrit comme "mars"
-    if (monthLower === "mars") {
-      return "Mars";
-    }
-    
-    // Si aucune correspondance, retourner le mois capitalisé
-    console.log(`Mois non reconnu: ${month}, utilisation de la capitalisation standard`);
-    return monthLower.charAt(0).toUpperCase() + monthLower.slice(1);
+    return monthVariants[monthLower] || (monthLower.charAt(0).toUpperCase() + monthLower.slice(1));
   }, []);
 
-  // Calculate total balance across all months with improved deduplication
+  const getInitialMonthData = () => ({
+    income: 0,
+    expenses: 0,
+    balance: 0,
+    savingsRate: 0,
+    transactions: []
+  });
+
+  const getMonthData = useCallback((monthName: string) => {
+    if (!userData?.financeModule?.monthlyData) return getInitialMonthData();
+    
+    const normalizedMonth = normalizeMonthName(monthName);
+    return userData.financeModule.monthlyData[normalizedMonth] || getInitialMonthData();
+  }, [userData?.financeModule?.monthlyData, normalizeMonthName]);
+
+  const saveMonthData = useCallback(async (monthName: string, data: any) => {
+    if (!userData?.financeModule || isProcessing) return;
+    
+    try {
+      setIsProcessing(true);
+      const normalizedMonth = normalizeMonthName(monthName);
+      
+      const existingMonthlyData = {
+        ...(userData.financeModule.monthlyData || {})
+      };
+
+      existingMonthlyData[normalizedMonth] = {
+        income: parseFloat(data.income.toString()),
+        expenses: parseFloat(data.expenses.toString()),
+        balance: parseFloat(data.balance.toString()),
+        savingsRate: parseFloat(data.savingsRate.toString()),
+        transactions: data.transactions || []
+      };
+
+      await updateFinanceModule({ monthlyData: existingMonthlyData });
+      
+      toast({
+        title: "Données sauvegardées",
+        description: `Les données pour ${normalizedMonth} ont été enregistrées.`,
+      });
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder les données.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [userData?.financeModule, updateFinanceModule, normalizeMonthName, isProcessing]);
+
   const calculateTotalSavings = useCallback(() => {
     if (!userData?.financeModule?.monthlyData) return 0;
     
@@ -85,17 +116,14 @@ export const useFinanceXP = () => {
       const monthlyData = userData.financeModule.monthlyData;
       console.log("Données mensuelles:", monthlyData);
       
-      // Map pour stocker les mois normalisés et leurs données
       const normalizedMonthsMap = new Map();
       
-      // Normaliser tous les noms de mois et fusionner les données dupliquées
       Object.entries(monthlyData).forEach(([month, data]) => {
         const normalizedMonth = normalizeMonthName(month);
         
-        if (!normalizedMonth) return; // Skip empty month names
+        if (!normalizedMonth) return;
         
         if (!normalizedMonthsMap.has(normalizedMonth)) {
-          // Nouveau mois normalisé
           normalizedMonthsMap.set(normalizedMonth, {
             income: parseFloat(String(data.income)) || 0,
             expenses: parseFloat(String(data.expenses)) || 0,
@@ -103,14 +131,12 @@ export const useFinanceXP = () => {
             transactions: [...(Array.isArray(data.transactions) ? data.transactions : [])]
           });
         } else {
-          // Fusionner avec un mois existant
           const existingData = normalizedMonthsMap.get(normalizedMonth);
           
           existingData.income += parseFloat(String(data.income)) || 0;
           existingData.expenses += parseFloat(String(data.expenses)) || 0;
           existingData.balance += parseFloat(String(data.balance)) || 0;
           
-          // Fusionner les transactions en évitant les doublons par ID
           if (Array.isArray(data.transactions)) {
             const existingIds = new Set(existingData.transactions.map((t: any) => t.id));
             const newTransactions = data.transactions.filter(t => !existingIds.has(t.id));
@@ -119,21 +145,19 @@ export const useFinanceXP = () => {
         }
       });
       
-      // Calculer le total des soldes mensuels
       let totalBalance = 0;
       normalizedMonthsMap.forEach((data) => {
         totalBalance += data.balance;
       });
       
       console.log("Total économies après nettoyage:", totalBalance);
-      return Math.max(0, totalBalance); // Pas d'économies négatives
+      return Math.max(0, totalBalance);
     } catch (error) {
       console.error("Erreur lors du calcul des économies totales:", error);
       return 0;
     }
   }, [userData?.financeModule?.monthlyData, normalizeMonthName]);
 
-  // Fonction pour nettoyer les données mensuelles en supprimant les doublons
   const cleanupMonthlyData = useCallback(async () => {
     if (!userData?.financeModule?.monthlyData || isProcessing) return;
 
@@ -143,18 +167,15 @@ export const useFinanceXP = () => {
       const cleanedData: Record<string, any> = {};
       const processedMonths = new Set();
 
-      // Traiter chaque entrée de mois
       Object.entries(monthlyData).forEach(([month, data]) => {
         const normalizedMonth = normalizeMonthName(month);
         
         if (!normalizedMonth || processedMonths.has(normalizedMonth)) return;
         
-        // Collecter toutes les données pour ce mois normalisé
         const allMonthData = Object.entries(monthlyData)
           .filter(([m]) => normalizeMonthName(m) === normalizedMonth)
           .map(([_, d]) => d);
 
-        // Fusionner les données
         const mergedData = {
           income: 0,
           expenses: 0,
@@ -182,7 +203,6 @@ export const useFinanceXP = () => {
           }
         });
         
-        // Recalculer le solde et le taux d'épargne
         mergedData.balance = mergedData.income - mergedData.expenses;
         mergedData.savingsRate = mergedData.income > 0 
           ? Math.round((mergedData.income - mergedData.expenses) / mergedData.income * 100) 
@@ -192,7 +212,6 @@ export const useFinanceXP = () => {
         processedMonths.add(normalizedMonth);
       });
 
-      // Mettre à jour les données nettoyées
       await updateFinanceModule({ monthlyData: cleanedData });
       console.log("Données mensuelles nettoyées:", cleanedData);
       
@@ -210,7 +229,6 @@ export const useFinanceXP = () => {
       setIsProcessing(true);
       const totalSavings = calculateTotalSavings();
       
-      // Mettre à jour le solde total si nécessaire
       if (userData.financeModule.balance !== totalSavings) {
         await updateFinanceModule({ balance: totalSavings });
       }
@@ -228,7 +246,6 @@ export const useFinanceXP = () => {
         maxXP: userData.financeModule.maxXP
       });
 
-      // Calculer le nouveau niveau
       let newLevel = 1;
       let threshold = calculateLevelThreshold(newLevel + 1);
 
@@ -248,7 +265,6 @@ export const useFinanceXP = () => {
         });
       }
 
-      // Mettre à jour uniquement si les valeurs ont changé
       if (totalXP !== userData.financeModule.currentXP || 
           newLevel !== userData.financeModule.financeLevel) {
         await updateFinanceModule({
@@ -264,12 +280,10 @@ export const useFinanceXP = () => {
     }
   }, [userData?.financeModule, calculateXPFromSavings, calculateXPFromAchievements, calculateTotalSavings, updateFinanceModule, calculateLevelThreshold, isProcessing]);
 
-  // Update XP and level when finance module data changes
   useEffect(() => {
     let isMounted = true;
     
     if (userData?.financeModule && isMounted && !isProcessing) {
-      // Nettoyer les données mensuelles lors du chargement initial
       cleanupMonthlyData().then(() => {
         if (isMounted) {
           updateXPAndLevel();
@@ -287,6 +301,9 @@ export const useFinanceXP = () => {
     calculateLevelThreshold,
     normalizeMonthName,
     calculateTotalSavings,
-    cleanupMonthlyData
+    cleanupMonthlyData,
+    getMonthData,
+    saveMonthData,
+    isProcessing
   };
 };
