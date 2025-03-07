@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Transaction, BudgetTemplate } from "@/context/UserDataContext";
@@ -550,7 +549,7 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                 </div>
               )}
               
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2">
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="w-full mt-4">
@@ -611,56 +610,9 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                   </DialogContent>
                 </Dialog>
                 
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="w-full mt-4">
-                      <Save size={14} className="mr-2" />
-                      Créer template
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Créer template de revenus</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="incomeTemplateName" className="text-right">Nom</Label>
-                        <Input
-                          id="incomeTemplateName"
-                          value={templateName}
-                          onChange={(e) => setTemplateName(e.target.value)}
-                          className="col-span-3"
-                          placeholder="Ex: Revenus mensuels"
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="incomeTemplateDescription" className="text-right">Description</Label>
-                        <Textarea
-                          id="incomeTemplateDescription"
-                          value={templateDescription}
-                          onChange={(e) => setTemplateDescription(e.target.value)}
-                          className="col-span-3"
-                          placeholder="Description du template (optionnel)"
-                        />
-                      </div>
-                      <div className="col-span-4 mt-2">
-                        <div className="p-3 bg-green-50 border border-green-100 rounded-md text-sm text-green-700">
-                          <p>Ce template contiendra :</p>
-                          <ul className="list-disc list-inside mt-1 space-y-1">
-                            <li>{transactions.filter(t => t.type === 'income').length} revenus pour un total de {transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)} €</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex justify-end">
-                      <Button onClick={handleCreateTemplate}>Créer template</Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-                
                 <Dialog open={isApplyIncomeTemplateOpen} onOpenChange={setIsApplyIncomeTemplateOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="template" size="sm" className="w-full mt-4">
+                    <Button variant="template" size="sm" className="w-full mt-2">
                       <Download size={14} className="mr-2" />
                       Ajouter template
                     </Button>
@@ -840,7 +792,7 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                 </div>
               )}
               
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2">
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="w-full mt-4">
@@ -901,56 +853,9 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                   </DialogContent>
                 </Dialog>
                 
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="w-full mt-4">
-                      <Save size={14} className="mr-2" />
-                      Créer template
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Créer template de dépenses</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="expenseTemplateName" className="text-right">Nom</Label>
-                        <Input
-                          id="expenseTemplateName"
-                          value={templateName}
-                          onChange={(e) => setTemplateName(e.target.value)}
-                          className="col-span-3"
-                          placeholder="Ex: Dépenses mensuelles"
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="expenseTemplateDescription" className="text-right">Description</Label>
-                        <Textarea
-                          id="expenseTemplateDescription"
-                          value={templateDescription}
-                          onChange={(e) => setTemplateDescription(e.target.value)}
-                          className="col-span-3"
-                          placeholder="Description du template (optionnel)"
-                        />
-                      </div>
-                      <div className="col-span-4 mt-2">
-                        <div className="p-3 bg-red-50 border border-red-100 rounded-md text-sm text-red-700">
-                          <p>Ce template contiendra :</p>
-                          <ul className="list-disc list-inside mt-1 space-y-1">
-                            <li>{transactions.filter(t => t.type === 'expense').length} dépenses pour un total de {transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)} €</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex justify-end">
-                      <Button onClick={handleCreateTemplate}>Créer template</Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-                
                 <Dialog open={isApplyExpenseTemplateOpen} onOpenChange={setIsApplyExpenseTemplateOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="template" size="sm" className="w-full mt-4">
+                    <Button variant="template" size="sm" className="w-full mt-2">
                       <Download size={14} className="mr-2" />
                       Ajouter template
                     </Button>
@@ -1026,22 +931,4 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
             </div>
           </CardContent>
           <CardFooter className="bg-gray-50 flex justify-between">
-            <span className="text-xs text-muted-foreground">
-              Dépenses mensuelles totales: {
-                transactions
-                  ?.filter(t => t.type === 'expense')
-                  .reduce((sum, t) => sum + t.amount, 0) || 0
-              } €
-            </span>
-            <div className="flex items-center text-xs text-purple-600">
-              <Target size={12} className="mr-1 text-blue-500" />
-              <span>+20 XP pour suivre ses dépenses</span>
-            </div>
-          </CardFooter>
-        </Card>
-      </div>
-    </div>
-  );
-};
-
-export default FinancialInsights;
+            <span className="text-xs text-muted-
