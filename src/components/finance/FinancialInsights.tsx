@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Transaction, BudgetTemplate } from "@/context/UserDataContext";
+import { Transaction, BudgetTemplate } from "@/types/finance";
 import { useUserData } from "@/context/UserDataContext";
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';

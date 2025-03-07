@@ -22,7 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PiggyBank, Plus, Target, Trophy, Trash2, TrendingUp } from "lucide-react";
-import { useUserData, SavingsGoal } from "@/context/UserDataContext";
+import { useUserData } from "@/context/UserDataContext";
+import { SavingsGoal } from "@/types/finance";
 import { toast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from 'uuid';
 

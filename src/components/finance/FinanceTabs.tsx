@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChartPie, Wallet, ArrowUpDown, PiggyBank } from "lucide-react";
 import AnnualBudget from "@/components/finance/AnnualBudget";
@@ -6,7 +5,7 @@ import TransactionTracker from "@/components/finance/TransactionTracker";
 import SavingsTracker from "@/components/finance/SavingsTracker";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import FinancialInsights from "@/components/finance/FinancialInsights";
-import { MonthlyData } from "@/context/UserDataContext";
+import { MonthlyData } from "@/types/finance";
 
 interface FinanceTabsProps {
   currentMonthData: MonthlyData;

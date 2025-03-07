@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Transaction } from "@/context/UserDataContext";
+import { Transaction } from "@/types/finance";
 import { Trash2, Edit2, CheckIcon } from 'lucide-react';
 
 interface TransactionsListProps {

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap, Award, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MonthlyData } from '@/context/UserDataContext';
+import { MonthlyData } from '@/types/finance';
 
 interface FinancialOverviewProps {
   income: number;
