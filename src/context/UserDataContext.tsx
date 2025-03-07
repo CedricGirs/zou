@@ -74,6 +74,15 @@ export interface FinanceQuest {
   xpReward: number;
 }
 
+// Monthly data interface for storing month-specific financial data
+export interface MonthlyData {
+  income: number;
+  expenses: number;
+  balance: number;
+  savingsRate: number;
+  transactions: Transaction[];
+}
+
 export interface FinanceModule {
   // Core financial data
   balance: number;
@@ -83,6 +92,11 @@ export interface FinanceModule {
   transactions: Transaction[];
   savingsGoals: SavingsGoal[];
   savingsGoal?: number;
+  
+  // Monthly data storage
+  monthlyData?: {
+    [month: string]: MonthlyData;
+  };
   
   // Expense categories
   housingExpenses?: number;
@@ -184,6 +198,9 @@ const defaultFinanceModule: FinanceModule = {
     { id: "vacation", name: "Vacances", target: 1200, saved: 0, deadline: "2024-06-30" }
   ],
   savingsGoal: 0,
+  
+  // Monthly data storage
+  monthlyData: {},
   
   // Expense categories
   housingExpenses: 0,

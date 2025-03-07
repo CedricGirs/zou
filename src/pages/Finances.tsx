@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -44,11 +43,12 @@ import { Progress } from "@/components/ui/progress";
 import XPBar from "@/components/dashboard/XPBar";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { MonthlyData } from "@/context/UserDataContext";
 
 const Finances = () => {
   const { userData, loading, updateFinanceModule } = useUserData();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: fr }));
-  const [currentMonthData, setCurrentMonthData] = useState({
+  const [currentMonthData, setCurrentMonthData] = useState<MonthlyData>({
     income: 0,
     expenses: 0,
     balance: 0,
