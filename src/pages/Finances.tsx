@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -19,6 +20,8 @@ import {
   CircleCheck,
   BarChart3,
   Bookmark,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AnnualBudget from "@/components/finance/AnnualBudget";
@@ -27,22 +30,18 @@ import SavingsTracker from "@/components/finance/SavingsTracker";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import FinancialInsights from "@/components/finance/FinancialInsights";
 import CustomBadge from "@/components/ui/CustomBadge";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import XPBar from "@/components/dashboard/XPBar";
-import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
-import { MonthlyData } from "@/context/UserDataContext";
+import { 
+  MonthlyData, 
+  FinanceAchievement, 
+  FinanceQuest,
+  Transaction 
+} from "@/context/UserDataContext";
 
 const Finances = () => {
   const { userData, loading, updateFinanceModule } = useUserData();
@@ -55,6 +54,16 @@ const Finances = () => {
     transactions: []
   });
   
+  const months = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+  ];
+  
+  const currentMonthIndex = months.indexOf(selectedMonth);
+  const previousMonth = currentMonthIndex > 0 ? months[currentMonthIndex - 1] : months[11];
+  const nextMonth = currentMonthIndex < 11 ? months[currentMonthIndex + 1] : months[0];
+  
+  // Charger les données pour le mois sélectionné
   useEffect(() => {
     if (!loading && userData?.financeModule) {
       const monthData = userData.financeModule.monthlyData?.[selectedMonth] || {
@@ -69,33 +78,8 @@ const Finances = () => {
     }
   }, [selectedMonth, userData, loading]);
   
-  if (loading) {
-    return (
-      <MainLayout>
-        <div className="flex justify-center items-center h-[80vh]">
-          <div className="text-center">
-            <h2 className="text-2xl font-pixel mb-4">Chargement des données financières...</h2>
-            <Progress value={80} className="w-64 h-2" />
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-  
-  const { 
-    financeLevel = 1, 
-    currentXP = 0, 
-    maxXP = 100, 
-    achievements = [],
-    quests = [],
-  } = userData?.financeModule || {};
-  
-  const months = [
-    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-  ];
-
-  const handleMonthChange = async (value: string) => {
+  // Sauvegarder les données du mois actuel avant de changer de mois
+  const saveMonthData = async () => {
     if (userData?.financeModule) {
       const monthlyData = {
         ...(userData.financeModule.monthlyData || {}),
@@ -103,11 +87,21 @@ const Finances = () => {
       };
       
       await updateFinanceModule({ monthlyData });
+      
+      return true;
     }
+    return false;
+  };
+  
+  const handleMonthChange = async (month: string) => {
+    // Sauvegarder les données du mois actuel
+    await saveMonthData();
     
-    setSelectedMonth(value);
+    // Changer le mois
+    setSelectedMonth(month);
     
-    const newMonthData = userData?.financeModule?.monthlyData?.[value] || {
+    // Charger les données du nouveau mois
+    const newMonthData = userData?.financeModule?.monthlyData?.[month] || {
       income: 0,
       expenses: 0,
       balance: 0,
@@ -118,12 +112,77 @@ const Finances = () => {
     setCurrentMonthData(newMonthData);
     
     toast({
-      title: "Mois sélectionné",
-      description: `Données financières pour ${value} chargées.`,
+      title: `${month} sélectionné`,
+      description: newMonthData.transactions.length > 0 
+        ? `Données financières pour ${month} chargées.`
+        : `Aucune donnée existante pour ${month}. Valeurs initialisées à 0.`,
     });
   };
   
-  const completeQuestStep = async (questId: string, progress: number) => {
+  // S'assurer de sauvegarder les données lors de la fermeture de l'application
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Sauvegarder l'état actuel
+      if (userData?.financeModule) {
+        const monthlyData = {
+          ...(userData.financeModule.monthlyData || {}),
+          [selectedMonth]: currentMonthData
+        };
+        
+        updateFinanceModule({ monthlyData });
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Sauvegarder également lors du démontage du composant
+      saveMonthData();
+    };
+  }, [userData, currentMonthData, selectedMonth, saveMonthData]);
+  
+  const unlockAchievement = async (achievementId: string): Promise<void> => {
+    if (!userData.financeModule) return;
+    
+    const achievements = [...userData.financeModule.achievements];
+    const achievementIndex = achievements.findIndex(a => a.id === achievementId);
+    
+    if (achievementIndex !== -1 && !achievements[achievementIndex].completed) {
+      achievements[achievementIndex] = {
+        ...achievements[achievementIndex],
+        completed: true
+      };
+      
+      await updateFinanceModule({ achievements });
+      
+      toast({
+        title: "Succès débloqué!",
+        description: `Vous avez débloqué: ${achievements[achievementIndex].name}`,
+      });
+      
+      const newXP = userData.financeModule.currentXP + achievements[achievementIndex].xpReward;
+      let newLevel = userData.financeModule.financeLevel;
+      let newMaxXP = userData.financeModule.maxXP;
+      
+      if (newXP >= newMaxXP) {
+        newLevel += 1;
+        newMaxXP = newMaxXP * 1.5;
+        toast({
+          title: "Niveau supérieur!",
+          description: `Vous êtes maintenant niveau ${newLevel} en finances!`,
+        });
+      }
+      
+      await updateFinanceModule({ 
+        currentXP: newXP, 
+        financeLevel: newLevel,
+        maxXP: newMaxXP
+      });
+    }
+  };
+  
+  const completeQuestStep = async (questId: string, progress: number): Promise<void> => {
     if (!userData.financeModule) return;
     
     const quests = [...userData.financeModule.quests];
@@ -166,45 +225,26 @@ const Finances = () => {
     }
   };
   
-  const unlockAchievement = async (achievementId: string) => {
-    if (!userData.financeModule) return;
-    
-    const achievements = [...userData.financeModule.achievements];
-    const achievementIndex = achievements.findIndex(a => a.id === achievementId);
-    
-    if (achievementIndex !== -1 && !achievements[achievementIndex].completed) {
-      achievements[achievementIndex] = {
-        ...achievements[achievementIndex],
-        completed: true
-      };
-      
-      await updateFinanceModule({ achievements });
-      
-      toast({
-        title: "Succès débloqué!",
-        description: `Vous avez débloqué: ${achievements[achievementIndex].name}`,
-      });
-      
-      const newXP = userData.financeModule.currentXP + achievements[achievementIndex].xpReward;
-      let newLevel = userData.financeModule.financeLevel;
-      let newMaxXP = userData.financeModule.maxXP;
-      
-      if (newXP >= newMaxXP) {
-        newLevel += 1;
-        newMaxXP = newMaxXP * 1.5;
-        toast({
-          title: "Niveau supérieur!",
-          description: `Vous êtes maintenant niveau ${newLevel} en finances!`,
-        });
-      }
-      
-      await updateFinanceModule({ 
-        currentXP: newXP, 
-        financeLevel: newLevel,
-        maxXP: newMaxXP
-      });
-    }
-  };
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center h-[80vh]">
+          <div className="text-center">
+            <h2 className="text-2xl font-pixel mb-4">Chargement des données financières...</h2>
+            <Progress value={80} className="w-64 h-2" />
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+  
+  const { 
+    financeLevel = 1, 
+    currentXP = 0, 
+    maxXP = 100, 
+    achievements = [],
+    quests = [],
+  } = userData?.financeModule || {};
 
   const financeAchievements = [
     {
@@ -298,17 +338,33 @@ const Finances = () => {
             <p className="text-muted-foreground">Gérez votre argent, progressez, atteignez vos objectifs</p>
           </div>
           
-          <div className="flex flex-wrap items-center gap-3">
-            <Select value={selectedMonth} onValueChange={handleMonthChange}>
-              <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="Mois" />
-              </SelectTrigger>
-              <SelectContent>
-                {months.map(month => (
-                  <SelectItem key={month} value={month}>{month}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => handleMonthChange(previousMonth)}
+              title={`Mois précédent: ${previousMonth}`}
+            >
+              <ChevronLeft size={18} />
+            </Button>
+            
+            <div className="flex flex-col items-center min-w-[100px]">
+              <h3 className="font-medium text-lg">{selectedMonth}</h3>
+              <p className="text-xs text-muted-foreground">
+                {currentMonthData.transactions.length > 0 
+                  ? `${currentMonthData.transactions.length} transactions` 
+                  : "Aucune donnée"}
+              </p>
+            </div>
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => handleMonthChange(nextMonth)}
+              title={`Mois suivant: ${nextMonth}`}
+            >
+              <ChevronRight size={18} />
+            </Button>
           </div>
         </div>
 

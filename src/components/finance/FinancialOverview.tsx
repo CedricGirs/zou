@@ -62,7 +62,6 @@ const FinancialOverview = ({
       const monthSavings = monthData.income - monthData.expenses;
       if (monthSavings > 0) {
         totalSavings += monthSavings;
-        console.log(`Économies du mois ${month}: ${monthSavings}€`);
       }
     });
     
@@ -81,10 +80,6 @@ const FinancialOverview = ({
     // Calculate and set total cumulative savings
     const calculatedTotalSavings = calculateTotalSavings();
     setTotalCumulativeSavings(calculatedTotalSavings);
-    
-    // Log pour vérification
-    console.log('Données mensuelles:', userData.financeModule?.monthlyData);
-    console.log('Total économies cumulées:', calculatedTotalSavings);
     
   }, [income, expenses, selectedMonth, userData.financeModule?.monthlyData]);
 
