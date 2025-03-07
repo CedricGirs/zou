@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & {
-    variant?: "default" | "success" | "warning" | "danger" | "purple" | "gradient" | "minimal"
+    variant?: "default" | "success" | "warning" | "danger" | "purple" | "gradient" | "minimal" | "indeterminate"
   }
 >(({ className, value, variant = "default", ...props }, ref) => {
   const getIndicatorClass = () => {
@@ -24,6 +24,8 @@ const Progress = React.forwardRef<
         return "bg-gradient-to-r from-violet-500 to-purple-500"
       case "minimal":
         return "bg-zinc-800 dark:bg-zinc-300"
+      case "indeterminate":
+        return "bg-primary animate-pulse"
       default:
         return "bg-primary"
     }
@@ -41,9 +43,14 @@ const Progress = React.forwardRef<
       <ProgressPrimitive.Indicator
         className={cn(
           "h-full w-full flex-1 transition-all",
-          getIndicatorClass()
+          getIndicatorClass(),
+          variant === "indeterminate" ? "animate-progress-indeterminate" : ""
         )}
-        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+        style={{ 
+          transform: variant === "indeterminate" 
+            ? "translateX(-100%)" 
+            : `translateX(-${100 - (value || 0)}%)` 
+        }}
       />
     </ProgressPrimitive.Root>
   )

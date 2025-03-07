@@ -74,6 +74,14 @@ export interface FinanceQuest {
   xpReward: number;
 }
 
+// Interface pour les données mensuelles
+export interface MonthlyFinanceData {
+  transactions: Transaction[];
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  balance: number;
+}
+
 export interface FinanceModule {
   // Core financial data
   balance: number;
@@ -83,6 +91,11 @@ export interface FinanceModule {
   transactions: Transaction[];
   savingsGoals: SavingsGoal[];
   savingsGoal?: number;
+  
+  // Monthly data storage
+  monthlyData?: {
+    [key: string]: MonthlyFinanceData; // key format: "Month_Year" (ex: "Janvier_2024")
+  };
   
   // Expense categories
   housingExpenses?: number;
@@ -171,7 +184,7 @@ const defaultLookModule: LookModule = {
   style: 'classic',
 };
 
-// New default finance module with all values reset
+// New default finance module with monthly data structure
 const defaultFinanceModule: FinanceModule = {
   // Core financial data
   balance: 0,
@@ -184,6 +197,17 @@ const defaultFinanceModule: FinanceModule = {
     { id: "vacation", name: "Vacances", target: 1200, saved: 0, deadline: "2024-06-30" }
   ],
   savingsGoal: 0,
+  
+  // Monthly data storage
+  monthlyData: {
+    // Format: "Month_Year": { transactions, monthlyIncome, monthlyExpenses, balance }
+    [`${format(new Date(), 'MMMM', { locale: fr })}_${new Date().getFullYear()}`]: {
+      transactions: [],
+      monthlyIncome: 0,
+      monthlyExpenses: 0,
+      balance: 0
+    }
+  },
   
   // Expense categories
   housingExpenses: 0,
@@ -353,6 +377,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateFinanceModule = async (updates: Partial<FinanceModule>) => {
+    console.log("Mise à jour du module finance:", updates);
     const newData = {
       ...userData,
       financeModule: { ...userData.financeModule, ...updates },

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -41,39 +42,22 @@ import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import XPBar from "@/components/dashboard/XPBar";
-import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { playSound } from "@/utils/audioUtils";
+import { Transaction, FinanceModule } from "@/context/UserDataContext";
 
 const Finances = () => {
   const { userData, loading, updateFinanceModule } = useUserData();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: fr }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [monthlyData, setMonthlyData] = useState<{
+    transactions: Transaction[];
+    monthlyIncome: number;
+    monthlyExpenses: number;
+    balance: number;
+  } | null>(null);
   
-  if (loading) {
-    return (
-      <MainLayout>
-        <div className="flex justify-center items-center h-[80vh]">
-          <div className="text-center">
-            <h2 className="text-2xl font-pixel mb-4">Chargement des données financières...</h2>
-            <Progress value={80} className="w-64 h-2" />
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-  
-  const { 
-    financeLevel = 1, 
-    currentXP = 0, 
-    maxXP = 100, 
-    achievements = [],
-    quests = [],
-    balance = 0,
-    monthlyIncome = 0,
-    monthlyExpenses = 0,
-    savingsRate = 0
-  } = userData?.financeModule || {};
-  
+  // Mois français
   const months = [
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
@@ -81,16 +65,110 @@ const Finances = () => {
   
   const years = ['2022', '2023', '2024', '2025'];
 
-  const handleMonthChange = (value: string) => {
+  // Charger les données financières du mois sélectionné au chargement et lorsque le mois change
+  useEffect(() => {
+    if (loading || !userData?.financeModule) return;
+    
+    const loadMonthData = async () => {
+      setIsDataLoading(true);
+      console.log(`Chargement des données pour ${selectedMonth} ${selectedYear}`);
+      
+      try {
+        // Vérifier si des données existent pour ce mois dans la structure monthlyData de financeModule
+        const monthKey = `${selectedMonth}_${selectedYear}`;
+        const savedMonthData = userData.financeModule.monthlyData?.[monthKey];
+        
+        if (savedMonthData) {
+          console.log("Données du mois trouvées :", savedMonthData);
+          setMonthlyData({
+            transactions: savedMonthData.transactions || [],
+            monthlyIncome: savedMonthData.monthlyIncome || 0,
+            monthlyExpenses: savedMonthData.monthlyExpenses || 0,
+            balance: savedMonthData.balance || 0
+          });
+        } else {
+          console.log("Aucune donnée trouvée pour ce mois, réinitialisation");
+          // Si aucune donnée n'existe pour ce mois, initialiser à zéro
+          setMonthlyData({
+            transactions: [],
+            monthlyIncome: 0,
+            monthlyExpenses: 0,
+            balance: 0
+          });
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des données mensuelles:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les données pour ce mois.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsDataLoading(false);
+      }
+    };
+    
+    loadMonthData();
+  }, [selectedMonth, selectedYear, userData?.financeModule, loading]);
+
+  // Fonction pour sauvegarder les données du mois actuel avant de changer de mois
+  const saveCurrentMonthData = async () => {
+    if (!userData?.financeModule || !monthlyData) return;
+    
+    try {
+      const monthKey = `${selectedMonth}_${selectedYear}`;
+      
+      // Créer/mettre à jour la structure monthlyData si elle n'existe pas déjà
+      const currentMonthlyData = userData.financeModule.monthlyData || {};
+      
+      currentMonthlyData[monthKey] = {
+        transactions: monthlyData.transactions,
+        monthlyIncome: monthlyData.monthlyIncome,
+        monthlyExpenses: monthlyData.monthlyExpenses,
+        balance: monthlyData.balance
+      };
+      
+      console.log(`Sauvegarde des données pour ${monthKey}:`, currentMonthlyData[monthKey]);
+      
+      // Mettre à jour le module finance avec les nouvelles données mensuelles
+      await updateFinanceModule({
+        monthlyData: currentMonthlyData
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde des données mensuelles:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder les données pour ce mois.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const handleMonthChange = async (value: string) => {
+    // Sauvegarder les données du mois actuel avant de changer
+    await saveCurrentMonthData();
+    
+    // Changer le mois
     setSelectedMonth(value);
+    
+    playSound('click');
     toast({
       title: "Mois sélectionné",
       description: `Données financières pour ${value} ${selectedYear} chargées.`,
     });
   };
   
-  const handleYearChange = (value: string) => {
+  const handleYearChange = async (value: string) => {
+    // Sauvegarder les données du mois actuel avant de changer
+    await saveCurrentMonthData();
+    
+    // Changer l'année
     setSelectedYear(value);
+    
+    playSound('click');
     toast({
       title: "Année sélectionnée",
       description: `Données financières pour ${selectedMonth} ${value} chargées.`,
@@ -101,6 +179,72 @@ const Finances = () => {
     toast({
       title: "Export des données financières",
       description: "Vos données financières ont été exportées avec succès.",
+    });
+  };
+  
+  // Mise à jour des données mensuelles après une modification
+  const updateMonthlyData = (updates: Partial<{
+    transactions: Transaction[];
+    monthlyIncome: number;
+    monthlyExpenses: number;
+    balance: number;
+  }>) => {
+    if (!monthlyData) return;
+    
+    setMonthlyData({
+      ...monthlyData,
+      ...updates
+    });
+  };
+  
+  // Fonction pour ajouter une transaction qui met à jour les données mensuelles
+  const addTransaction = (transaction: Transaction) => {
+    if (!monthlyData) return;
+    
+    const updatedTransactions = [...monthlyData.transactions, transaction];
+    let newMonthlyIncome = monthlyData.monthlyIncome;
+    let newMonthlyExpenses = monthlyData.monthlyExpenses;
+    
+    if (transaction.type === 'income') {
+      newMonthlyIncome += transaction.amount;
+    } else {
+      newMonthlyExpenses += transaction.amount;
+    }
+    
+    const newBalance = newMonthlyIncome - newMonthlyExpenses;
+    
+    updateMonthlyData({
+      transactions: updatedTransactions,
+      monthlyIncome: newMonthlyIncome,
+      monthlyExpenses: newMonthlyExpenses,
+      balance: newBalance
+    });
+  };
+  
+  // Fonction pour supprimer une transaction qui met à jour les données mensuelles
+  const deleteTransaction = (transactionId: string) => {
+    if (!monthlyData) return;
+    
+    const transactionToDelete = monthlyData.transactions.find(t => t.id === transactionId);
+    if (!transactionToDelete) return;
+    
+    const updatedTransactions = monthlyData.transactions.filter(t => t.id !== transactionId);
+    let newMonthlyIncome = monthlyData.monthlyIncome;
+    let newMonthlyExpenses = monthlyData.monthlyExpenses;
+    
+    if (transactionToDelete.type === 'income') {
+      newMonthlyIncome -= transactionToDelete.amount;
+    } else {
+      newMonthlyExpenses -= transactionToDelete.amount;
+    }
+    
+    const newBalance = newMonthlyIncome - newMonthlyExpenses;
+    
+    updateMonthlyData({
+      transactions: updatedTransactions,
+      monthlyIncome: newMonthlyIncome,
+      monthlyExpenses: newMonthlyExpenses,
+      balance: newBalance
     });
   };
   
@@ -120,6 +264,7 @@ const Finances = () => {
       await updateFinanceModule({ quests });
       
       if (progress === 100) {
+        playSound('success');
         toast({
           title: "Quête complétée!",
           description: `Vous avez gagné ${quests[questIndex].xpReward} XP!`,
@@ -132,6 +277,7 @@ const Finances = () => {
         if (newXP >= newMaxXP) {
           newLevel += 1;
           newMaxXP = newMaxXP * 1.5;
+          playSound('levelUp');
           toast({
             title: "Niveau supérieur!",
             description: `Vous êtes maintenant niveau ${newLevel} en finances!`,
@@ -161,6 +307,7 @@ const Finances = () => {
       
       await updateFinanceModule({ achievements });
       
+      playSound('badge');
       toast({
         title: "Succès débloqué!",
         description: `Vous avez débloqué: ${achievements[achievementIndex].name}`,
@@ -173,6 +320,7 @@ const Finances = () => {
       if (newXP >= newMaxXP) {
         newLevel += 1;
         newMaxXP = newMaxXP * 1.5;
+        playSound('levelUp');
         toast({
           title: "Niveau supérieur!",
           description: `Vous êtes maintenant niveau ${newLevel} en finances!`,
@@ -269,6 +417,37 @@ const Finances = () => {
       unlocked: false
     }
   ];
+
+  if (loading || isDataLoading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center h-[80vh]">
+          <div className="text-center">
+            <h2 className="text-2xl font-pixel mb-4">Chargement des données financières...</h2>
+            <Progress variant="indeterminate" className="w-64 h-2" />
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+  
+  // Récupérer les données du module finance
+  const { 
+    financeLevel = 1, 
+    currentXP = 0, 
+    maxXP = 100, 
+    achievements = [],
+    quests = [],
+    savingsRate = 0
+  } = userData?.financeModule || {};
+  
+  // Utiliser les données du mois sélectionné ou les valeurs par défaut
+  const { 
+    transactions = [], 
+    monthlyIncome = 0,
+    monthlyExpenses = 0,
+    balance = 0
+  } = monthlyData || {};
 
   return (
     <MainLayout>
@@ -399,20 +578,29 @@ const Finances = () => {
               />
               
               <FinancialInsights 
-                transactions={userData.financeModule?.transactions || []}
+                transactions={transactions}
                 month={selectedMonth}
+                addTransaction={addTransaction}
+                deleteTransaction={deleteTransaction}
               />
             </div>
           </TabsContent>
 
           <TabsContent value="budget">
-            <AnnualBudget />
+            <AnnualBudget 
+              selectedMonth={selectedMonth}
+              selectedYear={selectedYear}
+            />
           </TabsContent>
           
           <TabsContent value="transactions">
             <TransactionTracker 
               selectedMonth={selectedMonth} 
+              selectedYear={selectedYear}
+              transactions={transactions}
               completeQuestStep={completeQuestStep}
+              addTransaction={addTransaction}
+              deleteTransaction={deleteTransaction}
             />
           </TabsContent>
           
@@ -420,11 +608,15 @@ const Finances = () => {
             <SavingsTracker 
               unlockAchievement={unlockAchievement}
               completeQuestStep={completeQuestStep}
+              monthlyIncome={monthlyIncome}
             />
           </TabsContent>
           
           <TabsContent value="reports">
-            <FinancialReports />
+            <FinancialReports 
+              selectedMonth={selectedMonth}
+              selectedYear={selectedYear}
+            />
           </TabsContent>
         </Tabs>
 
