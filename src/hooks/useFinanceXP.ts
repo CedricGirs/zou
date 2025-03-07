@@ -2,26 +2,41 @@
 import { useEffect, useCallback } from 'react';
 import { useUserData } from '@/context/UserDataContext';
 import { toast } from '@/hooks/use-toast';
+import { playSound } from '@/utils/audioUtils';
 
+// Constantes pour le calcul d'XP
 const XP_PER_EURO_SAVED = 1;
 const XP_PER_ACHIEVEMENT = 50;
+const LEVEL_MULTIPLIER = 1.5;
 
 export const useFinanceXP = () => {
   const { userData, updateFinanceModule } = useUserData();
 
-  const calculateLevelThreshold = (level: number) => {
-    return Math.floor(100 * Math.pow(1.5, level - 1));
-  };
+  /**
+   * Calcule le seuil d'XP requis pour atteindre un niveau donné
+   */
+  const calculateLevelThreshold = useCallback((level: number) => {
+    return Math.floor(100 * Math.pow(LEVEL_MULTIPLIER, level - 1));
+  }, []);
 
+  /**
+   * Calcule l'XP basé sur les économies totales
+   */
   const calculateXPFromSavings = useCallback((totalSavings: number) => {
     return Math.floor(totalSavings * XP_PER_EURO_SAVED);
   }, []);
 
+  /**
+   * Calcule l'XP basé sur les accomplissements débloqués
+   */
   const calculateXPFromAchievements = useCallback(() => {
     const completedAchievements = userData.financeModule?.achievements.filter(a => a.completed) || [];
     return completedAchievements.length * XP_PER_ACHIEVEMENT;
   }, [userData.financeModule?.achievements]);
 
+  /**
+   * Met à jour l'XP et le niveau financier de l'utilisateur
+   */
   const updateXPAndLevel = useCallback(async () => {
     if (!userData.financeModule) return;
 
@@ -45,6 +60,8 @@ export const useFinanceXP = () => {
         description: `Félicitations ! Vous êtes maintenant niveau ${newLevel} en finance !`,
         variant: "default",
       });
+      
+      playSound('levelUp', 0.8);
     }
 
     await updateFinanceModule({
@@ -52,14 +69,29 @@ export const useFinanceXP = () => {
       financeLevel: newLevel,
       maxXP: calculateLevelThreshold(newLevel + 1)
     });
-  }, [userData.financeModule, calculateXPFromSavings, calculateXPFromAchievements, updateFinanceModule]);
+    
+    return {
+      totalXP,
+      newLevel,
+      hasLeveledUp
+    };
+  }, [
+    userData.financeModule, 
+    calculateXPFromSavings, 
+    calculateXPFromAchievements, 
+    calculateLevelThreshold, 
+    updateFinanceModule
+  ]);
 
+  // Met à jour l'XP et le niveau au chargement du composant
   useEffect(() => {
     updateXPAndLevel();
   }, [updateXPAndLevel]);
 
   return {
     updateXPAndLevel,
-    calculateLevelThreshold
+    calculateLevelThreshold,
+    calculateXPFromSavings,
+    calculateXPFromAchievements
   };
 };
