@@ -341,9 +341,9 @@ const Finances = () => {
             <p className="text-muted-foreground">Gérez votre argent, progressez, atteignez vos objectifs</p>
           </div>
           
-          <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+          <div className="flex items-center gap-2 p-2 bg-muted rounded-lg shadow-sm">
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="icon"
               onClick={() => handleMonthChange(previousMonth)}
               title={`Mois précédent: ${previousMonth}`}
@@ -361,7 +361,7 @@ const Finances = () => {
             </div>
             
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="icon"
               onClick={() => handleMonthChange(nextMonth)}
               title={`Mois suivant: ${nextMonth}`}
