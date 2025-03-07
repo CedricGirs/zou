@@ -43,6 +43,36 @@ const FinancialOverview = ({
   // Form values
   const [savingsGoalValue, setSavingsGoalValue] = useState(userData.financeModule?.savingsGoal || 0);
 
+  // Calculate actual totals from transactions
+  const [actualIncome, setActualIncome] = useState(0);
+  const [actualExpenses, setActualExpenses] = useState(0);
+
+  useEffect(() => {
+    // Calculate totals from the transactions
+    if (userData.financeModule?.transactions) {
+      const incomeTotal = userData.financeModule.transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, transaction) => sum + transaction.amount, 0);
+      
+      const expensesTotal = userData.financeModule.transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, transaction) => sum + transaction.amount, 0);
+      
+      setActualIncome(incomeTotal);
+      setActualExpenses(expensesTotal);
+      
+      // Update the finance module with the calculated totals
+      if (incomeTotal !== userData.financeModule.monthlyIncome || 
+          expensesTotal !== userData.financeModule.monthlyExpenses) {
+        updateFinanceModule({
+          monthlyIncome: incomeTotal,
+          monthlyExpenses: expensesTotal,
+          balance: incomeTotal - expensesTotal
+        });
+      }
+    }
+  }, [userData.financeModule?.transactions]);
+
   const handleOpenSavingsGoalDialog = () => {
     setSavingsGoalValue(userData.financeModule?.savingsGoal || 0);
     setIsEditingSavingsGoal(true);
@@ -75,7 +105,7 @@ const FinancialOverview = ({
           </div>
           <span>Revenus mensuels</span>
         </div>
-        <div className="text-2xl font-semibold text-primary">{userData.financeModule?.monthlyIncome || 0} €</div>
+        <div className="text-2xl font-semibold text-primary">{actualIncome} €</div>
         <div className="flex items-center gap-1 text-xs text-green-500">
           <ArrowUp size={12} />
           <span>Total des revenus</span>
@@ -91,7 +121,7 @@ const FinancialOverview = ({
           </div>
           <span>Dépenses mensuelles</span>
         </div>
-        <div className="text-2xl font-semibold text-destructive">{userData.financeModule?.monthlyExpenses || 0} €</div>
+        <div className="text-2xl font-semibold text-destructive">{actualExpenses} €</div>
         <div className="flex items-center gap-1 text-xs text-orange-500">
           <ArrowDown size={12} />
           <span>Total des dépenses</span>
