@@ -19,7 +19,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Filter, Search, CreditCard, ArrowUpDown, Download, CalendarDays } from 'lucide-react';
+import { 
+  Plus, 
+  Trash2, 
+  Filter, 
+  Search, 
+  CreditCard, 
+  ArrowUpDown,
+  ArrowDown,
+  ArrowUp,
+  Download, 
+  CalendarDays 
+} from 'lucide-react';
 import { useUserData, Transaction } from "@/context/UserDataContext";
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
