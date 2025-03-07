@@ -66,6 +66,8 @@ const Finances = () => {
   // Charger les données pour le mois sélectionné
   useEffect(() => {
     if (!loading && userData?.financeModule) {
+      console.log(`Chargement initial des données pour ${selectedMonth}`);
+      
       // Récupérer les données du mois sélectionné ou initialiser à 0 si aucune donnée n'existe
       const monthData = userData.financeModule.monthlyData?.[selectedMonth] || {
         income: 0,
@@ -75,64 +77,98 @@ const Finances = () => {
         transactions: []
       };
       
-      console.log(`Chargement des données pour ${selectedMonth}:`, monthData);
+      console.log(`Données chargées pour ${selectedMonth}:`, monthData);
       setCurrentMonthData(monthData);
     }
   }, [selectedMonth, userData, loading]);
   
-  // Sauvegarder les données du mois actuel avant de changer de mois
+  // Sauvegarder les données du mois actuel
   const saveMonthData = async () => {
     if (userData?.financeModule) {
+      console.log(`Tentative de sauvegarde des données pour ${selectedMonth}:`, currentMonthData);
+      
       const monthlyData = {
         ...(userData.financeModule.monthlyData || {}),
         [selectedMonth]: currentMonthData
       };
       
-      console.log(`Sauvegarde des données pour ${selectedMonth}:`, currentMonthData);
-      await updateFinanceModule({ monthlyData });
+      console.log(`Structure complète des données mensuelles après mise à jour:`, monthlyData);
       
-      return true;
+      try {
+        await updateFinanceModule({ monthlyData });
+        console.log(`Données sauvegardées avec succès pour ${selectedMonth}`);
+        return true;
+      } catch (error) {
+        console.error("Erreur lors de la sauvegarde des données:", error);
+        return false;
+      }
     }
     return false;
   };
   
   const handleMonthChange = async (month: string) => {
+    if (month === selectedMonth) return; // Éviter de recharger le même mois
+    
+    console.log(`Changement de mois: de ${selectedMonth} à ${month}`);
+    
     // Sauvegarder les données du mois actuel
-    await saveMonthData();
+    const saveResult = await saveMonthData();
+    if (!saveResult) {
+      console.error(`Échec de la sauvegarde des données pour ${selectedMonth}`);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder les données du mois actuel.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     // Changer le mois
     setSelectedMonth(month);
     
     // Charger les données du nouveau mois
-    const newMonthData = userData?.financeModule?.monthlyData?.[month] || {
-      income: 0,
-      expenses: 0,
-      balance: 0,
-      savingsRate: 0,
-      transactions: []
-    };
-    
-    setCurrentMonthData(newMonthData);
-    
-    toast({
-      title: `${month} sélectionné`,
-      description: newMonthData.transactions.length > 0 
-        ? `Données financières pour ${month} chargées.`
-        : `Aucune donnée existante pour ${month}. Valeurs initialisées à 0.`,
-    });
+    if (userData?.financeModule?.monthlyData) {
+      const newMonthData = userData.financeModule.monthlyData[month] || {
+        income: 0,
+        expenses: 0,
+        balance: 0,
+        savingsRate: 0,
+        transactions: []
+      };
+      
+      console.log(`Données chargées pour ${month}:`, newMonthData);
+      setCurrentMonthData(newMonthData);
+      
+      toast({
+        title: `${month} sélectionné`,
+        description: newMonthData.transactions.length > 0 
+          ? `Données financières pour ${month} chargées.`
+          : `Aucune donnée existante pour ${month}. Valeurs initialisées à 0.`,
+      });
+    }
   };
   
   // S'assurer de sauvegarder les données lors de la fermeture de l'application
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // Sauvegarder l'état actuel
+      console.log(`Sauvegarde des données avant fermeture pour ${selectedMonth}`);
+      
+      // Sauvegarde synchrone (pour le beforeunload)
       if (userData?.financeModule) {
         const monthlyData = {
           ...(userData.financeModule.monthlyData || {}),
           [selectedMonth]: currentMonthData
         };
         
-        updateFinanceModule({ monthlyData });
+        // Nous ne pouvons pas attendre une promesse dans beforeunload, utilisons saveSync
+        try {
+          localStorage.setItem('pendingFinanceData', JSON.stringify({ 
+            monthlyData, 
+            lastSavedMonth: selectedMonth 
+          }));
+        } catch (error) {
+          console.error("Erreur lors de la sauvegarde d'urgence:", error);
+        }
       }
     };
     
@@ -144,6 +180,32 @@ const Finances = () => {
       saveMonthData();
     };
   }, [userData, currentMonthData, selectedMonth]);
+  
+  // Effet pour gérer la sauvegarde périodique
+  useEffect(() => {
+    const saveInterval = setInterval(() => {
+      saveMonthData();
+    }, 60000); // Sauvegarde automatique toutes les minutes
+    
+    return () => clearInterval(saveInterval);
+  }, [currentMonthData, selectedMonth]);
+  
+  // Récupérer les données pendantes au démarrage
+  useEffect(() => {
+    if (!loading && userData?.financeModule) {
+      try {
+        const pendingData = localStorage.getItem('pendingFinanceData');
+        if (pendingData) {
+          const { monthlyData, lastSavedMonth } = JSON.parse(pendingData);
+          updateFinanceModule({ monthlyData });
+          console.log("Données pendantes récupérées et sauvegardées", { monthlyData, lastSavedMonth });
+          localStorage.removeItem('pendingFinanceData');
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération des données pendantes:", error);
+      }
+    }
+  }, [loading]);
   
   const unlockAchievement = async (achievementId: string): Promise<void> => {
     if (!userData.financeModule) return;
@@ -347,11 +409,12 @@ const Finances = () => {
               size="icon"
               onClick={() => handleMonthChange(previousMonth)}
               title={`Mois précédent: ${previousMonth}`}
+              className="transition-all hover:bg-purple-100"
             >
               <ChevronLeft size={18} />
             </Button>
             
-            <div className="flex flex-col items-center min-w-[100px]">
+            <div className="flex flex-col items-center min-w-[120px]">
               <h3 className="font-medium text-lg">{selectedMonth}</h3>
               <p className="text-xs text-muted-foreground">
                 {currentMonthData.transactions.length > 0 
@@ -365,6 +428,7 @@ const Finances = () => {
               size="icon"
               onClick={() => handleMonthChange(nextMonth)}
               title={`Mois suivant: ${nextMonth}`}
+              className="transition-all hover:bg-purple-100"
             >
               <ChevronRight size={18} />
             </Button>
@@ -455,16 +519,30 @@ const Finances = () => {
                 unlockAchievement={unlockAchievement}
                 completeQuestStep={completeQuestStep}
                 selectedMonth={selectedMonth}
+                updateMonthData={(newData) => {
+                  setCurrentMonthData(prev => {
+                    const updated = {
+                      ...prev,
+                      ...newData
+                    };
+                    console.log(`Mise à jour des données du mois ${selectedMonth}:`, updated);
+                    return updated;
+                  });
+                }}
               />
               
               <FinancialInsights 
                 transactions={currentMonthData.transactions || []}
                 month={selectedMonth}
                 updateMonthData={(newData) => {
-                  setCurrentMonthData(prev => ({
-                    ...prev,
-                    ...newData
-                  }));
+                  setCurrentMonthData(prev => {
+                    const updated = {
+                      ...prev,
+                      ...newData
+                    };
+                    console.log(`Mise à jour des données du mois ${selectedMonth} depuis Insights:`, updated);
+                    return updated;
+                  });
                 }}
               />
             </div>
@@ -480,10 +558,16 @@ const Finances = () => {
               completeQuestStep={completeQuestStep}
               transactions={currentMonthData.transactions || []}
               updateMonthData={(newData) => {
-                setCurrentMonthData(prev => ({
-                  ...prev,
-                  ...newData
-                }));
+                setCurrentMonthData(prev => {
+                  const updated = {
+                    ...prev,
+                    ...newData
+                  };
+                  console.log(`Mise à jour des données du mois ${selectedMonth} depuis TransactionTracker:`, updated);
+                  // Déclenchement manuel de la sauvegarde après mise à jour des transactions
+                  setTimeout(() => saveMonthData(), 1000);
+                  return updated;
+                });
               }}
             />
           </TabsContent>

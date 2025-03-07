@@ -10,11 +10,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MonthlyData } from '@/context/UserDataContext';
 
 interface FinancialOverviewProps {
   income: number;
@@ -25,6 +28,7 @@ interface FinancialOverviewProps {
   selectedMonth: string;
   unlockAchievement?: (achievementId: string) => Promise<void>;
   completeQuestStep?: (questId: string, progress: number) => Promise<void>;
+  updateMonthData?: (data: Partial<MonthlyData>) => void;
 }
 
 const FinancialOverview = ({ 
@@ -35,19 +39,22 @@ const FinancialOverview = ({
   savingsRate,
   selectedMonth,
   unlockAchievement,
-  completeQuestStep
+  completeQuestStep,
+  updateMonthData
 }: FinancialOverviewProps) => {
   const { userData, updateFinanceModule } = useUserData();
   
-  // Edit states
+  // États d'édition
   const [isEditingSavingsGoal, setIsEditingSavingsGoal] = useState(false);
+  const [isEditingIncome, setIsEditingIncome] = useState(false);
   
-  // Form values
+  // Valeurs des formulaires
   const [savingsGoalValue, setSavingsGoalValue] = useState(userData.financeModule?.savingsGoal || 0);
+  const [incomeValue, setIncomeValue] = useState(income || 0);
 
   // Calculate actual totals from transactions
-  const [actualIncome, setActualIncome] = useState(0);
-  const [actualExpenses, setActualExpenses] = useState(0);
+  const [actualIncome, setActualIncome] = useState(income || 0);
+  const [actualExpenses, setActualExpenses] = useState(expenses || 0);
   const [savingsPercentage, setSavingsPercentage] = useState(0);
   const [totalCumulativeSavings, setTotalCumulativeSavings] = useState(0);
 
@@ -70,17 +77,18 @@ const FinancialOverview = ({
   };
 
   useEffect(() => {
-    // Update current month data
+    // Mettre à jour avec les nouvelles données quand income ou expenses changent
     setActualIncome(income);
     setActualExpenses(expenses);
+    setIncomeValue(income);
     
-    // Calculate current month savings percentage
+    // Calculer le pourcentage d'économies du mois
     const savingsPercent = income > 0 ? Math.round(((income - expenses) / income) * 100) : 0;
     setSavingsPercentage(savingsPercent);
     
     console.log(`Données du mois ${selectedMonth}:`, { income, expenses, savingsPercent });
     
-    // Calculate and set total cumulative savings
+    // Calculer et définir le total des économies cumulées
     const calculatedTotalSavings = calculateTotalSavings();
     setTotalCumulativeSavings(calculatedTotalSavings);
     
@@ -114,6 +122,41 @@ const FinancialOverview = ({
     
     setIsEditingSavingsGoal(false);
   };
+  
+  const handleOpenIncomeDialog = () => {
+    setIncomeValue(income);
+    setIsEditingIncome(true);
+  };
+  
+  const handleSaveIncome = async () => {
+    // Calculer le nouveau solde et le taux d'épargne
+    const newBalance = incomeValue - expenses;
+    const newSavingsRate = incomeValue > 0 ? Math.round(((incomeValue - expenses) / incomeValue) * 100) : 0;
+    
+    // Mettre à jour les données du mois via la fonction callback
+    if (updateMonthData) {
+      updateMonthData({
+        income: incomeValue,
+        balance: newBalance,
+        savingsRate: newSavingsRate
+      });
+    }
+    
+    toast({
+      title: "Revenus mis à jour",
+      description: `Vos revenus pour ${selectedMonth} ont été mis à jour.`,
+    });
+    
+    // Avancer la quête si elle existe
+    if (completeQuestStep && userData.financeModule?.quests) {
+      const setBudgetQuest = userData.financeModule.quests.find(q => q.id === "set_budget");
+      if (setBudgetQuest) {
+        completeQuestStep("set_budget", 50);
+      }
+    }
+    
+    setIsEditingIncome(false);
+  };
 
   // Calculate progress percentage towards savings goal
   const calculateSavingsProgress = () => {
@@ -142,67 +185,166 @@ const FinancialOverview = ({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4">      
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">      
+      {/* Carte des revenus - éditable */}
+      <Dialog open={isEditingIncome} onOpenChange={setIsEditingIncome}>
+        <Card 
+          onClick={handleOpenIncomeDialog}
+          className="hover:shadow-md transition-all cursor-pointer relative group overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-green-400 to-green-600"></div>
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Edit size={16} />
+          </div>
+          
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-500">
+                <DollarSign size={20} />
+              </div>
+              <CardTitle>Revenus du mois</CardTitle>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Total des revenus pour {selectedMonth}</p>
+                <p className="text-2xl font-bold">{income} €</p>
+              </div>
+              <div className={`flex items-center text-sm ${income > 0 ? 'text-green-500' : 'text-gray-400'}`}>
+                <ArrowUp size={16} className="mr-1" />
+                <span>Entrées</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier les revenus</DialogTitle>
+            <DialogDescription>
+              Définissez vos revenus pour {selectedMonth}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="income" className="text-right">
+                Montant
+              </Label>
+              <Input
+                id="income"
+                type="number"
+                value={incomeValue}
+                onChange={(e) => setIncomeValue(Number(e.target.value))}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSaveIncome}>
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Carte des dépenses - lecture seule */}
+      <Card className="relative overflow-hidden">
+        <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-red-400 to-red-600"></div>
+        
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-500">
+              <ArrowDown size={20} />
+            </div>
+            <CardTitle>Dépenses du mois</CardTitle>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Total des dépenses pour {selectedMonth}</p>
+              <p className="text-2xl font-bold">{expenses} €</p>
+            </div>
+            <div className="flex items-center text-sm text-red-500">
+              <ArrowDown size={16} className="mr-1" />
+              <span>Sorties</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Savings Goal - Interactive with progress bar */}
       <Dialog open={isEditingSavingsGoal} onOpenChange={setIsEditingSavingsGoal}>
-        <div 
+        <Card 
           onClick={handleOpenSavingsGoalDialog}
-          className="glass-card p-6 flex flex-col gap-4 hover:shadow-md transition-all cursor-pointer relative group overflow-hidden"
+          className="md:col-span-2 glass-card hover:shadow-md transition-all cursor-pointer relative group overflow-hidden"
         >
           <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <Edit size={16} />
           </div>
           
-          <div className="flex justify-between items-center">
+          <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-500">
                 <Target size={20} />
               </div>
               <div>
-                <h3 className="font-semibold">Objectif épargne</h3>
+                <CardTitle>Objectif épargne</CardTitle>
                 <p className="text-sm text-muted-foreground">Suivi de votre progression</p>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold">{userData.financeModule?.savingsGoal || 0} €</div>
-              <p className="text-sm text-purple-600">Objectif</p>
-            </div>
-          </div>
+          </CardHeader>
           
-          <div className="space-y-2">
-            <div className="flex justify-between items-center text-sm">
-              <span>Économies cumulées: {totalCumulativeSavings} €</span>
-              <span className="font-medium">{savingsProgress.toFixed(0)}%</span>
-            </div>
-            <Progress 
-              value={savingsProgress} 
-              className="h-3" 
-              variant={getProgressVariant()}
-            />
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-1 text-xs">
-                <Sparkles size={14} className="text-amber-500" />
-                <span>{getMotivationalMessage()}</span>
+          <CardContent>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Économies cumulées</p>
+                <p className="text-2xl font-bold">{totalCumulativeSavings} €</p>
               </div>
-              <span className="text-xs text-muted-foreground">
-                Reste: {Math.max(0, (userData.financeModule?.savingsGoal || 0) - totalCumulativeSavings)} €
-              </span>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Objectif</p>
+                <p className="text-2xl font-bold">{userData.financeModule?.savingsGoal || 0} €</p>
+              </div>
             </div>
-          </div>
-          
-          <div className="mt-2 p-2 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-between">
-            <div className="flex items-center text-xs text-purple-700">
-              <Trophy size={12} className="mr-1 text-amber-500" />
-              <span>+20 XP pour un objectif atteint</span>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-sm">
+                <span>Progression</span>
+                <span className="font-medium">{savingsProgress.toFixed(0)}%</span>
+              </div>
+              <Progress 
+                value={savingsProgress} 
+                className="h-3" 
+                variant={getProgressVariant()}
+              />
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-1 text-xs">
+                  <Sparkles size={14} className="text-amber-500" />
+                  <span>{getMotivationalMessage()}</span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  Reste: {Math.max(0, (userData.financeModule?.savingsGoal || 0) - totalCumulativeSavings)} €
+                </span>
+              </div>
             </div>
-            <div className="flex items-center">
-              {savingsProgress >= 100 && (
-                <Award size={16} className="ml-2 text-amber-500 animate-pulse" />
-              )}
+            
+            <div className="mt-2 p-2 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-between">
+              <div className="flex items-center text-xs text-purple-700">
+                <Trophy size={12} className="mr-1 text-amber-500" />
+                <span>+20 XP pour un objectif atteint</span>
+              </div>
+              <div className="flex items-center">
+                {savingsProgress >= 100 && (
+                  <Award size={16} className="ml-2 text-amber-500 animate-pulse" />
+                )}
+              </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
         
         <DialogContent>
           <DialogHeader>
@@ -238,15 +380,18 @@ const FinancialOverview = ({
               </div>
             </div>
           </div>
-          <div className="flex justify-between items-center">
-            <div className="flex items-center text-sm text-purple-600">
+          <DialogFooter>
+            <div className="flex items-center text-sm text-purple-600 mr-auto">
               <Zap size={16} className="mr-1 text-amber-500" />
               <span>+20 XP</span>
             </div>
+            <Button variant="outline" onClick={() => setIsEditingSavingsGoal(false)}>
+              Annuler
+            </Button>
             <Button onClick={handleSaveSavingsGoal}>
               Enregistrer
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
