@@ -22,6 +22,7 @@ interface FinancialOverviewProps {
   balance: number;
   savingsGoal: number;
   savingsRate: number;
+  selectedMonth: string;
   unlockAchievement?: (achievementId: string) => Promise<void>;
   completeQuestStep?: (questId: string, progress: number) => Promise<void>;
 }
@@ -32,6 +33,7 @@ const FinancialOverview = ({
   balance, 
   savingsGoal, 
   savingsRate,
+  selectedMonth,
   unlockAchievement,
   completeQuestStep
 }: FinancialOverviewProps) => {
@@ -50,38 +52,19 @@ const FinancialOverview = ({
   const [currentSavings, setCurrentSavings] = useState(0);
 
   useEffect(() => {
-    // Calculate totals from the transactions
-    if (userData.financeModule?.transactions) {
-      const incomeTotal = userData.financeModule.transactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, transaction) => sum + transaction.amount, 0);
-      
-      const expensesTotal = userData.financeModule.transactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, transaction) => sum + transaction.amount, 0);
-      
-      setActualIncome(incomeTotal);
-      setActualExpenses(expensesTotal);
-      
-      // Calculate savings percentage
-      const calculatedSavings = incomeTotal - expensesTotal;
-      setCurrentSavings(calculatedSavings > 0 ? calculatedSavings : 0);
-      const savingsPercent = incomeTotal > 0 ? Math.round((calculatedSavings / incomeTotal) * 100) : 0;
-      setSavingsPercentage(savingsPercent);
-      
-      // Update the finance module with the calculated totals
-      if (incomeTotal !== userData.financeModule.monthlyIncome || 
-          expensesTotal !== userData.financeModule.monthlyExpenses ||
-          savingsPercent !== userData.financeModule.savingsRate) {
-        updateFinanceModule({
-          monthlyIncome: incomeTotal,
-          monthlyExpenses: expensesTotal,
-          balance: calculatedSavings,
-          savingsRate: savingsPercent
-        });
-      }
-    }
-  }, [userData.financeModule?.transactions]);
+    // Définir les valeurs à partir des props
+    setActualIncome(income);
+    setActualExpenses(expenses);
+    
+    // Calculer l'épargne actuelle
+    const calculatedSavings = income - expenses;
+    setCurrentSavings(calculatedSavings > 0 ? calculatedSavings : 0);
+    
+    // Calculer le pourcentage d'épargne
+    const savingsPercent = income > 0 ? Math.round((calculatedSavings / income) * 100) : 0;
+    setSavingsPercentage(savingsPercent);
+    
+  }, [income, expenses, selectedMonth]);
 
   const handleOpenSavingsGoalDialog = () => {
     setSavingsGoalValue(userData.financeModule?.savingsGoal || 0);

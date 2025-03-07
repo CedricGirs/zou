@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Transaction } from "@/context/UserDataContext";
 import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus, Trash2, Edit2, Check as CheckIcon } from 'lucide-react';
@@ -22,9 +23,10 @@ import { v4 as uuidv4 } from 'uuid';
 interface FinancialInsightsProps {
   transactions: Transaction[];
   month: string;
+  updateMonthData: (data: any) => void;
 }
 
-const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
+const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialInsightsProps) => {
   const { userData, updateFinanceModule } = useUserData();
   
   // États pour les formulaires d'ajout
@@ -87,6 +89,28 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
     });
   };
   
+  // Calcul des totaux
+  const recalculateTotals = (updatedTransactions: Transaction[]) => {
+    const totalIncome = updatedTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const totalExpenses = updatedTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const balance = totalIncome - totalExpenses;
+    const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
+    
+    return {
+      income: totalIncome,
+      expenses: totalExpenses,
+      balance,
+      savingsRate,
+      transactions: updatedTransactions
+    };
+  };
+  
   // Ajouter revenu
   const addIncome = async () => {
     if (!newIncome.description || newIncome.amount <= 0) {
@@ -110,17 +134,12 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
       isVerified: false
     };
     
-    // Mettre à jour les transactions et les revenus mensuels
-    const updatedTransactions = [...(userData?.financeModule?.transactions || []), transaction];
-    const newMonthlyIncome = (userData?.financeModule?.monthlyIncome || 0) + newIncome.amount;
-    const newBalance = newMonthlyIncome - (userData?.financeModule?.monthlyExpenses || 0);
+    // Mise à jour des transactions pour ce mois
+    const updatedTransactions = [...transactions, transaction];
+    const updatedData = recalculateTotals(updatedTransactions);
     
-    // Mettre à jour les données
-    await updateFinanceModule({ 
-      transactions: updatedTransactions,
-      monthlyIncome: newMonthlyIncome,
-      balance: newBalance
-    });
+    // Mettre à jour les données du mois
+    updateMonthData(updatedData);
     
     toast({
       title: "Revenu ajouté",
@@ -158,17 +177,12 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
       isVerified: false
     };
     
-    // Mettre à jour les transactions et les dépenses mensuelles
-    const updatedTransactions = [...(userData?.financeModule?.transactions || []), transaction];
-    const newMonthlyExpenses = (userData?.financeModule?.monthlyExpenses || 0) + newExpense.amount;
-    const newBalance = (userData?.financeModule?.monthlyIncome || 0) - newMonthlyExpenses;
+    // Mise à jour des transactions pour ce mois
+    const updatedTransactions = [...transactions, transaction];
+    const updatedData = recalculateTotals(updatedTransactions);
     
-    // Mettre à jour les données
-    await updateFinanceModule({ 
-      transactions: updatedTransactions,
-      monthlyExpenses: newMonthlyExpenses,
-      balance: newBalance
-    });
+    // Mettre à jour les données du mois
+    updateMonthData(updatedData);
     
     toast({
       title: "Dépense ajoutée",
@@ -184,45 +198,17 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
   };
 
   // Nouvelle fonction pour supprimer une transaction
-  const deleteTransaction = async (transactionId: string, type: 'income' | 'expense') => {
-    // Trouver la transaction à supprimer
-    const transactionToDelete = userData?.financeModule?.transactions.find(t => t.id === transactionId);
-    
-    if (!transactionToDelete) {
-      toast({
-        title: "Erreur",
-        description: "Transaction introuvable.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
+  const deleteTransaction = async (transactionId: string) => {
     // Filtrer pour obtenir les transactions mises à jour
-    const updatedTransactions = userData?.financeModule?.transactions.filter(t => t.id !== transactionId);
+    const updatedTransactions = transactions.filter(t => t.id !== transactionId);
+    const updatedData = recalculateTotals(updatedTransactions);
     
-    // Mettre à jour les montants totaux
-    let newMonthlyIncome = userData?.financeModule?.monthlyIncome || 0;
-    let newMonthlyExpenses = userData?.financeModule?.monthlyExpenses || 0;
-    
-    if (type === 'income') {
-      newMonthlyIncome -= transactionToDelete.amount;
-    } else {
-      newMonthlyExpenses -= transactionToDelete.amount;
-    }
-    
-    const newBalance = newMonthlyIncome - newMonthlyExpenses;
-    
-    // Mettre à jour les données
-    await updateFinanceModule({
-      transactions: updatedTransactions,
-      monthlyIncome: newMonthlyIncome,
-      monthlyExpenses: newMonthlyExpenses,
-      balance: newBalance
-    });
+    // Mettre à jour les données du mois
+    updateMonthData(updatedData);
     
     toast({
-      title: type === 'income' ? "Revenu supprimé" : "Dépense supprimée",
-      description: `${transactionToDelete.description} : ${transactionToDelete.amount}€ a été supprimé(e) avec succès.`
+      title: "Transaction supprimée",
+      description: "La transaction a été supprimée avec succès."
     });
   };
 
@@ -240,11 +226,8 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
     if (!editingTransaction) return;
 
     // Trouver et mettre à jour la transaction
-    const updatedTransactions = userData?.financeModule?.transactions.map(t => {
+    const updatedTransactions = transactions.map(t => {
       if (t.id === editingTransaction.id) {
-        // Calculer la différence pour mettre à jour les totaux
-        const amountDifference = editingTransaction.amount - t.amount;
-        
         return {
           ...t,
           amount: editingTransaction.amount
@@ -253,10 +236,10 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
       return t;
     });
 
-    // Mettre à jour les données
-    await updateFinanceModule({ 
-      transactions: updatedTransactions
-    });
+    const updatedData = recalculateTotals(updatedTransactions);
+    
+    // Mettre à jour les données du mois
+    updateMonthData(updatedData);
     
     toast({
       title: "Transaction modifiée",
@@ -289,7 +272,7 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {userData?.financeModule?.transactions?.filter(t => t.type === 'income').length === 0 ? (
+              {transactions?.filter(t => t.type === 'income').length === 0 ? (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
@@ -300,7 +283,7 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
                 <div className="space-y-3">
                   <p className="text-sm font-medium">Sources de revenus récentes :</p>
                   <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                    {userData?.financeModule?.transactions
+                    {transactions
                       ?.filter(t => t.type === 'income')
                       .slice(0, 5)
                       .map(income => (
@@ -343,7 +326,7 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
                                   variant="ghost" 
                                   size="icon" 
                                   className="h-8 w-8"
-                                  onClick={() => deleteTransaction(income.id, 'income')}
+                                  onClick={() => deleteTransaction(income.id)}
                                 >
                                   <Trash2 size={16} className="text-red-500" />
                                 </Button>
@@ -419,7 +402,13 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
             </div>
           </CardContent>
           <CardFooter className="bg-gray-50 flex justify-between">
-            <span className="text-xs text-muted-foreground">Revenu mensuel total: {userData?.financeModule?.monthlyIncome || 0} €</span>
+            <span className="text-xs text-muted-foreground">
+              Revenu mensuel total: {
+                transactions
+                  ?.filter(t => t.type === 'income')
+                  .reduce((sum, t) => sum + t.amount, 0) || 0
+              } €
+            </span>
             <div className="flex items-center text-xs text-purple-600">
               <Trophy size={12} className="mr-1 text-amber-500" />
               <span>+30 XP pour 3 sources de revenus</span>
@@ -437,7 +426,7 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {userData?.financeModule?.transactions?.filter(t => t.type === 'expense').length === 0 ? (
+              {transactions?.filter(t => t.type === 'expense').length === 0 ? (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
@@ -448,7 +437,7 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
                 <div className="space-y-3">
                   <p className="text-sm font-medium">Dépenses récentes :</p>
                   <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                    {userData?.financeModule?.transactions
+                    {transactions
                       ?.filter(t => t.type === 'expense')
                       .slice(0, 5)
                       .map(expense => (
@@ -491,7 +480,7 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
                                   variant="ghost" 
                                   size="icon" 
                                   className="h-8 w-8"
-                                  onClick={() => deleteTransaction(expense.id, 'expense')}
+                                  onClick={() => deleteTransaction(expense.id)}
                                 >
                                   <Trash2 size={16} className="text-red-500" />
                                 </Button>
@@ -567,7 +556,13 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
             </div>
           </CardContent>
           <CardFooter className="bg-gray-50 flex justify-between">
-            <span className="text-xs text-muted-foreground">Dépense mensuelle totale: {userData?.financeModule?.monthlyExpenses || 0} €</span>
+            <span className="text-xs text-muted-foreground">
+              Dépense mensuelle totale: {
+                transactions
+                  ?.filter(t => t.type === 'expense')
+                  .reduce((sum, t) => sum + t.amount, 0) || 0
+              } €
+            </span>
             <div className="flex items-center text-xs text-purple-600">
               <Target size={12} className="mr-1 text-purple-500" />
               <span>Réduisez vos dépenses de 5%</span>

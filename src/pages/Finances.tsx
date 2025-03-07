@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -47,7 +48,28 @@ import { doc, getDoc } from "firebase/firestore";
 const Finances = () => {
   const { userData, loading, updateFinanceModule } = useUserData();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: fr }));
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [currentMonthData, setCurrentMonthData] = useState({
+    income: 0,
+    expenses: 0,
+    balance: 0,
+    savingsRate: 0,
+    transactions: []
+  });
+  
+  useEffect(() => {
+    if (!loading && userData?.financeModule) {
+      // Initialiser ou récupérer les données du mois sélectionné
+      const monthData = userData.financeModule.monthlyData?.[selectedMonth] || {
+        income: 0,
+        expenses: 0,
+        balance: 0,
+        savingsRate: 0,
+        transactions: []
+      };
+      
+      setCurrentMonthData(monthData);
+    }
+  }, [selectedMonth, userData, loading]);
   
   if (loading) {
     return (
@@ -68,39 +90,41 @@ const Finances = () => {
     maxXP = 100, 
     achievements = [],
     quests = [],
-    balance = 0,
-    monthlyIncome = 0,
-    monthlyExpenses = 0,
-    savingsRate = 0
   } = userData?.financeModule || {};
   
   const months = [
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
-  
-  const years = ['2022', '2023', '2024', '2025'];
 
-  const handleMonthChange = (value: string) => {
+  const handleMonthChange = async (value: string) => {
+    // Sauvegarde des données du mois actuel avant de changer
+    if (userData?.financeModule) {
+      const monthlyData = {
+        ...(userData.financeModule.monthlyData || {}),
+        [selectedMonth]: currentMonthData
+      };
+      
+      await updateFinanceModule({ monthlyData });
+    }
+    
+    // Changement de mois
     setSelectedMonth(value);
+    
+    // Chargement des données du nouveau mois sélectionné
+    const newMonthData = userData?.financeModule?.monthlyData?.[value] || {
+      income: 0,
+      expenses: 0,
+      balance: 0,
+      savingsRate: 0,
+      transactions: []
+    };
+    
+    setCurrentMonthData(newMonthData);
+    
     toast({
       title: "Mois sélectionné",
-      description: `Données financières pour ${value} ${selectedYear} chargées.`,
-    });
-  };
-  
-  const handleYearChange = (value: string) => {
-    setSelectedYear(value);
-    toast({
-      title: "Année sélectionnée",
-      description: `Données financières pour ${selectedMonth} ${value} chargées.`,
-    });
-  };
-
-  const handleExportData = () => {
-    toast({
-      title: "Export des données financières",
-      description: "Vos données financières ont été exportées avec succès.",
+      description: `Données financières pour ${value} chargées.`,
     });
   };
   
@@ -290,22 +314,6 @@ const Finances = () => {
                 ))}
               </SelectContent>
             </Select>
-            
-            <Select value={selectedYear} onValueChange={handleYearChange}>
-              <SelectTrigger className="w-[80px]">
-                <SelectValue placeholder="Année" />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map(year => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Button variant="outline" size="sm" onClick={handleExportData}>
-              <Trophy size={16} className="mr-2 text-amber-500" />
-              Récompenses
-            </Button>
           </div>
         </div>
 
@@ -389,18 +397,25 @@ const Finances = () => {
           <TabsContent value="dashboard">
             <div className="grid grid-cols-1 gap-6">
               <FinancialOverview 
-                income={monthlyIncome}
-                expenses={monthlyExpenses}
-                balance={balance}
-                savingsGoal={0}
-                savingsRate={savingsRate}
+                income={currentMonthData.income}
+                expenses={currentMonthData.expenses}
+                balance={currentMonthData.balance}
+                savingsGoal={userData?.financeModule?.savingsGoal || 0}
+                savingsRate={currentMonthData.savingsRate}
                 unlockAchievement={unlockAchievement}
                 completeQuestStep={completeQuestStep}
+                selectedMonth={selectedMonth}
               />
               
               <FinancialInsights 
-                transactions={userData.financeModule?.transactions || []}
+                transactions={currentMonthData.transactions || []}
                 month={selectedMonth}
+                updateMonthData={(newData) => {
+                  setCurrentMonthData(prev => ({
+                    ...prev,
+                    ...newData
+                  }));
+                }}
               />
             </div>
           </TabsContent>
@@ -413,6 +428,13 @@ const Finances = () => {
             <TransactionTracker 
               selectedMonth={selectedMonth} 
               completeQuestStep={completeQuestStep}
+              transactions={currentMonthData.transactions || []}
+              updateMonthData={(newData) => {
+                setCurrentMonthData(prev => ({
+                  ...prev,
+                  ...newData
+                }));
+              }}
             />
           </TabsContent>
           
