@@ -1,16 +1,10 @@
-
 import React from 'react';
 import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap, Award, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUserData } from '@/context/UserDataContext';
 import { useState, useEffect } from 'react';
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { useFinanceXP } from '@/hooks/useFinanceXP';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from '@/hooks/use-toast';
@@ -38,26 +32,22 @@ const FinancialOverview = ({
   completeQuestStep
 }: FinancialOverviewProps) => {
   const { userData, updateFinanceModule } = useUserData();
+  const { updateXPAndLevel } = useFinanceXP();
   
-  // Edit states
   const [isEditingSavingsGoal, setIsEditingSavingsGoal] = useState(false);
   
-  // Form values
   const [savingsGoalValue, setSavingsGoalValue] = useState(userData.financeModule?.savingsGoal || 0);
 
-  // Calculate actual totals from transactions
   const [actualIncome, setActualIncome] = useState(0);
   const [actualExpenses, setActualExpenses] = useState(0);
   const [savingsPercentage, setSavingsPercentage] = useState(0);
   const [totalCumulativeSavings, setTotalCumulativeSavings] = useState(0);
 
-  // Fonction pour calculer le total des économies cumulées
   const calculateTotalSavings = () => {
     if (!userData.financeModule?.monthlyData) return 0;
     
     let totalSavings = 0;
     
-    // Parcourir toutes les données mensuelles et additionner les économies positives
     Object.entries(userData.financeModule.monthlyData).forEach(([month, monthData]) => {
       const monthSavings = monthData.income - monthData.expenses;
       if (monthSavings > 0) {
@@ -70,23 +60,20 @@ const FinancialOverview = ({
   };
 
   useEffect(() => {
-    // Update current month data
     setActualIncome(income);
     setActualExpenses(expenses);
     
-    // Calculate current month savings percentage
     const savingsPercent = income > 0 ? Math.round(((income - expenses) / income) * 100) : 0;
     setSavingsPercentage(savingsPercent);
     
-    // Calculate and set total cumulative savings
     const calculatedTotalSavings = calculateTotalSavings();
     setTotalCumulativeSavings(calculatedTotalSavings);
     
-    // Log pour vérification
     console.log('Données mensuelles:', userData.financeModule?.monthlyData);
     console.log('Total économies cumulées:', calculatedTotalSavings);
     
-  }, [income, expenses, selectedMonth, userData.financeModule?.monthlyData]);
+    updateXPAndLevel();
+  }, [income, expenses, selectedMonth, userData.financeModule?.monthlyData, updateXPAndLevel]);
 
   const handleOpenSavingsGoalDialog = () => {
     setSavingsGoalValue(userData.financeModule?.savingsGoal || 0);
@@ -101,27 +88,25 @@ const FinancialOverview = ({
       description: "Votre objectif d'épargne a été mis à jour avec succès. +20 XP!",
     });
     
-    // Advance the quest if it exists
     if (completeQuestStep && userData.financeModule?.quests) {
       const createSavingsQuest = userData.financeModule.quests.find(q => q.id === "create_savings");
       if (createSavingsQuest) {
-        completeQuestStep("create_savings", 50);
+        await completeQuestStep("create_savings", 50);
+        updateXPAndLevel();
       }
     }
     
     setIsEditingSavingsGoal(false);
   };
 
-  // Calculate progress percentage towards savings goal
   const calculateSavingsProgress = () => {
     if (!userData.financeModule?.savingsGoal || userData.financeModule.savingsGoal <= 0) return 0;
     const progress = (totalCumulativeSavings / userData.financeModule.savingsGoal) * 100;
-    return Math.min(progress, 100); // Cap at 100%
+    return Math.min(progress, 100);
   };
 
   const savingsProgress = calculateSavingsProgress();
 
-  // Get a dynamic color for the progress bar based on progress
   const getProgressVariant = () => {
     if (savingsProgress < 25) return "danger";
     if (savingsProgress < 50) return "warning";
@@ -129,7 +114,6 @@ const FinancialOverview = ({
     return "success";
   };
 
-  // Get a motivational message based on savings progress
   const getMotivationalMessage = () => {
     if (savingsProgress < 10) return "Commencez à épargner dès maintenant!";
     if (savingsProgress < 30) return "Bon début, continuez comme ça!";
@@ -140,7 +124,6 @@ const FinancialOverview = ({
 
   return (
     <div className="grid grid-cols-1 gap-4">      
-      {/* Savings Goal - Interactive with progress bar */}
       <Dialog open={isEditingSavingsGoal} onOpenChange={setIsEditingSavingsGoal}>
         <div 
           onClick={handleOpenSavingsGoalDialog}
