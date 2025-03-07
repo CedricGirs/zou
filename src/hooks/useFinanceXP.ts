@@ -14,15 +14,14 @@ export const useFinanceXP = () => {
   };
 
   const calculateXPFromSavings = useCallback((totalSavings: number) => {
-    return Math.floor(totalSavings * XP_PER_EURO_SAVED);
+    return Math.floor(Math.max(0, totalSavings) * XP_PER_EURO_SAVED);
   }, []);
 
   const calculateXPFromAchievements = useCallback(() => {
-    // Protection contre les valeurs undefined
     if (!userData?.financeModule?.achievements) return 0;
     
-    const achievements = userData.financeModule.achievements || [];
-    const completedAchievements = achievements.filter(a => a.completed) || [];
+    const achievements = userData.financeModule.achievements;
+    const completedAchievements = achievements.filter(a => a.completed);
     return completedAchievements.length * XP_PER_ACHIEVEMENT;
   }, [userData?.financeModule?.achievements]);
 
@@ -51,7 +50,8 @@ export const useFinanceXP = () => {
         threshold = calculateLevelThreshold(newLevel + 1);
       }
 
-      const hasLeveledUp = newLevel > (userData.financeModule.financeLevel || 1);
+      const currentLevel = userData.financeModule.financeLevel || 1;
+      const hasLeveledUp = newLevel > currentLevel;
 
       if (hasLeveledUp) {
         toast({
@@ -72,7 +72,6 @@ export const useFinanceXP = () => {
   }, [userData?.financeModule, calculateXPFromSavings, calculateXPFromAchievements, updateFinanceModule]);
 
   useEffect(() => {
-    // S'assurer que userData et le module finance sont chargés
     if (userData?.financeModule) {
       updateXPAndLevel();
     }

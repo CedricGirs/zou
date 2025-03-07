@@ -62,18 +62,23 @@ const Finances = () => {
     savingsRate: 0,
     transactions: []
   });
+
+  const normalizeMonthName = (month: string): string => {
+    return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+  };
   
   const saveCurrentMonthData = async () => {
     if (!userData?.financeModule) return;
     
     try {
+      const normalizedMonth = normalizeMonthName(selectedMonth);
       const monthlyData = {
         ...(userData.financeModule.monthlyData || {}),
-        [selectedMonth]: currentMonthData
+        [normalizedMonth]: currentMonthData
       };
       
       await updateFinanceModule({ monthlyData });
-      console.log(`Données du mois ${selectedMonth} sauvegardées:`, currentMonthData);
+      console.log(`Données du mois ${normalizedMonth} sauvegardées:`, currentMonthData);
     } catch (error) {
       console.error("Erreur lors de la sauvegarde des données mensuelles:", error);
       toast({
@@ -83,21 +88,23 @@ const Finances = () => {
       });
     }
   };
-  
+
   useEffect(() => {
     if (!loading && userData?.financeModule) {
       const monthlyData = userData.financeModule.monthlyData || {};
+      const normalizedMonth = normalizeMonthName(selectedMonth);
       
-      const normalizedMonth = selectedMonth.toLowerCase();
-      const monthData = monthlyData[selectedMonth] || monthlyData[normalizedMonth] || {
+      const monthData = {
         income: 0,
         expenses: 0,
         balance: 0,
         savingsRate: 0,
-        transactions: []
+        transactions: [],
+        ...monthlyData[normalizedMonth],
+        ...monthlyData[selectedMonth.toLowerCase()]
       };
       
-      console.log(`Chargement des données pour le mois: ${selectedMonth}`, monthData);
+      console.log(`Chargement des données pour le mois: ${normalizedMonth}`, monthData);
       setCurrentMonthData(monthData);
     }
   }, [selectedMonth, userData?.financeModule?.monthlyData, loading]);
@@ -131,11 +138,12 @@ const Finances = () => {
   const handleMonthChange = async (value: string) => {
     await saveCurrentMonthData();
     
-    setSelectedMonth(value);
+    const normalizedMonth = normalizeMonthName(value);
+    setSelectedMonth(normalizedMonth);
     
     toast({
       title: "Mois sélectionné",
-      description: `Données financières pour ${value} chargées.`,
+      description: `Données financières pour ${normalizedMonth} chargées.`,
     });
   };
   
