@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Transaction } from "@/context/UserDataContext";
-import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -27,56 +27,6 @@ interface FinancialInsightsProps {
 
 const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
   const { userData, updateFinanceModule } = useUserData();
-  
-  // Financial tips and challenges
-  const financialTips = [
-    { 
-      id: 1, 
-      title: "Règle 50/30/20", 
-      description: "Allouez 50% de vos revenus aux besoins, 30% aux désirs et 20% à l'épargne.",
-      xpReward: 15
-    },
-    { 
-      id: 2, 
-      title: "Fonds d'urgence", 
-      description: "Visez à avoir 3-6 mois de dépenses en épargne d'urgence.",
-      xpReward: 20
-    },
-    { 
-      id: 3, 
-      title: "Suivi quotidien", 
-      description: "Prenez l'habitude de suivre vos dépenses quotidiennement pour plus de précision.",
-      xpReward: 10
-    }
-  ];
-  
-  // Financial challenges
-  const financialChallenges = [
-    { 
-      id: 1, 
-      title: "No-Spend Week", 
-      description: "Ne dépensez rien pendant 7 jours sur les loisirs et achats non-essentiels.",
-      difficulty: "Facile",
-      xpReward: 50,
-      progress: 0
-    },
-    { 
-      id: 2, 
-      title: "Réduction -10%", 
-      description: "Réduisez vos dépenses de 10% ce mois-ci par rapport au mois précédent.",
-      difficulty: "Moyen",
-      xpReward: 75,
-      progress: 0
-    },
-    { 
-      id: 3, 
-      title: "Épargne Automatique", 
-      description: "Mettez en place un virement automatique mensuel vers votre épargne.",
-      difficulty: "Facile",
-      xpReward: 40,
-      progress: 0
-    }
-  ];
   
   // États pour les formulaires d'ajout
   const [newIncome, setNewIncome] = useState({
@@ -227,86 +177,51 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
     });
   };
 
+  // Nouvelle fonction pour supprimer une transaction
+  const deleteTransaction = async (transactionId: string, type: 'income' | 'expense') => {
+    // Trouver la transaction à supprimer
+    const transactionToDelete = userData?.financeModule?.transactions.find(t => t.id === transactionId);
+    
+    if (!transactionToDelete) {
+      toast({
+        title: "Erreur",
+        description: "Transaction introuvable.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Filtrer pour obtenir les transactions mises à jour
+    const updatedTransactions = userData?.financeModule?.transactions.filter(t => t.id !== transactionId);
+    
+    // Mettre à jour les montants totaux
+    let newMonthlyIncome = userData?.financeModule?.monthlyIncome || 0;
+    let newMonthlyExpenses = userData?.financeModule?.monthlyExpenses || 0;
+    
+    if (type === 'income') {
+      newMonthlyIncome -= transactionToDelete.amount;
+    } else {
+      newMonthlyExpenses -= transactionToDelete.amount;
+    }
+    
+    const newBalance = newMonthlyIncome - newMonthlyExpenses;
+    
+    // Mettre à jour les données
+    await updateFinanceModule({
+      transactions: updatedTransactions,
+      monthlyIncome: newMonthlyIncome,
+      monthlyExpenses: newMonthlyExpenses,
+      balance: newBalance
+    });
+    
+    toast({
+      title: type === 'income' ? "Revenu supprimé" : "Dépense supprimée",
+      description: `${transactionToDelete.description} : ${transactionToDelete.amount}€ a été supprimé(e) avec succès.`
+    });
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="overflow-hidden border-none shadow-md">
-          <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp size={18} className="text-green-500" />
-              Conseils Financiers
-            </CardTitle>
-            <CardDescription>Astuces pour améliorer votre santé financière</CardDescription>
-          </CardHeader>
-          <CardContent className="px-4 py-3">
-            <div className="space-y-4">
-              {financialTips.map((tip) => (
-                <div key={tip.id} className="rounded-lg border border-green-100 p-3 hover:bg-green-50 transition-colors">
-                  <div className="flex justify-between items-start mb-1">
-                    <h4 className="font-medium text-sm flex items-center gap-1">
-                      {tip.title}
-                    </h4>
-                    <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
-                      +{tip.xpReward} XP
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{tip.description}</p>
-                </div>
-              ))}
-              
-              <div className="text-center py-2">
-                <Button variant="outline" size="sm" className="text-green-600 border-green-200 hover:bg-green-50">
-                  Plus de conseils <ArrowRight size={14} className="ml-2" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="overflow-hidden border-none shadow-md">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
-            <CardTitle className="flex items-center gap-2">
-              <Trophy size={18} className="text-amber-500" />
-              Défis Financiers
-            </CardTitle>
-            <CardDescription>Relevez des défis pour gagner des récompenses</CardDescription>
-          </CardHeader>
-          <CardContent className="px-4 py-3">
-            <div className="space-y-4">
-              {financialChallenges.map((challenge) => (
-                <div key={challenge.id} className="rounded-lg border border-blue-100 p-3 hover:bg-blue-50 transition-colors">
-                  <div className="flex justify-between items-start mb-1">
-                    <h4 className="font-medium text-sm">{challenge.title}</h4>
-                    <div className="flex items-center gap-1">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        challenge.difficulty === "Facile" 
-                          ? "bg-green-100 text-green-700"
-                          : challenge.difficulty === "Moyen"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-red-100 text-red-700"
-                      }`}>
-                        {challenge.difficulty}
-                      </span>
-                      <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
-                        +{challenge.xpReward} XP
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-2">{challenge.description}</p>
-                  <Progress value={challenge.progress} className="h-1.5" />
-                  <div className="flex justify-between mt-1">
-                    <span className="text-xs text-muted-foreground">{challenge.progress}% complété</span>
-                    <Button variant="ghost" size="sm" className="h-6 text-xs">
-                      Commencer
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
+    <div className="space-y-6">      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -338,7 +253,17 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
                             <p className="font-medium text-sm">{income.description}</p>
                             <p className="text-xs text-muted-foreground">{income.category}</p>
                           </div>
-                          <span className="text-green-600 font-medium">{income.amount} €</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-600 font-medium">{income.amount} €</span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => deleteTransaction(income.id, 'income')}
+                            >
+                              <Trash2 size={16} className="text-red-500" />
+                            </Button>
+                          </div>
                         </div>
                       ))
                     }
@@ -446,7 +371,17 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
                             <p className="font-medium text-sm">{expense.description}</p>
                             <p className="text-xs text-muted-foreground">{expense.category}</p>
                           </div>
-                          <span className="text-red-600 font-medium">{expense.amount} €</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-red-600 font-medium">{expense.amount} €</span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => deleteTransaction(expense.id, 'expense')}
+                            >
+                              <Trash2 size={16} className="text-red-500" />
+                            </Button>
+                          </div>
                         </div>
                       ))
                     }
