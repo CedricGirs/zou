@@ -23,11 +23,13 @@ const AppContainer = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <LanguageProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
+          <UserDataProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </UserDataProvider>
         </LanguageProvider>
       </TooltipProvider>
     </QueryClientProvider>
@@ -37,18 +39,16 @@ const AppContainer = () => {
 // This component contains all the routes and needs access to Router context
 const AppRoutes = () => {
   return (
-    <UserDataProvider>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/status" element={<Status />} />
-        <Route path="/look" element={<Look />} />
-        <Route path="/finances" element={<Finances />} />
-        <Route path="/skills" element={<Skills />} />
-        <Route path="/daily-quests" element={<DailyQuests />} />
-        <Route path="/badges" element={<Badges />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </UserDataProvider>
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/status" element={<Status />} />
+      <Route path="/look" element={<Look />} />
+      <Route path="/finances" element={<Finances />} />
+      <Route path="/skills" element={<Skills />} />
+      <Route path="/daily-quests" element={<DailyQuests />} />
+      <Route path="/badges" element={<Badges />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 

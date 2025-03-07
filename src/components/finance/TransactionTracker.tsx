@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   PieChart, 
@@ -39,21 +40,17 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 interface TransactionTrackerProps {
-  selectedMonth?: string;
-  selectedYear?: string;
-  transactions?: Transaction[];
+  selectedMonth: string;
+  transactions: Transaction[];
+  updateMonthData: (data: any) => void;
   completeQuestStep?: (questId: string, progress: number) => Promise<void>;
-  addTransaction?: (transaction: Transaction) => void;
-  deleteTransaction?: (transactionId: string) => void;
 }
 
 const TransactionTracker = ({ 
   selectedMonth, 
-  selectedYear, 
-  transactions = [], 
-  completeQuestStep,
-  addTransaction,
-  deleteTransaction 
+  transactions, 
+  updateMonthData,
+  completeQuestStep 
 }: TransactionTrackerProps) => {
   const { userData, updateFinanceModule } = useUserData();
   
@@ -63,8 +60,7 @@ const TransactionTracker = ({
     amount: 0,
     category: 'Autre',
     type: 'expense',
-    month: selectedMonth || new Date().toLocaleString('fr-FR', { month: 'long' }),
-    year: selectedYear || new Date().getFullYear().toString(),
+    month: selectedMonth,
     isVerified: false
   });
 
@@ -76,33 +72,35 @@ const TransactionTracker = ({
     'Santé', 'Éducation', 'Vêtements', 'Cadeaux', 'Autre'
   ];
   
-  const months = [
-    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-  ];
-
-  const [filterMonth, setFilterMonth] = useState(selectedMonth || new Date().toLocaleString('fr-FR', { month: 'long' }));
-  const [filterYear, setFilterYear] = useState(selectedYear || new Date().getFullYear().toString());
-  
+  // Update new transaction when selected month changes
   useEffect(() => {
-    if (selectedMonth) {
-      setFilterMonth(selectedMonth);
-      setNewTransaction(prev => ({
-        ...prev,
-        month: selectedMonth
-      }));
-    }
+    setNewTransaction(prev => ({
+      ...prev,
+      month: selectedMonth
+    }));
   }, [selectedMonth]);
 
-  useEffect(() => {
-    if (selectedYear) {
-      setFilterYear(selectedYear);
-      setNewTransaction(prev => ({
-        ...prev,
-        year: selectedYear
-      }));
-    }
-  }, [selectedYear]);
+  // Calcul des totaux
+  const recalculateTotals = (updatedTransactions: Transaction[]) => {
+    const totalIncome = updatedTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const totalExpenses = updatedTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const balance = totalIncome - totalExpenses;
+    const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
+    
+    return {
+      income: totalIncome,
+      expenses: totalExpenses,
+      balance,
+      savingsRate,
+      transactions: updatedTransactions
+    };
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -126,20 +124,6 @@ const TransactionTracker = ({
     });
   };
 
-  const handleMonthChange = (value: string) => {
-    setNewTransaction({
-      ...newTransaction,
-      month: value
-    });
-  };
-
-  const handleYearChange = (value: string) => {
-    setNewTransaction({
-      ...newTransaction,
-      year: value
-    });
-  };
-
   const handleTypeChange = (value: 'income' | 'expense') => {
     setNewTransaction({
       ...newTransaction,
@@ -148,6 +132,7 @@ const TransactionTracker = ({
   };
 
   const handleAddTransaction = async () => {
+    // Validation
     if (!newTransaction.description || !newTransaction.date) {
       toast({
         title: "Erreur",
@@ -164,39 +149,29 @@ const TransactionTracker = ({
       amount: newTransaction.amount || 0,
       category: newTransaction.category || 'Autre',
       type: newTransaction.type || 'expense',
-      month: newTransaction.month || '',
-      year: newTransaction.year || '',
+      month: selectedMonth,
       isVerified: newTransaction.isVerified
     };
 
+    // Mise à jour des transactions
     const updatedTransactions = [...transactions, transaction];
+    const updatedData = recalculateTotals(updatedTransactions);
     
-    await updateFinanceModule({ transactions: updatedTransactions });
-    
-    if (transaction.type === 'expense') {
-      const newMonthlyExpenses = (userData?.financeModule?.monthlyExpenses || 0) + transaction.amount;
-      await updateFinanceModule({ 
-        monthlyExpenses: newMonthlyExpenses,
-        balance: (userData?.financeModule?.monthlyIncome || 0) - newMonthlyExpenses
-      });
-    } else {
-      const newMonthlyIncome = (userData?.financeModule?.monthlyIncome || 0) + transaction.amount;
-      await updateFinanceModule({ 
-        monthlyIncome: newMonthlyIncome,
-        balance: newMonthlyIncome - (userData?.financeModule?.monthlyExpenses || 0)
-      });
-    }
+    // Mettre à jour les données du mois actuel
+    updateMonthData(updatedData);
     
     toast({
       title: "Transaction ajoutée",
       description: "La transaction a été ajoutée avec succès."
     });
     
+    // Advance quest if applicable
     if (completeQuestStep) {
       const transactionCount = updatedTransactions.length;
       const progress = Math.min((transactionCount / 5) * 100, 100);
       completeQuestStep("track_transactions", progress);
       
+      // If this is the first transaction, unlock achievement
       if (transactionCount === 1 && userData?.financeModule?.achievements) {
         const firstTransactionAchievement = userData.financeModule.achievements.find(a => a.id === "first_transaction");
         if (firstTransactionAchievement && !firstTransactionAchievement.completed) {
@@ -215,73 +190,48 @@ const TransactionTracker = ({
       }
     }
     
-    if (addTransaction) {
-      addTransaction(transaction);
-    }
-    
+    // Reset form
     setNewTransaction({
       date: new Date().toISOString().split('T')[0],
       description: '',
       amount: 0,
       category: 'Autre',
       type: 'expense',
-      month: selectedMonth || new Date().toLocaleString('fr-FR', { month: 'long' }),
-      year: selectedYear || new Date().getFullYear().toString(),
+      month: selectedMonth,
       isVerified: false
     });
   };
 
   const handleDeleteTransaction = async (id: string) => {
-    const transactionToDelete = transactions.find(t => t.id === id);
-    if (!transactionToDelete) return;
-    
+    // Mettre à jour les transactions
     const updatedTransactions = transactions.filter(t => t.id !== id);
-    await updateFinanceModule({ transactions: updatedTransactions });
+    const updatedData = recalculateTotals(updatedTransactions);
     
-    if (transactionToDelete.type === 'expense') {
-      const newMonthlyExpenses = (userData?.financeModule?.monthlyExpenses || 0) - transactionToDelete.amount;
-      await updateFinanceModule({ 
-        monthlyExpenses: newMonthlyExpenses,
-        balance: (userData?.financeModule?.monthlyIncome || 0) - newMonthlyExpenses
-      });
-    } else {
-      const newMonthlyIncome = (userData?.financeModule?.monthlyIncome || 0) - transactionToDelete.amount;
-      await updateFinanceModule({ 
-        monthlyIncome: newMonthlyIncome,
-        balance: newMonthlyIncome - (userData?.financeModule?.monthlyExpenses || 0)
-      });
-    }
+    // Mettre à jour les données du mois actuel
+    updateMonthData(updatedData);
     
     toast({
       title: "Transaction supprimée",
       description: "La transaction a été supprimée avec succès."
     });
-    
-    if (deleteTransaction) {
-      deleteTransaction(id);
-    }
   };
 
+  // Filter transactions
   const filteredTransactions = transactions.filter(transaction => {
-    if (filterMonth !== 'Tous' && transaction.month !== filterMonth) {
-      return false;
-    }
-    
-    if (filterYear !== 'Tous' && transaction.year !== filterYear) {
-      return false;
-    }
-    
+    // Category filter
     if (categoryFilter !== 'Tous' && transaction.category !== categoryFilter) {
       return false;
     }
     
+    // Search term
     if (searchTerm && !transaction.description.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
     
     return true;
   });
-
+  
+  // Calculate totals
   const totalIncome = filteredTransactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -290,6 +240,7 @@ const TransactionTracker = ({
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
   
+  // Prepare data for pie chart
   const pieChartData = categories.map(category => {
     const value = filteredTransactions
       .filter(t => t.category === category && t.type === 'expense')
@@ -298,6 +249,7 @@ const TransactionTracker = ({
     return { name: category, value };
   }).filter(item => item.value > 0);
 
+  // Colors for the pie chart
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
   return (
@@ -320,29 +272,6 @@ const TransactionTracker = ({
                   className="pl-8 w-full md:w-40"
                 />
               </div>
-              
-              <Select value={filterMonth} onValueChange={setFilterMonth}>
-                <SelectTrigger className="w-full md:w-32">
-                  <SelectValue placeholder="Mois" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Tous">Tous les mois</SelectItem>
-                  {months.map(month => (
-                    <SelectItem key={month} value={month}>{month}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Select value={filterYear} onValueChange={setFilterYear}>
-                <SelectTrigger className="w-full md:w-32">
-                  <SelectValue placeholder="Année" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
               
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-full md:w-32">
@@ -397,44 +326,6 @@ const TransactionTracker = ({
                         onChange={handleInputChange}
                         className="col-span-3"
                       />
-                    </div>
-                    
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="month" className="text-right">Mois</Label>
-                      <div className="col-span-3">
-                        <Select 
-                          value={newTransaction.month} 
-                          onValueChange={handleMonthChange}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionner un mois" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {months.map(month => (
-                              <SelectItem key={month} value={month}>{month}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="year" className="text-right">Année</Label>
-                      <div className="col-span-3">
-                        <Select 
-                          value={newTransaction.year} 
-                          onValueChange={handleYearChange}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionner une année" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                              <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
                     </div>
                     
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -505,7 +396,7 @@ const TransactionTracker = ({
             <div className="text-center p-6 border border-dashed rounded-md">
               <CalendarDays className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground font-medium">
-                Aucune transaction pour {filterMonth === 'Tous' ? 'cette période' : filterMonth} {filterYear === 'Tous' ? 'cette année' : filterYear}.
+                Aucune transaction pour {selectedMonth}.
               </p>
               <p className="text-muted-foreground text-sm mt-1 mb-4">
                 Ajoutez votre première transaction en cliquant sur le bouton "Ajouter".
@@ -518,6 +409,7 @@ const TransactionTracker = ({
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
+                  {/* Contenu de la fenêtre modale - identique à celui ci-dessus */}
                   <DialogHeader>
                     <DialogTitle>Ajouter une transaction</DialogTitle>
                   </DialogHeader>
@@ -551,44 +443,6 @@ const TransactionTracker = ({
                         onChange={handleInputChange}
                         className="col-span-3"
                       />
-                    </div>
-                    
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="month2" className="text-right">Mois</Label>
-                      <div className="col-span-3">
-                        <Select 
-                          value={newTransaction.month} 
-                          onValueChange={handleMonthChange}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionner un mois" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {months.map(month => (
-                              <SelectItem key={month} value={month}>{month}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="year2" className="text-right">Année</Label>
-                      <div className="col-span-3">
-                        <Select 
-                          value={newTransaction.year} 
-                          onValueChange={handleYearChange}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Sélectionner une année" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                              <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
                     </div>
                     
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -801,4 +655,3 @@ const TransactionTracker = ({
 };
 
 export default TransactionTracker;
-

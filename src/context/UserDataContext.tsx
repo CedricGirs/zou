@@ -3,8 +3,6 @@ import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from '@/hooks/use-toast';
 import { playSound } from '@/utils/audioUtils';
-import { format as formatDate } from 'date-fns';
-import { fr } from 'date-fns/locale';
 
 // Types pour les données utilisateur
 export interface HeroProfile {
@@ -42,7 +40,6 @@ export interface Transaction {
   category: string;
   type: 'income' | 'expense';
   month?: string;
-  year?: string;
   isVerified?: boolean;
 }
 
@@ -57,6 +54,25 @@ export interface SavingsGoal {
 export interface MonthlyBudget {
   income: number;
   expenses: number;
+}
+
+// Template item interfaces
+export interface IncomeExpenseItem {
+  id: string;
+  description: string;
+  amount: number;
+  category: string;
+}
+
+// New interface for budget templates
+export interface BudgetTemplate {
+  id: string;
+  name: string;
+  income: number;
+  expenses: number;
+  description?: string;
+  incomeItems?: IncomeExpenseItem[];
+  expenseItems?: IncomeExpenseItem[];
 }
 
 export interface FinanceAchievement {
@@ -76,12 +92,13 @@ export interface FinanceQuest {
   xpReward: number;
 }
 
-// Interface pour les données mensuelles
-export interface MonthlyFinanceData {
-  transactions: Transaction[];
-  monthlyIncome: number;
-  monthlyExpenses: number;
+// Monthly data interface for storing month-specific financial data
+export interface MonthlyData {
+  income: number;
+  expenses: number;
   balance: number;
+  savingsRate: number;
+  transactions: Transaction[];
 }
 
 export interface FinanceModule {
@@ -96,7 +113,7 @@ export interface FinanceModule {
   
   // Monthly data storage
   monthlyData?: {
-    [key: string]: MonthlyFinanceData; // key format: "Month_Year" (ex: "Janvier_2024")
+    [month: string]: MonthlyData;
   };
   
   // Expense categories
@@ -112,6 +129,9 @@ export interface FinanceModule {
   annualBudget: {
     [month: string]: MonthlyBudget;
   };
+  
+  // New property for budget templates
+  budgetTemplates: BudgetTemplate[];
   
   // Gamification elements
   financeLevel: number;
@@ -186,7 +206,7 @@ const defaultLookModule: LookModule = {
   style: 'classic',
 };
 
-// New default finance module with monthly data structure
+// New default finance module with all values reset
 const defaultFinanceModule: FinanceModule = {
   // Core financial data
   balance: 0,
@@ -201,15 +221,7 @@ const defaultFinanceModule: FinanceModule = {
   savingsGoal: 0,
   
   // Monthly data storage
-  monthlyData: {
-    // Format: "Month_Year": { transactions, monthlyIncome, monthlyExpenses, balance }
-    [`${formatDate(new Date(), 'MMMM', { locale: fr })}_${new Date().getFullYear()}`]: {
-      transactions: [],
-      monthlyIncome: 0,
-      monthlyExpenses: 0,
-      balance: 0
-    }
-  },
+  monthlyData: {},
   
   // Expense categories
   housingExpenses: 0,
@@ -235,6 +247,13 @@ const defaultFinanceModule: FinanceModule = {
     "Novembre": { income: 0, expenses: 0 },
     "Décembre": { income: 0, expenses: 0 }
   },
+  
+  // Default budget templates
+  budgetTemplates: [
+    { id: "regular", name: "Budget standard", income: 2000, expenses: 1500, description: "Revenus et dépenses mensuels typiques" },
+    { id: "vacation", name: "Mois de vacances", income: 2000, expenses: 2200, description: "Budget pour un mois de vacances" },
+    { id: "bonus", name: "Mois avec prime", income: 3000, expenses: 1500, description: "Mois avec une prime ou revenu supplémentaire" }
+  ],
   
   // Gamification elements
   financeLevel: 1,
@@ -379,7 +398,6 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateFinanceModule = async (updates: Partial<FinanceModule>) => {
-    console.log("Mise à jour du module finance:", updates);
     const newData = {
       ...userData,
       financeModule: { ...userData.financeModule, ...updates },

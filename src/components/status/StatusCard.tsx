@@ -3,6 +3,8 @@ import { useState } from "react";
 import { CheckCircle, X, Upload, Clock, Trash2, ArrowUp } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 
 interface CourseItem {
   id: string;
@@ -174,20 +176,24 @@ const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
         </div>
         
         {!showUpload ? (
-          <button 
+          <Button 
             className="pixel-button text-[10px] py-1 flex items-center"
             onClick={() => setShowUpload(true)}
+            size="sm"
+            variant="outline"
           >
             <Upload size={12} className="mr-1" />
             {t("cert")}
-          </button>
+          </Button>
         ) : (
-          <button 
+          <Button 
             className="text-[10px] text-red-500"
             onClick={() => setShowUpload(false)}
+            size="sm"
+            variant="ghost"
           >
             <X size={16} />
-          </button>
+          </Button>
         )}
       </div>
       
@@ -202,13 +208,15 @@ const StatusCard = ({ item, onUpdate, onDelete }: StatusCardProps) => {
             onChange={handleFileChange}
             className="text-xs w-full mb-2"
           />
-          <button 
+          <Button 
             className="pixel-button w-full text-[10px] py-1"
             onClick={handleUpload}
             disabled={!file}
+            size="sm"
+            variant="default"
           >
             {t("upload")}
-          </button>
+          </Button>
         </div>
       )}
       
