@@ -1,26 +1,20 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import React from 'react';
+import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap, Award, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useUserData } from '@/context/UserDataContext';
+import { useState, useEffect } from 'react';
 import { 
-  TrendingUp, 
-  TrendingDown, 
-  CreditCard, 
-  Wallet, 
-  PiggyBank, 
-  Plus,
-  Copy
-} from 'lucide-react';
-import { useUserData } from "@/context/UserDataContext";
-import { toast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { v4 as uuidv4 } from 'uuid';
-import { playSound } from "@/utils/audioUtils";
+import { toast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
 
 interface FinancialOverviewProps {
   income: number;
@@ -29,303 +23,205 @@ interface FinancialOverviewProps {
   savingsGoal: number;
   savingsRate: number;
   selectedMonth: string;
-  unlockAchievement: (achievementId: string) => Promise<void>;
-  completeQuestStep: (questId: string, progress: number) => Promise<void>;
+  unlockAchievement?: (achievementId: string) => Promise<void>;
+  completeQuestStep?: (questId: string, progress: number) => Promise<void>;
 }
 
-const FinancialOverview: React.FC<FinancialOverviewProps> = ({
-  income,
-  expenses,
-  balance,
-  savingsGoal,
+const FinancialOverview = ({ 
+  income, 
+  expenses, 
+  balance, 
+  savingsGoal, 
   savingsRate,
   selectedMonth,
   unlockAchievement,
   completeQuestStep
-}) => {
+}: FinancialOverviewProps) => {
   const { userData, updateFinanceModule } = useUserData();
-  const [newTemplateDialogOpen, setNewTemplateDialogOpen] = useState(false);
-  const [templateData, setTemplateData] = useState({
-    name: '',
-    description: '',
-    income: income || 0,
-    expenses: expenses || 0
-  });
-
-  const data = [
-    { name: 'Revenus', value: income },
-    { name: 'Dépenses', value: expenses },
-    { name: 'Économies', value: balance > 0 ? balance : 0 }
-  ];
   
-  const COLORS = ['#22c55e', '#ef4444', '#3b82f6'];
+  // Edit states
+  const [isEditingSavingsGoal, setIsEditingSavingsGoal] = useState(false);
   
-  const handleBudgetProgress = async () => {
-    if (userData.financeModule) {
-      if (!userData.financeModule.achievements.find(a => a.id === "first_budget")?.completed) {
-        await unlockAchievement("first_budget");
-      }
-      
-      await completeQuestStep("set_budget", 100);
-    }
-  };
+  // Form values
+  const [savingsGoalValue, setSavingsGoalValue] = useState(userData.financeModule?.savingsGoal || 0);
 
-  const handleSaveAsTemplate = () => {
-    setTemplateData({
-      name: '',
-      description: `Données du mois de ${selectedMonth}`,
-      income,
-      expenses
-    });
-    setNewTemplateDialogOpen(true);
-  };
+  // Calculate actual totals from transactions
+  const [actualIncome, setActualIncome] = useState(0);
+  const [actualExpenses, setActualExpenses] = useState(0);
+  const [savingsPercentage, setSavingsPercentage] = useState(0);
+  const [currentSavings, setCurrentSavings] = useState(0);
 
-  const handleCreateTemplate = async () => {
-    if (!templateData.name) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez donner un nom à votre modèle",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newTemplate = {
-      id: uuidv4(),
-      name: templateData.name,
-      description: templateData.description,
-      income: templateData.income,
-      expenses: templateData.expenses
-    };
-
-    const templates = [
-      ...(userData.financeModule?.budgetTemplates || []),
-      newTemplate
-    ];
-
-    await updateFinanceModule({ budgetTemplates: templates });
+  useEffect(() => {
+    // Définir les valeurs à partir des props
+    setActualIncome(income);
+    setActualExpenses(expenses);
     
-    setNewTemplateDialogOpen(false);
+    // Calculer l'épargne actuelle
+    const calculatedSavings = income - expenses;
+    setCurrentSavings(calculatedSavings > 0 ? calculatedSavings : 0);
+    
+    // Calculer le pourcentage d'épargne
+    const savingsPercent = income > 0 ? Math.round((calculatedSavings / income) * 100) : 0;
+    setSavingsPercentage(savingsPercent);
+    
+  }, [income, expenses, selectedMonth]);
+
+  const handleOpenSavingsGoalDialog = () => {
+    setSavingsGoalValue(userData.financeModule?.savingsGoal || 0);
+    setIsEditingSavingsGoal(true);
+  };
+  
+  const handleSaveSavingsGoal = async () => {
+    await updateFinanceModule({ savingsGoal: savingsGoalValue });
     
     toast({
-      title: "Modèle créé",
-      description: `Le modèle "${templateData.name}" a été créé avec succès.`
+      title: "Objectif d'épargne mis à jour",
+      description: "Votre objectif d'épargne a été mis à jour avec succès. +20 XP!",
     });
     
-    playSound('success');
+    // Advance the quest if it exists
+    if (completeQuestStep) {
+      completeQuestStep("create_savings", 50);
+    }
+    
+    setIsEditingSavingsGoal(false);
+  };
+
+  // Calculate progress percentage towards savings goal
+  const calculateSavingsProgress = () => {
+    if (!userData.financeModule?.savingsGoal || userData.financeModule.savingsGoal <= 0) return 0;
+    const progress = (currentSavings / userData.financeModule.savingsGoal) * 100;
+    return Math.min(progress, 100); // Cap at 100%
+  };
+
+  const savingsProgress = calculateSavingsProgress();
+
+  // Get a dynamic color for the progress bar based on progress
+  const getProgressVariant = () => {
+    if (savingsProgress < 25) return "danger";
+    if (savingsProgress < 50) return "warning";
+    if (savingsProgress < 75) return "purple";
+    return "success";
+  };
+
+  // Get a motivational message based on savings progress
+  const getMotivationalMessage = () => {
+    if (savingsProgress < 10) return "Commencez à épargner dès maintenant!";
+    if (savingsProgress < 30) return "Bon début, continuez comme ça!";
+    if (savingsProgress < 60) return "Vous êtes sur la bonne voie!";
+    if (savingsProgress < 90) return "Presque là, encore un effort!";
+    return "Félicitations, objectif atteint! 🎉";
   };
 
   return (
-    <>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle>Vue d'ensemble financière</CardTitle>
-              <CardDescription>
-                Situation financière pour {selectedMonth}
-              </CardDescription>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-1"
-              onClick={handleSaveAsTemplate}
-            >
-              <Copy size={16} />
-              <span className="hidden sm:inline">Créer template</span>
-              <span className="sm:hidden">Template</span>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Revenus</p>
-                      <h4 className="text-2xl font-bold mt-1">{income} €</h4>
-                    </div>
-                    <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center text-green-700">
-                      <Wallet size={24} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Dépenses</p>
-                      <h4 className="text-2xl font-bold mt-1">{expenses} €</h4>
-                    </div>
-                    <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center text-red-700">
-                      <CreditCard size={24} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Balance</p>
-                      <h4 className="text-2xl font-bold mt-1">{balance} €</h4>
-                    </div>
-                    <div className={`h-12 w-12 rounded-full ${balance >= 0 ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
-                      <div className="h-full w-full flex items-center justify-center">
-                        {balance >= 0 ? <TrendingUp size={24} /> : <TrendingDown size={24} />}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <div>
-                <h3 className="font-semibold mb-3">Répartition budget</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={data.filter(item => item.value > 0)}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {data.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `${value} €`} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+    <div className="grid grid-cols-1 gap-4">      
+      {/* Savings Goal - Interactive with progress bar */}
+      <Dialog open={isEditingSavingsGoal} onOpenChange={setIsEditingSavingsGoal}>
+        <div 
+          onClick={handleOpenSavingsGoalDialog}
+          className="glass-card p-6 flex flex-col gap-4 hover:shadow-md transition-all cursor-pointer relative group overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Edit size={16} />
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-500">
+                <Target size={20} />
               </div>
-              
               <div>
-                <h3 className="font-semibold mb-3">Taux d'épargne</h3>
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700">
-                    <PiggyBank size={20} />
-                  </div>
-                  <div>
-                    <p className="font-medium">{savingsRate}%</p>
-                    <p className="text-xs text-muted-foreground">de vos revenus</p>
-                  </div>
-                </div>
-                
-                <p className="text-sm text-muted-foreground mb-2">
-                  Objectif d'épargne: {savingsGoal}%
-                </p>
-                
-                <Progress value={savingsRate} className="h-2" />
-                
-                <div className="mt-6">
-                  <h3 className="font-semibold mb-2">Budget équilibré?</h3>
-                  <div className={`p-4 rounded-md ${balance >= 0 ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'}`}>
-                    <div className="flex items-center gap-3">
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center ${balance >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        {balance >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                      </div>
-                      <div>
-                        <p className={`font-medium ${balance >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                          {balance >= 0 ? 'Budget équilibré' : 'Budget déficitaire'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {balance >= 0 
-                            ? 'Félicitations, continuez ainsi!' 
-                            : 'Essayez de réduire vos dépenses ou d\'augmenter vos revenus.'
-                          }
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full mt-3"
-                    onClick={handleBudgetProgress}
-                  >
-                    Valider mon budget
-                  </Button>
-                </div>
+                <h3 className="font-semibold">Objectif épargne</h3>
+                <p className="text-sm text-muted-foreground">Suivi de votre progression</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Dialog open={newTemplateDialogOpen} onOpenChange={setNewTemplateDialogOpen}>
+            <div className="text-right">
+              <div className="text-2xl font-bold">{userData.financeModule?.savingsGoal || 0} €</div>
+              <p className="text-sm text-purple-600">Objectif</p>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span>Économies actuelles: {currentSavings} €</span>
+              <span className="font-medium">{savingsProgress.toFixed(0)}%</span>
+            </div>
+            <Progress 
+              value={savingsProgress} 
+              className="h-3" 
+              variant={getProgressVariant()}
+            />
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-1 text-xs">
+                <Sparkles size={14} className="text-amber-500" />
+                <span>{getMotivationalMessage()}</span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                Reste: {Math.max(0, (userData.financeModule?.savingsGoal || 0) - currentSavings)} €
+              </span>
+            </div>
+          </div>
+          
+          <div className="mt-2 p-2 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-between">
+            <div className="flex items-center text-xs text-purple-700">
+              <Trophy size={12} className="mr-1 text-amber-500" />
+              <span>+20 XP pour un objectif atteint</span>
+            </div>
+            <div className="flex items-center">
+              {savingsProgress >= 100 && (
+                <Award size={16} className="ml-2 text-amber-500 animate-pulse" />
+              )}
+            </div>
+          </div>
+        </div>
+        
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Créer un nouveau modèle</DialogTitle>
+            <DialogTitle>Modifier l'objectif d'épargne</DialogTitle>
+            <DialogDescription>
+              Définissez votre objectif d'épargne à atteindre
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="template-name" className="text-right">
-                Nom
+              <Label htmlFor="savingsGoal" className="text-right">
+                Objectif
               </Label>
               <Input
-                id="template-name"
-                value={templateData.name}
-                onChange={(e) => setTemplateData({ ...templateData, name: e.target.value })}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="template-desc" className="text-right">
-                Description
-              </Label>
-              <Textarea
-                id="template-desc"
-                value={templateData.description}
-                onChange={(e) => setTemplateData({ ...templateData, description: e.target.value })}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="template-income" className="text-right">
-                Revenus
-              </Label>
-              <Input
-                id="template-income"
+                id="savingsGoal"
                 type="number"
-                value={templateData.income}
-                onChange={(e) => setTemplateData({ ...templateData, income: Number(e.target.value) })}
+                value={savingsGoalValue}
+                onChange={(e) => setSavingsGoalValue(Number(e.target.value))}
                 className="col-span-3"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="template-expenses" className="text-right">
-                Dépenses
+              <Label className="text-right col-span-1">
+                Progression
               </Label>
-              <Input
-                id="template-expenses"
-                type="number"
-                value={templateData.expenses}
-                onChange={(e) => setTemplateData({ ...templateData, expenses: Number(e.target.value) })}
-                className="col-span-3"
-              />
+              <div className="col-span-3">
+                <Progress 
+                  value={savingsProgress} 
+                  className="h-2" 
+                  variant={getProgressVariant()}
+                />
+                <p className="text-xs text-muted-foreground mt-1">{savingsProgress.toFixed(0)}% réalisé</p>
+              </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setNewTemplateDialogOpen(false)}>
-              Annuler
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-sm text-purple-600">
+              <Zap size={16} className="mr-1 text-amber-500" />
+              <span>+20 XP</span>
+            </div>
+            <Button onClick={handleSaveSavingsGoal}>
+              Enregistrer
             </Button>
-            <Button onClick={handleCreateTemplate}>
-              Créer le modèle
-            </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
 
