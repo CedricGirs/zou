@@ -46,7 +46,15 @@ import { MonthlyData } from "@/context/UserDataContext";
 
 const Finances = () => {
   const { userData, loading, updateFinanceModule } = useUserData();
-  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: fr }));
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    try {
+      return format(new Date(), 'MMMM', { locale: fr });
+    } catch (error) {
+      console.error("Erreur format date:", error);
+      return "Janvier";
+    }
+  });
+  
   const [currentMonthData, setCurrentMonthData] = useState<MonthlyData>({
     income: 0,
     expenses: 0,
@@ -55,9 +63,33 @@ const Finances = () => {
     transactions: []
   });
   
+  const saveCurrentMonthData = async () => {
+    if (!userData?.financeModule) return;
+    
+    try {
+      const monthlyData = {
+        ...(userData.financeModule.monthlyData || {}),
+        [selectedMonth]: currentMonthData
+      };
+      
+      await updateFinanceModule({ monthlyData });
+      console.log(`Données du mois ${selectedMonth} sauvegardées:`, currentMonthData);
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde des données mensuelles:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder les données du mois.",
+        variant: "destructive"
+      });
+    }
+  };
+  
   useEffect(() => {
     if (!loading && userData?.financeModule) {
-      const monthData = userData.financeModule.monthlyData?.[selectedMonth] || {
+      const monthlyData = userData.financeModule.monthlyData || {};
+      
+      const normalizedMonth = selectedMonth.toLowerCase();
+      const monthData = monthlyData[selectedMonth] || monthlyData[normalizedMonth] || {
         income: 0,
         expenses: 0,
         balance: 0,
@@ -65,9 +97,10 @@ const Finances = () => {
         transactions: []
       };
       
+      console.log(`Chargement des données pour le mois: ${selectedMonth}`, monthData);
       setCurrentMonthData(monthData);
     }
-  }, [selectedMonth, userData, loading]);
+  }, [selectedMonth, userData?.financeModule?.monthlyData, loading]);
   
   if (loading) {
     return (
@@ -96,26 +129,9 @@ const Finances = () => {
   ];
 
   const handleMonthChange = async (value: string) => {
-    if (userData?.financeModule) {
-      const monthlyData = {
-        ...(userData.financeModule.monthlyData || {}),
-        [selectedMonth]: currentMonthData
-      };
-      
-      await updateFinanceModule({ monthlyData });
-    }
+    await saveCurrentMonthData();
     
     setSelectedMonth(value);
-    
-    const newMonthData = userData?.financeModule?.monthlyData?.[value] || {
-      income: 0,
-      expenses: 0,
-      balance: 0,
-      savingsRate: 0,
-      transactions: []
-    };
-    
-    setCurrentMonthData(newMonthData);
     
     toast({
       title: "Mois sélectionné",

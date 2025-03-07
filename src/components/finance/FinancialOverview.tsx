@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap, Award, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -60,6 +61,9 @@ const FinancialOverview = ({
   };
 
   useEffect(() => {
+    // Ajout d'une protection contre l'exécution avant que userData ne soit chargé
+    if (!userData || !userData.financeModule) return;
+    
     setActualIncome(income);
     setActualExpenses(expenses);
     
@@ -75,11 +79,13 @@ const FinancialOverview = ({
     if (userData.financeModule && calculatedTotalSavings !== userData.financeModule.balance) {
       updateFinanceModule({ balance: calculatedTotalSavings }).then(() => {
         updateXPAndLevel();
+      }).catch(error => {
+        console.error("Erreur lors de la mise à jour du module finance:", error);
       });
     } else {
       updateXPAndLevel();
     }
-  }, [income, expenses, selectedMonth, userData.financeModule?.monthlyData, updateXPAndLevel, updateFinanceModule]);
+  }, [income, expenses, selectedMonth, userData?.financeModule?.monthlyData, updateXPAndLevel, updateFinanceModule]);
 
   const handleOpenSavingsGoalDialog = () => {
     setSavingsGoalValue(userData.financeModule?.savingsGoal || 0);
@@ -87,22 +93,31 @@ const FinancialOverview = ({
   };
   
   const handleSaveSavingsGoal = async () => {
-    await updateFinanceModule({ savingsGoal: savingsGoalValue });
-    
-    toast({
-      title: "Objectif d'épargne mis à jour",
-      description: "Votre objectif d'épargne a été mis à jour avec succès. +20 XP!",
-    });
-    
-    if (completeQuestStep && userData.financeModule?.quests) {
-      const createSavingsQuest = userData.financeModule.quests.find(q => q.id === "create_savings");
-      if (createSavingsQuest) {
-        await completeQuestStep("create_savings", 50);
-        updateXPAndLevel();
+    try {
+      await updateFinanceModule({ savingsGoal: savingsGoalValue });
+      
+      toast({
+        title: "Objectif d'épargne mis à jour",
+        description: "Votre objectif d'épargne a été mis à jour avec succès. +20 XP!",
+      });
+      
+      if (completeQuestStep && userData.financeModule?.quests) {
+        const createSavingsQuest = userData.financeModule.quests.find(q => q.id === "create_savings");
+        if (createSavingsQuest) {
+          await completeQuestStep("create_savings", 50);
+          updateXPAndLevel();
+        }
       }
+      
+      setIsEditingSavingsGoal(false);
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de l'objectif d'épargne:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la mise à jour de l'objectif d'épargne.",
+        variant: "destructive"
+      });
     }
-    
-    setIsEditingSavingsGoal(false);
   };
 
   const calculateSavingsProgress = () => {
