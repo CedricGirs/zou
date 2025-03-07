@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Transaction } from "@/context/UserDataContext";
-import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus, Trash2, Edit2, Check as CheckIcon, Save } from 'lucide-react';
+import { Transaction, BudgetTemplate } from "@/context/UserDataContext";
+import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus, Trash2, Edit2, Check as CheckIcon, Save, List } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -53,6 +54,10 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
   const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
+  
+  // État pour afficher les revenus et dépenses récents
+  const [showRecentIncomes, setShowRecentIncomes] = useState(false);
+  const [showRecentExpenses, setShowRecentExpenses] = useState(false);
   
   // Catégories de revenus et dépenses
   const incomeCategories = [
@@ -278,11 +283,17 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     // Extraire les données de revenus et dépenses des transactions actuelles
     const incomeTransactions = transactions.filter(t => t.type === 'income');
     const expenseTransactions = transactions.filter(t => t.type === 'expense');
+    
+    // Calcul des totaux pour le template
+    const totalIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalExpenses = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
 
     // Créer le nouveau template
-    const newTemplate = {
+    const newTemplate: BudgetTemplate = {
       id: uuidv4(),
       name: templateName,
+      income: totalIncome,
+      expenses: totalExpenses,
       description: templateDescription,
       incomeItems: incomeTransactions.map(t => ({
         id: uuidv4(),
@@ -315,6 +326,27 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     setTemplateDescription('');
     setIsCreateTemplateOpen(false);
   };
+
+  // Fonction pour afficher les revenus récents
+  const toggleRecentIncomes = () => {
+    setShowRecentIncomes(!showRecentIncomes);
+  };
+
+  // Fonction pour afficher les dépenses récentes
+  const toggleRecentExpenses = () => {
+    setShowRecentExpenses(!showRecentExpenses);
+  };
+
+  // Préparation des données récentes
+  const recentIncomes = transactions
+    .filter(t => t.type === 'income')
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 10);
+    
+  const recentExpenses = transactions
+    .filter(t => t.type === 'expense')
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 10);
 
   return (
     <div className="space-y-6">      
@@ -388,11 +420,23 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                 </Alert>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-sm font-medium">Sources de revenus récentes :</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Sources de revenus récentes :</p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={toggleRecentIncomes}
+                      className="text-xs"
+                    >
+                      <List size={14} className="mr-1" />
+                      {showRecentIncomes ? "Masquer la liste" : "Voir tous"}
+                    </Button>
+                  </div>
+                  
                   <div className="space-y-2 max-h-[200px] overflow-y-auto">
                     {transactions
                       ?.filter(t => t.type === 'income')
-                      .slice(0, 5)
+                      .slice(0, showRecentIncomes ? undefined : 5)
                       .map(income => (
                         <div key={income.id} className="flex justify-between items-center p-2 border rounded hover:bg-muted/50">
                           <div>
@@ -447,65 +491,114 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                 </div>
               )}
               
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full mt-4">
-                    <Plus size={14} className="mr-2" />
-                    Ajouter un revenu
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Ajouter un revenu</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="incomeDescription" className="text-right">Description</Label>
-                      <Input
-                        id="incomeDescription"
-                        name="description"
-                        value={newIncome.description}
-                        onChange={handleIncomeChange}
-                        className="col-span-3"
-                        placeholder="Salaire, Freelance, etc."
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="incomeAmount" className="text-right">Montant (€)</Label>
-                      <Input
-                        id="incomeAmount"
-                        name="amount"
-                        type="number"
-                        value={newIncome.amount}
-                        onChange={handleIncomeChange}
-                        className="col-span-3"
-                        min={0}
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="incomeCategory" className="text-right">Catégorie</Label>
-                      <div className="col-span-3">
-                        <Select 
-                          value={newIncome.category} 
-                          onValueChange={handleIncomeCategoryChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choisissez une catégorie" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {incomeCategories.map(category => (
-                              <SelectItem key={category} value={category}>{category}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+              <div className="flex gap-2">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full mt-4">
+                      <Plus size={14} className="mr-2" />
+                      Ajouter un revenu
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Ajouter un revenu</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="incomeDescription" className="text-right">Description</Label>
+                        <Input
+                          id="incomeDescription"
+                          name="description"
+                          value={newIncome.description}
+                          onChange={handleIncomeChange}
+                          className="col-span-3"
+                          placeholder="Salaire, Freelance, etc."
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="incomeAmount" className="text-right">Montant (€)</Label>
+                        <Input
+                          id="incomeAmount"
+                          name="amount"
+                          type="number"
+                          value={newIncome.amount}
+                          onChange={handleIncomeChange}
+                          className="col-span-3"
+                          min={0}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="incomeCategory" className="text-right">Catégorie</Label>
+                        <div className="col-span-3">
+                          <Select 
+                            value={newIncome.category} 
+                            onValueChange={handleIncomeCategoryChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choisissez une catégorie" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {incomeCategories.map(category => (
+                                <SelectItem key={category} value={category}>{category}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button onClick={addIncome}>Ajouter</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                    <div className="flex justify-end">
+                      <Button onClick={addIncome}>Ajouter</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full mt-4">
+                      <Save size={14} className="mr-2" />
+                      Créer template revenu
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Créer template de revenus</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="incomeTemplateName" className="text-right">Nom</Label>
+                        <Input
+                          id="incomeTemplateName"
+                          value={templateName}
+                          onChange={(e) => setTemplateName(e.target.value)}
+                          className="col-span-3"
+                          placeholder="Ex: Revenus mensuels"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="incomeTemplateDescription" className="text-right">Description</Label>
+                        <Textarea
+                          id="incomeTemplateDescription"
+                          value={templateDescription}
+                          onChange={(e) => setTemplateDescription(e.target.value)}
+                          className="col-span-3"
+                          placeholder="Description du template (optionnel)"
+                        />
+                      </div>
+                      <div className="col-span-4 mt-2">
+                        <div className="p-3 bg-green-50 border border-green-100 rounded-md text-sm text-green-700">
+                          <p>Ce template contiendra :</p>
+                          <ul className="list-disc list-inside mt-1 space-y-1">
+                            <li>{transactions.filter(t => t.type === 'income').length} revenus pour un total de {transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)} €</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button onClick={handleCreateTemplate}>Créer template</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="bg-gray-50 flex justify-between">
@@ -542,11 +635,23 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                 </Alert>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-sm font-medium">Dépenses récentes :</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Dépenses récentes :</p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={toggleRecentExpenses}
+                      className="text-xs"
+                    >
+                      <List size={14} className="mr-1" />
+                      {showRecentExpenses ? "Masquer la liste" : "Voir tous"}
+                    </Button>
+                  </div>
+                  
                   <div className="space-y-2 max-h-[200px] overflow-y-auto">
                     {transactions
                       ?.filter(t => t.type === 'expense')
-                      .slice(0, 5)
+                      .slice(0, showRecentExpenses ? undefined : 5)
                       .map(expense => (
                         <div key={expense.id} className="flex justify-between items-center p-2 border rounded hover:bg-muted/50">
                           <div>
@@ -601,65 +706,114 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                 </div>
               )}
               
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full mt-4">
-                    <Plus size={14} className="mr-2" />
-                    Ajouter une dépense
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Ajouter une dépense</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="expenseDescription" className="text-right">Description</Label>
-                      <Input
-                        id="expenseDescription"
-                        name="description"
-                        value={newExpense.description}
-                        onChange={handleExpenseChange}
-                        className="col-span-3"
-                        placeholder="Loyer, Courses, etc."
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="expenseAmount" className="text-right">Montant (€)</Label>
-                      <Input
-                        id="expenseAmount"
-                        name="amount"
-                        type="number"
-                        value={newExpense.amount}
-                        onChange={handleExpenseChange}
-                        className="col-span-3"
-                        min={0}
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="expenseCategory" className="text-right">Catégorie</Label>
-                      <div className="col-span-3">
-                        <Select 
-                          value={newExpense.category} 
-                          onValueChange={handleExpenseCategoryChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choisissez une catégorie" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {expenseCategories.map(category => (
-                              <SelectItem key={category} value={category}>{category}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+              <div className="flex gap-2">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full mt-4">
+                      <Plus size={14} className="mr-2" />
+                      Ajouter une dépense
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Ajouter une dépense</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expenseDescription" className="text-right">Description</Label>
+                        <Input
+                          id="expenseDescription"
+                          name="description"
+                          value={newExpense.description}
+                          onChange={handleExpenseChange}
+                          className="col-span-3"
+                          placeholder="Loyer, Courses, etc."
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expenseAmount" className="text-right">Montant (€)</Label>
+                        <Input
+                          id="expenseAmount"
+                          name="amount"
+                          type="number"
+                          value={newExpense.amount}
+                          onChange={handleExpenseChange}
+                          className="col-span-3"
+                          min={0}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expenseCategory" className="text-right">Catégorie</Label>
+                        <div className="col-span-3">
+                          <Select 
+                            value={newExpense.category} 
+                            onValueChange={handleExpenseCategoryChange}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choisissez une catégorie" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {expenseCategories.map(category => (
+                                <SelectItem key={category} value={category}>{category}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button onClick={addExpense}>Ajouter</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                    <div className="flex justify-end">
+                      <Button onClick={addExpense}>Ajouter</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full mt-4">
+                      <Save size={14} className="mr-2" />
+                      Créer template dépense
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Créer template de dépenses</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expenseTemplateName" className="text-right">Nom</Label>
+                        <Input
+                          id="expenseTemplateName"
+                          value={templateName}
+                          onChange={(e) => setTemplateName(e.target.value)}
+                          className="col-span-3"
+                          placeholder="Ex: Dépenses mensuelles"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expenseTemplateDescription" className="text-right">Description</Label>
+                        <Textarea
+                          id="expenseTemplateDescription"
+                          value={templateDescription}
+                          onChange={(e) => setTemplateDescription(e.target.value)}
+                          className="col-span-3"
+                          placeholder="Description du template (optionnel)"
+                        />
+                      </div>
+                      <div className="col-span-4 mt-2">
+                        <div className="p-3 bg-red-50 border border-red-100 rounded-md text-sm text-red-700">
+                          <p>Ce template contiendra :</p>
+                          <ul className="list-disc list-inside mt-1 space-y-1">
+                            <li>{transactions.filter(t => t.type === 'expense').length} dépenses pour un total de {transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)} €</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button onClick={handleCreateTemplate}>Créer template</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="bg-gray-50 flex justify-between">
@@ -682,3 +836,4 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
 };
 
 export default FinancialInsights;
+

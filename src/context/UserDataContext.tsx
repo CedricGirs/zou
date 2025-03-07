@@ -56,6 +56,14 @@ export interface MonthlyBudget {
   expenses: number;
 }
 
+// Template item interfaces
+export interface IncomeExpenseItem {
+  id: string;
+  description: string;
+  amount: number;
+  category: string;
+}
+
 // New interface for budget templates
 export interface BudgetTemplate {
   id: string;
@@ -63,6 +71,8 @@ export interface BudgetTemplate {
   income: number;
   expenses: number;
   description?: string;
+  incomeItems?: IncomeExpenseItem[];
+  expenseItems?: IncomeExpenseItem[];
 }
 
 export interface FinanceAchievement {
