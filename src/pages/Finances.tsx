@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,9 +32,11 @@ import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import XPBar from "@/components/dashboard/XPBar";
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const Finances = () => {
-  const { userData, loading } = useUserData();
+  const { userData, loading, updateFinanceModule } = useUserData();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: fr }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   
@@ -74,11 +76,112 @@ const Finances = () => {
   // Years available for selection
   const years = ['2022', '2023', '2024', '2025'];
 
+  const handleMonthChange = (value: string) => {
+    setSelectedMonth(value);
+    toast({
+      title: "Mois sélectionné",
+      description: `Données financières pour ${value} ${selectedYear} chargées.`,
+    });
+  };
+  
+  const handleYearChange = (value: string) => {
+    setSelectedYear(value);
+    toast({
+      title: "Année sélectionnée",
+      description: `Données financières pour ${selectedMonth} ${value} chargées.`,
+    });
+  };
+
   const handleExportData = () => {
     toast({
       title: "Export des données financières",
       description: "Vos données financières ont été exportées avec succès.",
     });
+  };
+  
+  const completeQuestStep = async (questId: string, progress: number) => {
+    if (!userData.financeModule) return;
+    
+    const quests = [...userData.financeModule.quests];
+    const questIndex = quests.findIndex(q => q.id === questId);
+    
+    if (questIndex !== -1) {
+      quests[questIndex] = {
+        ...quests[questIndex],
+        progress,
+        completed: progress === 100
+      };
+      
+      await updateFinanceModule({ quests });
+      
+      if (progress === 100) {
+        toast({
+          title: "Quête complétée!",
+          description: `Vous avez gagné ${quests[questIndex].xpReward} XP!`,
+        });
+        
+        // Update XP
+        const newXP = userData.financeModule.currentXP + quests[questIndex].xpReward;
+        let newLevel = userData.financeModule.financeLevel;
+        let newMaxXP = userData.financeModule.maxXP;
+        
+        if (newXP >= newMaxXP) {
+          newLevel += 1;
+          newMaxXP = newMaxXP * 1.5;
+          toast({
+            title: "Niveau supérieur!",
+            description: `Vous êtes maintenant niveau ${newLevel} en finances!`,
+          });
+        }
+        
+        await updateFinanceModule({ 
+          currentXP: newXP, 
+          financeLevel: newLevel,
+          maxXP: newMaxXP
+        });
+      }
+    }
+  };
+  
+  const unlockAchievement = async (achievementId: string) => {
+    if (!userData.financeModule) return;
+    
+    const achievements = [...userData.financeModule.achievements];
+    const achievementIndex = achievements.findIndex(a => a.id === achievementId);
+    
+    if (achievementIndex !== -1 && !achievements[achievementIndex].completed) {
+      achievements[achievementIndex] = {
+        ...achievements[achievementIndex],
+        completed: true
+      };
+      
+      await updateFinanceModule({ achievements });
+      
+      toast({
+        title: "Succès débloqué!",
+        description: `Vous avez débloqué: ${achievements[achievementIndex].name}`,
+      });
+      
+      // Update XP
+      const newXP = userData.financeModule.currentXP + achievements[achievementIndex].xpReward;
+      let newLevel = userData.financeModule.financeLevel;
+      let newMaxXP = userData.financeModule.maxXP;
+      
+      if (newXP >= newMaxXP) {
+        newLevel += 1;
+        newMaxXP = newMaxXP * 1.5;
+        toast({
+          title: "Niveau supérieur!",
+          description: `Vous êtes maintenant niveau ${newLevel} en finances!`,
+        });
+      }
+      
+      await updateFinanceModule({ 
+        currentXP: newXP, 
+        financeLevel: newLevel,
+        maxXP: newMaxXP
+      });
+    }
   };
 
   return (
@@ -92,7 +195,7 @@ const Finances = () => {
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <Select value={selectedMonth} onValueChange={handleMonthChange}>
               <SelectTrigger className="w-[130px]">
                 <SelectValue placeholder="Mois" />
               </SelectTrigger>
@@ -103,7 +206,7 @@ const Finances = () => {
               </SelectContent>
             </Select>
             
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <Select value={selectedYear} onValueChange={handleYearChange}>
               <SelectTrigger className="w-[80px]">
                 <SelectValue placeholder="Année" />
               </SelectTrigger>
@@ -199,8 +302,19 @@ const Finances = () => {
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{quest.description}</p>
                   <Progress value={quest.progress} className="h-2 mb-1" />
-                  <div className="text-xs text-right text-muted-foreground">
-                    {quest.progress}% complété
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">
+                      {quest.progress}% complété
+                    </span>
+                    {!quest.completed && quest.progress < 100 && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => completeQuestStep(quest.id, Math.min(quest.progress + 20, 100))}
+                      >
+                        Progresser
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -241,6 +355,8 @@ const Finances = () => {
                 balance={balance}
                 savingsGoal={0}
                 savingsRate={savingsRate}
+                unlockAchievement={unlockAchievement}
+                completeQuestStep={completeQuestStep}
               />
               
               <FinancialInsights 
@@ -255,11 +371,17 @@ const Finances = () => {
           </TabsContent>
           
           <TabsContent value="transactions">
-            <TransactionTracker selectedMonth={selectedMonth} />
+            <TransactionTracker 
+              selectedMonth={selectedMonth} 
+              completeQuestStep={completeQuestStep}
+            />
           </TabsContent>
           
           <TabsContent value="savings">
-            <SavingsTracker />
+            <SavingsTracker 
+              unlockAchievement={unlockAchievement}
+              completeQuestStep={completeQuestStep}
+            />
           </TabsContent>
           
           <TabsContent value="reports">
@@ -281,8 +403,9 @@ const Finances = () => {
                   className={`p-3 rounded-lg border flex flex-col items-center text-center gap-2 ${
                     achievement.completed 
                       ? 'bg-amber-50 border-amber-200' 
-                      : 'bg-gray-50 border-gray-200 opacity-70'
+                      : 'bg-gray-50 border-gray-200 opacity-70 cursor-pointer hover:bg-gray-100'
                   }`}
+                  onClick={() => !achievement.completed && unlockAchievement(achievement.id)}
                 >
                   <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
                     achievement.completed ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400'

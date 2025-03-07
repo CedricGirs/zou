@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap, BadgeDollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUserData } from '@/context/UserDataContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Dialog,
   DialogContent,
@@ -21,9 +22,19 @@ interface FinancialOverviewProps {
   balance: number;
   savingsGoal: number;
   savingsRate: number;
+  unlockAchievement?: (achievementId: string) => Promise<void>;
+  completeQuestStep?: (questId: string, progress: number) => Promise<void>;
 }
 
-const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate }: FinancialOverviewProps) => {
+const FinancialOverview = ({ 
+  income, 
+  expenses, 
+  balance, 
+  savingsGoal, 
+  savingsRate,
+  unlockAchievement,
+  completeQuestStep
+}: FinancialOverviewProps) => {
   const { userData, updateFinanceModule } = useUserData();
   
   // Edit states
@@ -32,43 +43,61 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
   const [isEditingSavingsGoal, setIsEditingSavingsGoal] = useState(false);
   
   // Form values
-  const [monthlyIncome, setMonthlyIncome] = useState(userData.financeModule.monthlyIncome);
-  const [additionalIncome, setAdditionalIncome] = useState(userData.financeModule.additionalIncome || 0);
+  const [monthlyIncome, setMonthlyIncome] = useState(userData.financeModule?.monthlyIncome || 0);
+  const [additionalIncome, setAdditionalIncome] = useState(userData.financeModule?.additionalIncome || 0);
   
-  const [housingExpenses, setHousingExpenses] = useState(userData.financeModule.housingExpenses || 0);
-  const [foodExpenses, setFoodExpenses] = useState(userData.financeModule.foodExpenses || 0);
-  const [transportExpenses, setTransportExpenses] = useState(userData.financeModule.transportExpenses || 0);
-  const [leisureExpenses, setLeisureExpenses] = useState(userData.financeModule.leisureExpenses || 0);
-  const [fixedExpenses, setFixedExpenses] = useState(userData.financeModule.fixedExpenses || 0);
-  const [debtPayments, setDebtPayments] = useState(userData.financeModule.debtPayments || 0);
+  const [housingExpenses, setHousingExpenses] = useState(userData.financeModule?.housingExpenses || 0);
+  const [foodExpenses, setFoodExpenses] = useState(userData.financeModule?.foodExpenses || 0);
+  const [transportExpenses, setTransportExpenses] = useState(userData.financeModule?.transportExpenses || 0);
+  const [leisureExpenses, setLeisureExpenses] = useState(userData.financeModule?.leisureExpenses || 0);
+  const [fixedExpenses, setFixedExpenses] = useState(userData.financeModule?.fixedExpenses || 0);
+  const [debtPayments, setDebtPayments] = useState(userData.financeModule?.debtPayments || 0);
   
-  const [savingsGoalValue, setSavingsGoalValue] = useState(userData.financeModule.savingsGoal || 0);
+  const [savingsGoalValue, setSavingsGoalValue] = useState(userData.financeModule?.savingsGoal || 0);
+
+  // Recalculate the total expenses whenever any expense changes
+  const calculateTotalExpenses = () => {
+    return housingExpenses + 
+           foodExpenses + 
+           transportExpenses + 
+           leisureExpenses + 
+           fixedExpenses + 
+           debtPayments;
+  };
+
+  // Recalculate the total income
+  const calculateTotalIncome = () => {
+    return monthlyIncome + additionalIncome;
+  };
 
   const handleOpenIncomeDialog = () => {
-    setMonthlyIncome(userData.financeModule.monthlyIncome);
-    setAdditionalIncome(userData.financeModule.additionalIncome || 0);
+    setMonthlyIncome(userData.financeModule?.monthlyIncome || 0);
+    setAdditionalIncome(userData.financeModule?.additionalIncome || 0);
     setIsEditingIncome(true);
   };
   
   const handleOpenExpensesDialog = () => {
-    setHousingExpenses(userData.financeModule.housingExpenses || 0);
-    setFoodExpenses(userData.financeModule.foodExpenses || 0);
-    setTransportExpenses(userData.financeModule.transportExpenses || 0);
-    setLeisureExpenses(userData.financeModule.leisureExpenses || 0);
-    setFixedExpenses(userData.financeModule.fixedExpenses || 0);
-    setDebtPayments(userData.financeModule.debtPayments || 0);
+    setHousingExpenses(userData.financeModule?.housingExpenses || 0);
+    setFoodExpenses(userData.financeModule?.foodExpenses || 0);
+    setTransportExpenses(userData.financeModule?.transportExpenses || 0);
+    setLeisureExpenses(userData.financeModule?.leisureExpenses || 0);
+    setFixedExpenses(userData.financeModule?.fixedExpenses || 0);
+    setDebtPayments(userData.financeModule?.debtPayments || 0);
     setIsEditingExpenses(true);
   };
   
   const handleOpenSavingsGoalDialog = () => {
-    setSavingsGoalValue(userData.financeModule.savingsGoal);
+    setSavingsGoalValue(userData.financeModule?.savingsGoal || 0);
     setIsEditingSavingsGoal(true);
   };
 
   const handleSaveIncome = async () => {
+    const totalIncome = calculateTotalIncome();
+    
     await updateFinanceModule({ 
-      monthlyIncome, 
-      additionalIncome 
+      monthlyIncome: totalIncome, 
+      additionalIncome,
+      balance: totalIncome - (userData.financeModule?.monthlyExpenses || 0)
     });
     
     toast({
@@ -76,23 +105,53 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
       description: "Vos revenus mensuels ont été mis à jour avec succès. +15 XP!",
     });
     
+    // Advance the quest if it exists
+    if (completeQuestStep) {
+      completeQuestStep("set_budget", 50);
+    }
+    
+    // Unlock achievement if first time setting budget
+    if (unlockAchievement && userData.financeModule?.achievements) {
+      const firstBudgetAchievement = userData.financeModule.achievements.find(a => a.id === "first_budget");
+      if (firstBudgetAchievement && !firstBudgetAchievement.completed) {
+        unlockAchievement("first_budget");
+      }
+    }
+    
     setIsEditingIncome(false);
   };
   
   const handleSaveExpenses = async () => {
+    const totalExpenses = calculateTotalExpenses();
+    const currentIncome = userData.financeModule?.monthlyIncome || 0;
+    const savingsRate = currentIncome > 0 ? Math.round(((currentIncome - totalExpenses) / currentIncome) * 100) : 0;
+    
     await updateFinanceModule({ 
       housingExpenses, 
       foodExpenses, 
       transportExpenses, 
       leisureExpenses, 
       fixedExpenses,
-      debtPayments
+      debtPayments,
+      monthlyExpenses: totalExpenses,
+      savingsRate,
+      balance: currentIncome - totalExpenses
     });
     
     toast({
       title: "Dépenses mises à jour",
       description: "Vos dépenses mensuelles ont été mises à jour avec succès. +15 XP!",
     });
+    
+    // Advance the quest if it exists
+    if (completeQuestStep) {
+      completeQuestStep("set_budget", 100);
+    }
+    
+    // Check if budget is balanced
+    if (unlockAchievement && savingsRate > 0) {
+      unlockAchievement("financial_balance");
+    }
     
     setIsEditingExpenses(false);
   };
@@ -104,6 +163,11 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
       title: "Objectif d'épargne mis à jour",
       description: "Votre objectif d'épargne a été mis à jour avec succès. +20 XP!",
     });
+    
+    // Advance the quest if it exists
+    if (completeQuestStep) {
+      completeQuestStep("create_savings", 50);
+    }
     
     setIsEditingSavingsGoal(false);
   };
@@ -125,10 +189,10 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
             </div>
             <span>Revenus mensuels</span>
           </div>
-          <div className="text-2xl font-semibold text-primary">0 €</div>
+          <div className="text-2xl font-semibold text-primary">{userData.financeModule?.monthlyIncome || 0} €</div>
           <div className="flex items-center gap-1 text-xs text-green-500">
             <ArrowUp size={12} />
-            <span>Définissez vos revenus</span>
+            <span>Cliquez pour modifier vos revenus</span>
           </div>
           <div className="mt-2 p-1.5 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-between">
             <div className="flex items-center text-xs text-purple-700">
@@ -171,6 +235,12 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
                 className="col-span-3"
               />
             </div>
+            <div className="mt-4 p-2 border rounded-md bg-gray-50">
+              <div className="flex justify-between mb-1">
+                <span className="text-sm font-medium">Total revenus:</span>
+                <span className="text-sm font-bold text-green-600">{calculateTotalIncome()} €</span>
+              </div>
+            </div>
           </div>
           <div className="flex justify-between items-center">
             <div className="flex items-center text-sm text-purple-600">
@@ -199,10 +269,10 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
             </div>
             <span>Dépenses mensuelles</span>
           </div>
-          <div className="text-2xl font-semibold text-destructive">0 €</div>
+          <div className="text-2xl font-semibold text-destructive">{userData.financeModule?.monthlyExpenses || 0} €</div>
           <div className="flex items-center gap-1 text-xs text-orange-500">
             <ArrowUp size={12} className="rotate-180" />
-            <span>Ajoutez vos dépenses</span>
+            <span>Cliquez pour détailler vos dépenses</span>
           </div>
           <div className="mt-2 p-1.5 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-between">
             <div className="flex items-center text-xs text-purple-700">
@@ -293,6 +363,22 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
                 className="col-span-3"
               />
             </div>
+            <div className="mt-4 p-2 border rounded-md bg-gray-50">
+              <div className="flex justify-between mb-1">
+                <span className="text-sm font-medium">Total dépenses:</span>
+                <span className="text-sm font-bold text-red-600">{calculateTotalExpenses()} €</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">Revenu mensuel:</span>
+                <span className="text-sm font-medium text-green-600">{userData.financeModule?.monthlyIncome || 0} €</span>
+              </div>
+              <div className="flex justify-between mt-1 pt-1 border-t">
+                <span className="text-sm font-medium">Solde:</span>
+                <span className={`text-sm font-bold ${(userData.financeModule?.monthlyIncome || 0) - calculateTotalExpenses() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {(userData.financeModule?.monthlyIncome || 0) - calculateTotalExpenses()} €
+                </span>
+              </div>
+            </div>
           </div>
           <div className="flex justify-between items-center">
             <div className="flex items-center text-sm text-purple-600">
@@ -321,10 +407,10 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
             </div>
             <span>Objectif épargne</span>
           </div>
-          <div className="text-2xl font-semibold text-primary">0 €</div>
+          <div className="text-2xl font-semibold text-primary">{userData.financeModule?.savingsGoal || 0} €</div>
           <div className="flex items-center gap-1 text-xs text-blue-500">
             <TrendingUp size={12} />
-            <span>Définir un objectif</span>
+            <span>Cliquez pour définir un objectif</span>
           </div>
           <div className="mt-2 p-1.5 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-between">
             <div className="flex items-center text-xs text-purple-700">
