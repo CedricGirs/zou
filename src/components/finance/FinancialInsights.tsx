@@ -29,7 +29,6 @@ interface FinancialInsightsProps {
 const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialInsightsProps) => {
   const { userData, updateFinanceModule } = useUserData();
   
-  // États pour les formulaires d'ajout
   const [newIncome, setNewIncome] = useState({
     description: '',
     amount: 0,
@@ -42,28 +41,23 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     category: 'Logement'
   });
 
-  // État pour l'édition d'une transaction
   const [editingTransaction, setEditingTransaction] = useState<{
     id: string;
     amount: number;
     type: 'income' | 'expense';
   } | null>(null);
   
-  // État pour le dialogue de création de template
   const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
   
-  // Nouveaux états pour les dialogues d'application de templates
   const [isApplyIncomeTemplateOpen, setIsApplyIncomeTemplateOpen] = useState(false);
   const [isApplyExpenseTemplateOpen, setIsApplyExpenseTemplateOpen] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   
-  // État pour afficher les revenus et dépenses récents
   const [showRecentIncomes, setShowRecentIncomes] = useState(false);
   const [showRecentExpenses, setShowRecentExpenses] = useState(false);
   
-  // Catégories de revenus et dépenses
   const incomeCategories = [
     'Salaire', 'Freelance', 'Dividendes', 'Loyers', 'Cadeaux', 'Remboursements', 'Autres'
   ];
@@ -72,7 +66,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     'Logement', 'Alimentation', 'Transport', 'Loisirs', 'Santé', 'Éducation', 'Vêtements', 'Cadeaux', 'Autre'
   ];
   
-  // Gestion des formulaires
   const handleIncomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     setNewIncome({
@@ -103,7 +96,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
   
-  // Calcul des totaux
   const recalculateTotals = (updatedTransactions: Transaction[]) => {
     const totalIncome = updatedTransactions
       .filter(t => t.type === 'income')
@@ -125,7 +117,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     };
   };
   
-  // Ajouter revenu
   const addIncome = async () => {
     if (!newIncome.description || newIncome.amount <= 0) {
       toast({
@@ -164,7 +155,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
   
-  // Ajouter dépense
   const addExpense = async () => {
     if (!newExpense.description || newExpense.amount <= 0) {
       toast({
@@ -203,7 +193,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
 
-  // Supprimer une transaction
   const deleteTransaction = async (transactionId: string) => {
     const updatedTransactions = transactions.filter(t => t.id !== transactionId);
     const updatedData = recalculateTotals(updatedTransactions);
@@ -216,7 +205,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
 
-  // Éditer une transaction
   const startEditTransaction = (transaction: Transaction) => {
     setEditingTransaction({
       id: transaction.id,
@@ -225,7 +213,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
 
-  // Sauvegarder une transaction éditée
   const saveEditedTransaction = async () => {
     if (!editingTransaction) return;
 
@@ -251,7 +238,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     setEditingTransaction(null);
   };
 
-  // Gérer le changement de montant dans le formulaire d'édition
   const handleEditAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!editingTransaction) return;
     
@@ -261,7 +247,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
 
-  // Créer un template
   const handleCreateTemplate = async () => {
     if (!templateName.trim()) {
       toast({
@@ -313,7 +298,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     setIsCreateTemplateOpen(false);
   };
 
-  // Nouvelle fonction pour appliquer un template de revenus
   const applyIncomeTemplate = () => {
     if (!selectedTemplateId) {
       toast({
@@ -359,7 +343,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     setIsApplyIncomeTemplateOpen(false);
   };
   
-  // Nouvelle fonction pour appliquer un template de dépenses
   const applyExpenseTemplate = () => {
     if (!selectedTemplateId) {
       toast({
@@ -405,17 +388,14 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     setIsApplyExpenseTemplateOpen(false);
   };
 
-  // Afficher les revenus récents
   const toggleRecentIncomes = () => {
     setShowRecentIncomes(!showRecentIncomes);
   };
 
-  // Afficher les dépenses récentes
   const toggleRecentExpenses = () => {
     setShowRecentExpenses(!showRecentExpenses);
   };
 
-  // Préparation des données récentes
   const recentIncomes = transactions
     .filter(t => t.type === 'income')
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -679,9 +659,9 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                 
                 <Dialog open={isApplyIncomeTemplateOpen} onOpenChange={setIsApplyIncomeTemplateOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="w-full mt-4">
+                    <Button variant="template" size="sm" className="w-full mt-4">
                       <Download size={14} className="mr-2" />
-                      Utiliser template
+                      Ajouter template
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -969,9 +949,9 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                 
                 <Dialog open={isApplyExpenseTemplateOpen} onOpenChange={setIsApplyExpenseTemplateOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="w-full mt-4">
+                    <Button variant="template" size="sm" className="w-full mt-4">
                       <Download size={14} className="mr-2" />
-                      Utiliser template
+                      Ajouter template
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -1064,3 +1044,5 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
 };
 
 export default FinancialInsights;
+
+
