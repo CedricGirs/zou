@@ -66,6 +66,7 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     'Logement', 'Alimentation', 'Transport', 'Loisirs', 'Santé', 'Éducation', 'Vêtements', 'Cadeaux', 'Autre'
   ];
   
+  
   const handleIncomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     setNewIncome({
@@ -193,6 +194,7 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
 
+  
   const deleteTransaction = async (transactionId: string) => {
     const updatedTransactions = transactions.filter(t => t.id !== transactionId);
     const updatedData = recalculateTotals(updatedTransactions);
@@ -298,6 +300,7 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     setIsCreateTemplateOpen(false);
   };
 
+  
   const applyIncomeTemplate = () => {
     if (!selectedTemplateId) {
       toast({
@@ -408,56 +411,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
 
   return (
     <div className="space-y-6">      
-      <div className="flex justify-end mb-4">
-        <Dialog open={isCreateTemplateOpen} onOpenChange={setIsCreateTemplateOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
-              <Save size={16} />
-              <span>Créer template</span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Créer un template</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="templateName" className="text-right">Nom</Label>
-                <Input
-                  id="templateName"
-                  value={templateName}
-                  onChange={(e) => setTemplateName(e.target.value)}
-                  className="col-span-3"
-                  placeholder="Ex: Budget mensuel standard"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="templateDescription" className="text-right">Description</Label>
-                <Textarea
-                  id="templateDescription"
-                  value={templateDescription}
-                  onChange={(e) => setTemplateDescription(e.target.value)}
-                  className="col-span-3"
-                  placeholder="Description du template (optionnel)"
-                />
-              </div>
-              <div className="col-span-4 mt-2">
-                <div className="p-3 bg-amber-50 border border-amber-100 rounded-md text-sm text-amber-700">
-                  <p>Ce template contiendra :</p>
-                  <ul className="list-disc list-inside mt-1 space-y-1">
-                    <li>{transactions.filter(t => t.type === 'income').length} revenus pour un total de {transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)} €</li>
-                    <li>{transactions.filter(t => t.type === 'expense').length} dépenses pour un total de {transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)} €</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button onClick={handleCreateTemplate}>Créer template</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -544,7 +497,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                           </div>
                         </div>
                       ))
-                    }
                   </div>
                 </div>
               )}
@@ -787,7 +739,6 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                           </div>
                         </div>
                       ))
-                    }
                   </div>
                 </div>
               )}
@@ -931,4 +882,55 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
             </div>
           </CardContent>
           <CardFooter className="bg-gray-50 flex justify-between">
-            <span className="text-xs text-muted-
+            <span className="text-xs text-muted-foreground">
+              Dépense mensuelle totale: {
+                transactions
+                  ?.filter(t => t.type === 'expense')
+                  .reduce((sum, t) => sum + t.amount, 0) || 0
+              } €
+            </span>
+            <div className="flex items-center text-xs text-purple-600">
+              <Trophy size={12} className="mr-1 text-amber-500" />
+              <span>+30 XP pour 3 catégories de dépenses</span>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+      <div className="flex justify-end mb-4">
+        <Dialog open={isCreateTemplateOpen} onOpenChange={setIsCreateTemplateOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Save size={16} />
+              <span>Créer template</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Créer un template</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="templateName" className="text-right">Nom</Label>
+                <Input
+                  id="templateName"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Ex: Budget mensuel standard"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="templateDescription" className="text-right">Description</Label>
+                <Textarea
+                  id="templateDescription"
+                  value={templateDescription}
+                  onChange={(e) => setTemplateDescription(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Description du template (optionnel)"
+                />
+              </div>
+              <div className="col-span-4 mt-2">
+                <div className="p-3 bg-amber-50 border border-amber-100 rounded-md text-sm text-amber-700">
+                  <p>Ce template contiendra :</p>
+                  <ul className="list-disc list-inside mt-1 space-y-1">
+                    <li>{transactions.filter(t => t.type === 'income').length} revenus pour un total de {transactions.filter(t => t.type
