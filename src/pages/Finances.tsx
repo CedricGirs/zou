@@ -47,7 +47,7 @@ import { MonthlyData } from "@/context/UserDataContext";
 
 const Finances = () => {
   const { userData, loading, updateFinanceModule } = useUserData();
-  const { normalizeMonthName, calculateTotalSavings } = useFinanceXP();
+  const { normalizeMonthName, calculateTotalSavings, cleanupMonthlyData } = useFinanceXP();
   
   const [selectedMonth, setSelectedMonth] = useState(() => {
     try {
@@ -68,6 +68,16 @@ const Finances = () => {
   });
   
   const [isChangingMonth, setIsChangingMonth] = useState(false);
+  const [initialCleanupDone, setInitialCleanupDone] = useState(false);
+  
+  // Exécuter le nettoyage initial des données mensuelles
+  useEffect(() => {
+    if (userData?.financeModule && !initialCleanupDone && !loading) {
+      cleanupMonthlyData().then(() => {
+        setInitialCleanupDone(true);
+      });
+    }
+  }, [userData?.financeModule, initialCleanupDone, loading, cleanupMonthlyData]);
   
   // Fonction améliorée pour fusionner les données de mois identiques mais avec des orthographes différentes
   const mergeMonthData = useCallback((monthlyData: Record<string, MonthlyData>, normalizedMonth: string) => {
@@ -78,6 +88,8 @@ const Finances = () => {
       savingsRate: 0,
       transactions: []
     };
+    
+    if (!monthlyData || !normalizedMonth) return result;
     
     // Récupérer toutes les clés des mois qui correspondraient au mois normalisé
     const matchingMonthKeys = Object.keys(monthlyData).filter(key => 
@@ -99,8 +111,8 @@ const Finances = () => {
       if (!monthData) return;
       
       // Ajouter revenus et dépenses
-      result.income += monthData.income || 0;
-      result.expenses += monthData.expenses || 0;
+      result.income += parseFloat(monthData.income) || 0;
+      result.expenses += parseFloat(monthData.expenses) || 0;
       
       // Ajouter les transactions sans duplication
       if (Array.isArray(monthData.transactions)) {
@@ -137,6 +149,11 @@ const Finances = () => {
       const normalizedMonth = normalizeMonthName(selectedMonth);
       console.log(`Sauvegarde des données du mois ${normalizedMonth}:`, currentMonthData);
       
+      if (!normalizedMonth) {
+        console.error("Nom de mois normalisé invalide");
+        return;
+      }
+      
       // Nettoyer les transactions en normalisant le mois et en évitant les références circulaires
       const safeTransactions = currentMonthData.transactions.map(t => ({
         ...t,
@@ -145,7 +162,12 @@ const Finances = () => {
       
       const dataToSave = {
         ...currentMonthData,
-        transactions: safeTransactions
+        transactions: safeTransactions,
+        // Assurez-vous que ces champs sont des nombres
+        income: parseFloat(currentMonthData.income) || 0,
+        expenses: parseFloat(currentMonthData.expenses) || 0,
+        balance: parseFloat(currentMonthData.balance) || 0,
+        savingsRate: parseFloat(currentMonthData.savingsRate) || 0
       };
       
       // Récupérer les données mensuelles existantes
@@ -186,10 +208,15 @@ const Finances = () => {
   
   // Charge les données du mois sélectionné
   const loadMonthData = useCallback(() => {
-    if (!userData?.financeModule?.monthlyData || loading) return;
+    if (!userData?.financeModule?.monthlyData || loading || !initialCleanupDone) return;
     
     const monthlyData = userData.financeModule.monthlyData || {};
     const normalizedMonth = normalizeMonthName(selectedMonth);
+    
+    if (!normalizedMonth) {
+      console.error("Nom de mois normalisé invalide lors du chargement");
+      return;
+    }
     
     console.log(`Chargement des données pour le mois: ${normalizedMonth}`, monthlyData);
     
@@ -197,12 +224,14 @@ const Finances = () => {
     
     console.log(`Données après fusion pour ${normalizedMonth}:`, mergedData);
     setCurrentMonthData(mergedData);
-  }, [userData?.financeModule?.monthlyData, loading, selectedMonth, mergeMonthData, normalizeMonthName]);
+  }, [userData?.financeModule?.monthlyData, loading, selectedMonth, mergeMonthData, normalizeMonthName, initialCleanupDone]);
   
   // Charger les données lorsque le mois change ou que les données utilisateur sont mises à jour
   useEffect(() => {
-    loadMonthData();
-  }, [selectedMonth, userData?.financeModule?.monthlyData, loading, loadMonthData]);
+    if (initialCleanupDone) {
+      loadMonthData();
+    }
+  }, [selectedMonth, userData?.financeModule?.monthlyData, loading, loadMonthData, initialCleanupDone]);
   
   // Sauvegarder les données avant de quitter la page
   useEffect(() => {
@@ -220,6 +249,12 @@ const Finances = () => {
     
     try {
       const newMonth = normalizeMonthName(value);
+      
+      if (!newMonth) {
+        console.error("Nom de mois normalisé invalide lors du changement");
+        return;
+      }
+      
       console.log(`Changement de mois demandé: ${selectedMonth} -> ${newMonth}`);
       
       if (newMonth !== selectedMonth) {
@@ -235,9 +270,6 @@ const Finances = () => {
           title: "Mois sélectionné",
           description: `Données financières pour ${newMonth} chargées.`,
         });
-        
-        // Recharger les données pour le nouveau mois
-        loadMonthData();
       }
     } catch (error) {
       console.error("Erreur lors du changement de mois:", error);
@@ -353,7 +385,7 @@ const Finances = () => {
   };
 
   // Afficher un indicateur de chargement pendant le chargement des données
-  if (loading) {
+  if (loading || !initialCleanupDone) {
     return (
       <MainLayout>
         <div className="flex justify-center items-center h-[80vh]">
@@ -650,3 +682,4 @@ const Finances = () => {
 };
 
 export default Finances;
+
