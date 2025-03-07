@@ -58,10 +58,11 @@ const FinancialOverview = ({
     let totalSavings = 0;
     
     // Parcourir toutes les données mensuelles et additionner les économies positives
-    Object.values(userData.financeModule.monthlyData).forEach(monthData => {
+    Object.entries(userData.financeModule.monthlyData).forEach(([month, monthData]) => {
       const monthSavings = monthData.income - monthData.expenses;
       if (monthSavings > 0) {
         totalSavings += monthSavings;
+        console.log(`Économies du mois ${month}: ${monthSavings}€`);
       }
     });
     
