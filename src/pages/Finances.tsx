@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import AnnualBudget from "@/components/finance/AnnualBudget";
 import TransactionTracker from "@/components/finance/TransactionTracker";
 import SavingsTracker from "@/components/finance/SavingsTracker";
-import FinancialReports from "@/components/finance/FinancialReports";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import FinancialInsights from "@/components/finance/FinancialInsights";
 import CustomBadge from "@/components/ui/CustomBadge";
@@ -58,7 +57,6 @@ const Finances = () => {
   
   useEffect(() => {
     if (!loading && userData?.financeModule) {
-      // Initialiser ou récupérer les données du mois sélectionné
       const monthData = userData.financeModule.monthlyData?.[selectedMonth] || {
         income: 0,
         expenses: 0,
@@ -98,7 +96,6 @@ const Finances = () => {
   ];
 
   const handleMonthChange = async (value: string) => {
-    // Sauvegarde des données du mois actuel avant de changer
     if (userData?.financeModule) {
       const monthlyData = {
         ...(userData.financeModule.monthlyData || {}),
@@ -108,10 +105,8 @@ const Finances = () => {
       await updateFinanceModule({ monthlyData });
     }
     
-    // Changement de mois
     setSelectedMonth(value);
     
-    // Chargement des données du nouveau mois sélectionné
     const newMonthData = userData?.financeModule?.monthlyData?.[value] || {
       income: 0,
       expenses: 0,
@@ -371,7 +366,7 @@ const Finances = () => {
         </Card>
         
         <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="mb-4 grid grid-cols-5 gap-2">
+          <TabsList className="mb-4 grid grid-cols-4 gap-2">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <ChartPie size={16} />
               <span className="hidden md:inline">Dashboard</span>
@@ -387,10 +382,6 @@ const Finances = () => {
             <TabsTrigger value="savings" className="flex items-center gap-2">
               <PiggyBank size={16} />
               <span className="hidden md:inline">Épargne</span>
-            </TabsTrigger>
-            <TabsTrigger value="reports" className="flex items-center gap-2">
-              <TrendingUp size={16} />
-              <span className="hidden md:inline">Rapports</span>
             </TabsTrigger>
           </TabsList>
           
@@ -443,10 +434,6 @@ const Finances = () => {
               unlockAchievement={unlockAchievement}
               completeQuestStep={completeQuestStep}
             />
-          </TabsContent>
-          
-          <TabsContent value="reports">
-            <FinancialReports />
           </TabsContent>
         </Tabs>
 
