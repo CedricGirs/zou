@@ -1,4 +1,4 @@
-<lov-code>
+
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Transaction, BudgetTemplate } from "@/context/UserDataContext";
@@ -922,3 +922,126 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
                           className="col-span-3"
                           placeholder="Ex: Dépenses mensuelles"
                         />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expenseTemplateDescription" className="text-right">Description</Label>
+                        <Textarea
+                          id="expenseTemplateDescription"
+                          value={templateDescription}
+                          onChange={(e) => setTemplateDescription(e.target.value)}
+                          className="col-span-3"
+                          placeholder="Description du template (optionnel)"
+                        />
+                      </div>
+                      <div className="col-span-4 mt-2">
+                        <div className="p-3 bg-red-50 border border-red-100 rounded-md text-sm text-red-700">
+                          <p>Ce template contiendra :</p>
+                          <ul className="list-disc list-inside mt-1 space-y-1">
+                            <li>{transactions.filter(t => t.type === 'expense').length} dépenses pour un total de {transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)} €</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button onClick={handleCreateTemplate}>Créer template</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                
+                <Dialog open={isApplyExpenseTemplateOpen} onOpenChange={setIsApplyExpenseTemplateOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="template" size="sm" className="w-full mt-4">
+                      <Download size={14} className="mr-2" />
+                      Ajouter template
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Appliquer un template de dépenses</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expenseTemplate" className="text-right">Template</Label>
+                        <div className="col-span-3">
+                          <Select 
+                            value={selectedTemplateId} 
+                            onValueChange={setSelectedTemplateId}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choisissez un template" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {userData?.financeModule?.budgetTemplates.map(template => (
+                                <SelectItem key={template.id} value={template.id}>
+                                  {template.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      {selectedTemplateId && (
+                        <div className="col-span-4 mt-2">
+                          <div className="p-3 bg-red-50 border border-red-100 rounded-md text-sm">
+                            {(() => {
+                              const template = userData?.financeModule?.budgetTemplates.find(
+                                t => t.id === selectedTemplateId
+                              );
+                              
+                              if (!template) return <p>Template introuvable</p>;
+                              
+                              const expenseItems = template.expenseItems || [];
+                              
+                              return (
+                                <>
+                                  <p className="font-medium mb-2">Contenu du template :</p>
+                                  {expenseItems.length === 0 ? (
+                                    <p>Ce template ne contient pas de dépenses</p>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      <p>{expenseItems.length} dépenses pour un total de {template.expenses} €</p>
+                                      <ul className="list-disc list-inside space-y-1">
+                                        {expenseItems.map((item, idx) => (
+                                          <li key={idx} className="text-xs">
+                                            {item.description}: {item.amount} € ({item.category})
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex justify-end">
+                      <Button onClick={applyExpenseTemplate}>Appliquer le template</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="bg-gray-50 flex justify-between">
+            <span className="text-xs text-muted-foreground">
+              Dépenses mensuelles totales: {
+                transactions
+                  ?.filter(t => t.type === 'expense')
+                  .reduce((sum, t) => sum + t.amount, 0) || 0
+              } €
+            </span>
+            <div className="flex items-center text-xs text-purple-600">
+              <Target size={12} className="mr-1 text-green-500" />
+              <span>+20 XP pour 5 catégories de dépenses</span>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default FinancialInsights;
