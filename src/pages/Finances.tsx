@@ -5,12 +5,11 @@ import { useUserData } from "@/context/UserDataContext";
 import { Progress } from "@/components/ui/progress";
 import FinanceHeader from "@/components/finance/FinanceHeader";
 import FinanceLevel from "@/components/finance/FinanceLevel";
-import FinanceQuests from "@/components/finance/FinanceQuests";
 import FinanceTabs from "@/components/finance/FinanceTabs";
 import FinanceAchievements from "@/components/finance/FinanceAchievements";
 import { useFinanceFunctions } from "@/hooks/useFinanceFunctions";
 import { toast } from "@/hooks/use-toast";
-import { ArrowDownUp, RefreshCw, WifiOff } from "lucide-react";
+import { WifiOff } from "lucide-react";
 import { useSyncUserData } from "@/hooks/useSyncUserData";
 
 const Finances = () => {
@@ -88,8 +87,6 @@ const Finances = () => {
         />
         
         <FinanceLevel />
-        
-        <FinanceQuests completeQuestStep={completeQuestStep} />
         
         <FinanceTabs 
           selectedMonth={selectedMonth}
