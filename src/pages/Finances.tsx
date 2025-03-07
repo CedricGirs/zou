@@ -1,9 +1,25 @@
-
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
-import { useFinanceXP } from "@/hooks/useFinanceXP";
-import { DollarSign, TrendingUp, PiggyBank, ChartPie, Wallet, ArrowUpDown, Trophy, Medal, Star, Award, Crown, Flag, Gem, CircleCheck, BarChart3, Bookmark, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  DollarSign, 
+  TrendingUp, 
+  PiggyBank, 
+  ChartPie, 
+  Wallet,
+  ArrowUpDown,
+  Trophy,
+  Medal,
+  Star,
+  Award,
+  Crown,
+  Flag,
+  Gem,
+  CircleCheck,
+  BarChart3,
+  Bookmark,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AnnualBudget from "@/components/finance/AnnualBudget";
 import TransactionTracker from "@/components/finance/TransactionTracker";
@@ -11,133 +27,48 @@ import SavingsTracker from "@/components/finance/SavingsTracker";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import FinancialInsights from "@/components/finance/FinancialInsights";
 import CustomBadge from "@/components/ui/CustomBadge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import XPBar from "@/components/dashboard/XPBar";
-import { MonthlyData, FinanceAchievement } from "@/context/UserDataContext";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { MonthlyData } from "@/context/UserDataContext";
 
 const Finances = () => {
   const { userData, loading, updateFinanceModule } = useUserData();
-  const { 
-    normalizeMonthName, 
-    getMonthData, 
-    saveMonthData,
-    isProcessing 
-  } = useFinanceXP();
-  
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    const currentMonth = format(new Date(), 'MMMM', { locale: fr });
-    return normalizeMonthName(currentMonth);
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: fr }));
+  const [currentMonthData, setCurrentMonthData] = useState<MonthlyData>({
+    income: 0,
+    expenses: 0,
+    balance: 0,
+    savingsRate: 0,
+    transactions: []
   });
   
-  const [currentMonthData, setCurrentMonthData] = useState(() => 
-    getMonthData(selectedMonth)
-  );
-
-  // Functions for achievements and quests
-  const unlockAchievement = useCallback(async (achievementId: string): Promise<void> => {
-    if (!userData?.financeModule?.achievements) return;
-    
-    const achievementExists = userData.financeModule.achievements.some(a => a.id === achievementId);
-    
-    // Find the achievement in the default list to get its name, description, and xpReward
-    const existingAchievement = financeAchievements.find(a => a.id === achievementId);
-    if (!existingAchievement) return;
-    
-    const updatedAchievements = achievementExists 
-      ? userData.financeModule.achievements.map(a => 
-          a.id === achievementId ? { ...a, completed: true } : a
-        )
-      : [
-          ...userData.financeModule.achievements,
-          { 
-            id: achievementId, 
-            name: existingAchievement.name,
-            description: existingAchievement.description,
-            completed: true, 
-            date: new Date().toISOString(),
-            xpReward: 25 // Default XP reward if not specified
-          }
-        ];
-    
-    await updateFinanceModule({ achievements: updatedAchievements });
-    
-    toast({
-      title: "Nouvel accomplissement !",
-      description: `Vous avez débloqué un nouvel accomplissement financier.`,
-    });
-  }, [userData?.financeModule?.achievements, updateFinanceModule]);
-
-  const completeQuestStep = useCallback(async (questId: string, progress: number): Promise<void> => {
-    if (!userData?.financeModule?.quests) return;
-    
-    const updatedQuests = userData.financeModule.quests.map(q => {
-      if (q.id === questId) {
-        const wasCompleted = q.completed;
-        const newCompleted = progress >= 100;
-        
-        // If the quest is newly completed, show a toast
-        if (newCompleted && !wasCompleted) {
-          toast({
-            title: "Quête complétée !",
-            description: `Vous avez terminé la quête "${q.name}" !`,
-          });
-        }
-        
-        return {
-          ...q,
-          progress,
-          completed: newCompleted
-        };
-      }
-      return q;
-    });
-    
-    await updateFinanceModule({ quests: updatedQuests });
-  }, [userData?.financeModule?.quests, updateFinanceModule]);
-
   useEffect(() => {
-    if (!loading) {
-      const monthData = getMonthData(selectedMonth);
+    if (!loading && userData?.financeModule) {
+      const monthData = userData.financeModule.monthlyData?.[selectedMonth] || {
+        income: 0,
+        expenses: 0,
+        balance: 0,
+        savingsRate: 0,
+        transactions: []
+      };
+      
       setCurrentMonthData(monthData);
     }
-  }, [selectedMonth, loading, getMonthData]);
-
-  const handleMonthChange = async (newMonth: string) => {
-    if (isProcessing) return;
-
-    try {
-      await saveMonthData(selectedMonth, currentMonthData);
-      
-      const normalizedMonth = normalizeMonthName(newMonth);
-      setSelectedMonth(normalizedMonth);
-      
-      const newMonthData = getMonthData(normalizedMonth);
-      setCurrentMonthData(newMonthData);
-      
-    } catch (error) {
-      console.error("Erreur lors du changement de mois:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de changer de mois. Veuillez réessayer.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (currentMonthData) {
-        saveMonthData(selectedMonth, currentMonthData);
-      }
-    };
-  }, [selectedMonth, currentMonthData, saveMonthData]);
-
+  }, [selectedMonth, userData, loading]);
+  
   if (loading) {
     return (
       <MainLayout>
@@ -150,7 +81,7 @@ const Finances = () => {
       </MainLayout>
     );
   }
-
+  
   const { 
     financeLevel = 1, 
     currentXP = 0, 
@@ -158,11 +89,122 @@ const Finances = () => {
     achievements = [],
     quests = [],
   } = userData?.financeModule || {};
-
+  
   const months = [
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
+
+  const handleMonthChange = async (value: string) => {
+    if (userData?.financeModule) {
+      const monthlyData = {
+        ...(userData.financeModule.monthlyData || {}),
+        [selectedMonth]: currentMonthData
+      };
+      
+      await updateFinanceModule({ monthlyData });
+    }
+    
+    setSelectedMonth(value);
+    
+    const newMonthData = userData?.financeModule?.monthlyData?.[value] || {
+      income: 0,
+      expenses: 0,
+      balance: 0,
+      savingsRate: 0,
+      transactions: []
+    };
+    
+    setCurrentMonthData(newMonthData);
+    
+    toast({
+      title: "Mois sélectionné",
+      description: `Données financières pour ${value} chargées.`,
+    });
+  };
+  
+  const completeQuestStep = async (questId: string, progress: number) => {
+    if (!userData.financeModule) return;
+    
+    const quests = [...userData.financeModule.quests];
+    const questIndex = quests.findIndex(q => q.id === questId);
+    
+    if (questIndex !== -1) {
+      quests[questIndex] = {
+        ...quests[questIndex],
+        progress,
+        completed: progress === 100
+      };
+      
+      await updateFinanceModule({ quests });
+      
+      if (progress === 100) {
+        toast({
+          title: "Quête complétée!",
+          description: `Vous avez gagné ${quests[questIndex].xpReward} XP!`,
+        });
+        
+        const newXP = userData.financeModule.currentXP + quests[questIndex].xpReward;
+        let newLevel = userData.financeModule.financeLevel;
+        let newMaxXP = userData.financeModule.maxXP;
+        
+        if (newXP >= newMaxXP) {
+          newLevel += 1;
+          newMaxXP = newMaxXP * 1.5;
+          toast({
+            title: "Niveau supérieur!",
+            description: `Vous êtes maintenant niveau ${newLevel} en finances!`,
+          });
+        }
+        
+        await updateFinanceModule({ 
+          currentXP: newXP, 
+          financeLevel: newLevel,
+          maxXP: newMaxXP
+        });
+      }
+    }
+  };
+  
+  const unlockAchievement = async (achievementId: string) => {
+    if (!userData.financeModule) return;
+    
+    const achievements = [...userData.financeModule.achievements];
+    const achievementIndex = achievements.findIndex(a => a.id === achievementId);
+    
+    if (achievementIndex !== -1 && !achievements[achievementIndex].completed) {
+      achievements[achievementIndex] = {
+        ...achievements[achievementIndex],
+        completed: true
+      };
+      
+      await updateFinanceModule({ achievements });
+      
+      toast({
+        title: "Succès débloqué!",
+        description: `Vous avez débloqué: ${achievements[achievementIndex].name}`,
+      });
+      
+      const newXP = userData.financeModule.currentXP + achievements[achievementIndex].xpReward;
+      let newLevel = userData.financeModule.financeLevel;
+      let newMaxXP = userData.financeModule.maxXP;
+      
+      if (newXP >= newMaxXP) {
+        newLevel += 1;
+        newMaxXP = newMaxXP * 1.5;
+        toast({
+          title: "Niveau supérieur!",
+          description: `Vous êtes maintenant niveau ${newLevel} en finances!`,
+        });
+      }
+      
+      await updateFinanceModule({ 
+        currentXP: newXP, 
+        financeLevel: newLevel,
+        maxXP: newMaxXP
+      });
+    }
+  };
 
   const financeAchievements = [
     {
@@ -257,22 +299,9 @@ const Finances = () => {
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
-            <Select 
-              value={selectedMonth} 
-              onValueChange={handleMonthChange}
-              disabled={isProcessing}
-            >
+            <Select value={selectedMonth} onValueChange={handleMonthChange}>
               <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="Mois">
-                  {isProcessing ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 size={16} className="animate-spin" />
-                      <span>Chargement</span>
-                    </div>
-                  ) : (
-                    selectedMonth
-                  )}
-                </SelectValue>
+                <SelectValue placeholder="Mois" />
               </SelectTrigger>
               <SelectContent>
                 {months.map(month => (
