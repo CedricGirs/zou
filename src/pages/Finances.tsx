@@ -19,6 +19,8 @@ import {
   CircleCheck,
   BarChart3,
   Bookmark,
+  Plus,
+  FileTemplate,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AnnualBudget from "@/components/finance/AnnualBudget";
@@ -35,6 +37,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
@@ -55,10 +65,11 @@ const Finances = () => {
     savingsRate: 0,
     transactions: []
   });
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [templateType, setTemplateType] = useState<'income' | 'expense'>('income');
   
   useEffect(() => {
     if (!loading && userData?.financeModule) {
-      // Initialiser ou récupérer les données du mois sélectionné
       const monthData = userData.financeModule.monthlyData?.[selectedMonth] || {
         income: 0,
         expenses: 0,
@@ -90,6 +101,8 @@ const Finances = () => {
     maxXP = 100, 
     achievements = [],
     quests = [],
+    incomeTemplates = [],
+    expenseTemplates = [],
   } = userData?.financeModule || {};
   
   const months = [
@@ -98,7 +111,6 @@ const Finances = () => {
   ];
 
   const handleMonthChange = async (value: string) => {
-    // Sauvegarde des données du mois actuel avant de changer
     if (userData?.financeModule) {
       const monthlyData = {
         ...(userData.financeModule.monthlyData || {}),
@@ -108,10 +120,8 @@ const Finances = () => {
       await updateFinanceModule({ monthlyData });
     }
     
-    // Changement de mois
     setSelectedMonth(value);
     
-    // Chargement des données du nouveau mois sélectionné
     const newMonthData = userData?.financeModule?.monthlyData?.[value] || {
       income: 0,
       expenses: 0,
@@ -209,6 +219,80 @@ const Finances = () => {
         maxXP: newMaxXP
       });
     }
+  };
+
+  const applyTemplate = (type: 'income' | 'expense', templateId: string) => {
+    setTemplateType(type);
+    setShowTemplateDialog(true);
+  };
+
+  const handleApplyTemplate = async (templateId: string) => {
+    const templates = templateType === 'income' 
+      ? userData?.financeModule?.incomeTemplates || []
+      : userData?.financeModule?.expenseTemplates || [];
+      
+    const selectedTemplate = templates.find(t => t.id === templateId);
+    
+    if (!selectedTemplate) {
+      toast({
+        title: "Erreur",
+        description: "Template introuvable",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const newTransactions = [...(currentMonthData.transactions || [])];
+    const date = new Date().toISOString();
+    
+    selectedTemplate.items.forEach(item => {
+      newTransactions.push({
+        id: crypto.randomUUID(),
+        type: templateType,
+        category: item.category,
+        amount: item.amount,
+        description: item.description,
+        date
+      });
+    });
+    
+    const newIncome = templateType === 'income'
+      ? currentMonthData.income + selectedTemplate.items.reduce((sum, item) => sum + item.amount, 0)
+      : currentMonthData.income;
+      
+    const newExpenses = templateType === 'expense'
+      ? currentMonthData.expenses + selectedTemplate.items.reduce((sum, item) => sum + item.amount, 0)
+      : currentMonthData.expenses;
+      
+    const newBalance = newIncome - newExpenses;
+    const newSavingsRate = newIncome > 0 ? ((newIncome - newExpenses) / newIncome) * 100 : 0;
+    
+    const updatedMonthData = {
+      ...currentMonthData,
+      income: newIncome,
+      expenses: newExpenses,
+      balance: newBalance,
+      savingsRate: newSavingsRate,
+      transactions: newTransactions
+    };
+    
+    setCurrentMonthData(updatedMonthData);
+    
+    if (userData?.financeModule) {
+      const monthlyData = {
+        ...(userData.financeModule.monthlyData || {}),
+        [selectedMonth]: updatedMonthData
+      };
+      
+      await updateFinanceModule({ monthlyData });
+      
+      toast({
+        title: "Template appliqué",
+        description: `Les éléments du template ont été ajoutés aux ${templateType === 'income' ? 'revenus' : 'dépenses'}.`,
+      });
+    }
+    
+    setShowTemplateDialog(false);
   };
 
   const financeAchievements = [
@@ -405,6 +489,32 @@ const Finances = () => {
                 unlockAchievement={unlockAchievement}
                 completeQuestStep={completeQuestStep}
                 selectedMonth={selectedMonth}
+                renderIncomeButtons={() => (
+                  <div className="flex mt-3">
+                    <Button 
+                      variant="template"
+                      size="sm"
+                      className="flex items-center gap-1"
+                      onClick={() => applyTemplate('income', '')}
+                    >
+                      <FileTemplate size={16} />
+                      Appliquer Template
+                    </Button>
+                  </div>
+                )}
+                renderExpenseButtons={() => (
+                  <div className="flex mt-3">
+                    <Button 
+                      variant="template"
+                      size="sm" 
+                      className="flex items-center gap-1"
+                      onClick={() => applyTemplate('expense', '')}
+                    >
+                      <FileTemplate size={16} />
+                      Appliquer Template
+                    </Button>
+                  </div>
+                )}
               />
               
               <FinancialInsights 
@@ -471,6 +581,55 @@ const Finances = () => {
             </div>
           </CardContent>
         </Card>
+
+        <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Appliquer un Template {templateType === 'income' ? 'Revenus' : 'Dépenses'}</DialogTitle>
+              <DialogDescription>
+                Choisissez un template à appliquer aux {templateType === 'income' ? 'revenus' : 'dépenses'} de ce mois.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {templateType === 'income' && (incomeTemplates?.length || 0) > 0 ? (
+                incomeTemplates.map(template => (
+                  <Card key={template.id} className="p-3 cursor-pointer hover:bg-accent" onClick={() => handleApplyTemplate(template.id)}>
+                    <h4 className="font-medium">{template.name}</h4>
+                    <p className="text-sm text-muted-foreground">Total: {template.items.reduce((sum, item) => sum + item.amount, 0)}€</p>
+                    <ul className="mt-2 text-sm">
+                      {template.items.map((item, idx) => (
+                        <li key={idx} className="flex justify-between">
+                          <span>{item.description}</span>
+                          <span>{item.amount}€</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </Card>
+                ))
+              ) : templateType === 'expense' && (expenseTemplates?.length || 0) > 0 ? (
+                expenseTemplates.map(template => (
+                  <Card key={template.id} className="p-3 cursor-pointer hover:bg-accent" onClick={() => handleApplyTemplate(template.id)}>
+                    <h4 className="font-medium">{template.name}</h4>
+                    <p className="text-sm text-muted-foreground">Total: {template.items.reduce((sum, item) => sum + item.amount, 0)}€</p>
+                    <ul className="mt-2 text-sm">
+                      {template.items.map((item, idx) => (
+                        <li key={idx} className="flex justify-between">
+                          <span>{item.description}</span>
+                          <span>{item.amount}€</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center p-4">
+                  <p className="text-muted-foreground">Aucun template disponible</p>
+                  <p className="text-sm mt-2">Créez d'abord un template dans la section Budget</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   );
