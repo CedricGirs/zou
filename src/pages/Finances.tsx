@@ -20,7 +20,7 @@ import {
   BarChart3,
   Bookmark,
   Plus,
-  FileTemplate,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AnnualBudget from "@/components/finance/AnnualBudget";
@@ -101,8 +101,7 @@ const Finances = () => {
     maxXP = 100, 
     achievements = [],
     quests = [],
-    incomeTemplates = [],
-    expenseTemplates = [],
+    budgetTemplates = [],
   } = userData?.financeModule || {};
   
   const months = [
@@ -227,11 +226,7 @@ const Finances = () => {
   };
 
   const handleApplyTemplate = async (templateId: string) => {
-    const templates = templateType === 'income' 
-      ? userData?.financeModule?.incomeTemplates || []
-      : userData?.financeModule?.expenseTemplates || [];
-      
-    const selectedTemplate = templates.find(t => t.id === templateId);
+    const selectedTemplate = budgetTemplates.find(t => t.id === templateId);
     
     if (!selectedTemplate) {
       toast({
@@ -245,7 +240,11 @@ const Finances = () => {
     const newTransactions = [...(currentMonthData.transactions || [])];
     const date = new Date().toISOString();
     
-    selectedTemplate.items.forEach(item => {
+    const items = templateType === 'income' 
+      ? selectedTemplate.incomeItems || []
+      : selectedTemplate.expenseItems || [];
+    
+    items.forEach(item => {
       newTransactions.push({
         id: crypto.randomUUID(),
         type: templateType,
@@ -257,11 +256,11 @@ const Finances = () => {
     });
     
     const newIncome = templateType === 'income'
-      ? currentMonthData.income + selectedTemplate.items.reduce((sum, item) => sum + item.amount, 0)
+      ? currentMonthData.income + items.reduce((sum, item) => sum + item.amount, 0)
       : currentMonthData.income;
       
     const newExpenses = templateType === 'expense'
-      ? currentMonthData.expenses + selectedTemplate.items.reduce((sum, item) => sum + item.amount, 0)
+      ? currentMonthData.expenses + items.reduce((sum, item) => sum + item.amount, 0)
       : currentMonthData.expenses;
       
     const newBalance = newIncome - newExpenses;
@@ -378,6 +377,34 @@ const Finances = () => {
     }
   ];
 
+  const renderIncomeButtonsFunc = () => (
+    <div className="flex mt-3">
+      <Button 
+        variant="template"
+        size="sm"
+        className="flex items-center gap-1"
+        onClick={() => applyTemplate('income', '')}
+      >
+        <FileText size={16} />
+        Appliquer Template
+      </Button>
+    </div>
+  );
+  
+  const renderExpenseButtonsFunc = () => (
+    <div className="flex mt-3">
+      <Button 
+        variant="template"
+        size="sm" 
+        className="flex items-center gap-1"
+        onClick={() => applyTemplate('expense', '')}
+      >
+        <FileText size={16} />
+        Appliquer Template
+      </Button>
+    </div>
+  );
+
   return (
     <MainLayout>
       <div className="flex flex-col space-y-6">
@@ -489,32 +516,8 @@ const Finances = () => {
                 unlockAchievement={unlockAchievement}
                 completeQuestStep={completeQuestStep}
                 selectedMonth={selectedMonth}
-                renderIncomeButtons={() => (
-                  <div className="flex mt-3">
-                    <Button 
-                      variant="template"
-                      size="sm"
-                      className="flex items-center gap-1"
-                      onClick={() => applyTemplate('income', '')}
-                    >
-                      <FileTemplate size={16} />
-                      Appliquer Template
-                    </Button>
-                  </div>
-                )}
-                renderExpenseButtons={() => (
-                  <div className="flex mt-3">
-                    <Button 
-                      variant="template"
-                      size="sm" 
-                      className="flex items-center gap-1"
-                      onClick={() => applyTemplate('expense', '')}
-                    >
-                      <FileTemplate size={16} />
-                      Appliquer Template
-                    </Button>
-                  </div>
-                )}
+                incomeButtonsRenderer={renderIncomeButtonsFunc}
+                expenseButtonsRenderer={renderExpenseButtonsFunc}
               />
               
               <FinancialInsights 
@@ -591,33 +594,30 @@ const Finances = () => {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              {templateType === 'income' && (incomeTemplates?.length || 0) > 0 ? (
-                incomeTemplates.map(template => (
+              {budgetTemplates && budgetTemplates.length > 0 ? (
+                budgetTemplates.map(template => (
                   <Card key={template.id} className="p-3 cursor-pointer hover:bg-accent" onClick={() => handleApplyTemplate(template.id)}>
                     <h4 className="font-medium">{template.name}</h4>
-                    <p className="text-sm text-muted-foreground">Total: {template.items.reduce((sum, item) => sum + item.amount, 0)}€</p>
+                    <p className="text-sm text-muted-foreground">
+                      {templateType === 'income' ? 'Revenus: ' + template.income + '€' : 'Dépenses: ' + template.expenses + '€'}
+                    </p>
                     <ul className="mt-2 text-sm">
-                      {template.items.map((item, idx) => (
-                        <li key={idx} className="flex justify-between">
-                          <span>{item.description}</span>
-                          <span>{item.amount}€</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </Card>
-                ))
-              ) : templateType === 'expense' && (expenseTemplates?.length || 0) > 0 ? (
-                expenseTemplates.map(template => (
-                  <Card key={template.id} className="p-3 cursor-pointer hover:bg-accent" onClick={() => handleApplyTemplate(template.id)}>
-                    <h4 className="font-medium">{template.name}</h4>
-                    <p className="text-sm text-muted-foreground">Total: {template.items.reduce((sum, item) => sum + item.amount, 0)}€</p>
-                    <ul className="mt-2 text-sm">
-                      {template.items.map((item, idx) => (
-                        <li key={idx} className="flex justify-between">
-                          <span>{item.description}</span>
-                          <span>{item.amount}€</span>
-                        </li>
-                      ))}
+                      {templateType === 'income' && template.incomeItems ? 
+                        template.incomeItems.map((item, idx) => (
+                          <li key={idx} className="flex justify-between">
+                            <span>{item.description}</span>
+                            <span>{item.amount}€</span>
+                          </li>
+                        )) : 
+                        templateType === 'expense' && template.expenseItems ?
+                        template.expenseItems.map((item, idx) => (
+                          <li key={idx} className="flex justify-between">
+                            <span>{item.description}</span>
+                            <span>{item.amount}€</span>
+                          </li>
+                        )) : 
+                        <li className="text-muted-foreground">Aucun élément disponible</li>
+                      }
                     </ul>
                   </Card>
                 ))

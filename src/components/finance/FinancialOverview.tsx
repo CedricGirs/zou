@@ -25,6 +25,8 @@ interface FinancialOverviewProps {
   selectedMonth: string;
   unlockAchievement?: (achievementId: string) => Promise<void>;
   completeQuestStep?: (questId: string, progress: number) => Promise<void>;
+  incomeButtonsRenderer?: () => React.ReactNode;
+  expenseButtonsRenderer?: () => React.ReactNode;
 }
 
 const FinancialOverview = ({ 
@@ -35,7 +37,9 @@ const FinancialOverview = ({
   savingsRate,
   selectedMonth,
   unlockAchievement,
-  completeQuestStep
+  completeQuestStep,
+  incomeButtonsRenderer,
+  expenseButtonsRenderer
 }: FinancialOverviewProps) => {
   const { userData, updateFinanceModule } = useUserData();
   
@@ -221,6 +225,49 @@ const FinancialOverview = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Income and expense sections */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Income section */}
+        <div className="glass-card p-6 flex flex-col gap-2">
+          <div className="flex justify-between items-center mb-2">
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-500">
+                <ArrowUp size={20} />
+              </div>
+              <div>
+                <h3 className="font-semibold">Revenus</h3>
+                <p className="text-sm text-muted-foreground">Entrées d'argent</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-green-600">{actualIncome} €</div>
+              <p className="text-sm text-muted-foreground">{selectedMonth}</p>
+            </div>
+          </div>
+          {incomeButtonsRenderer && incomeButtonsRenderer()}
+        </div>
+
+        {/* Expenses section */}
+        <div className="glass-card p-6 flex flex-col gap-2">
+          <div className="flex justify-between items-center mb-2">
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-500">
+                <ArrowDown size={20} />
+              </div>
+              <div>
+                <h3 className="font-semibold">Dépenses</h3>
+                <p className="text-sm text-muted-foreground">Sorties d'argent</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-red-600">{actualExpenses} €</div>
+              <p className="text-sm text-muted-foreground">{selectedMonth}</p>
+            </div>
+          </div>
+          {expenseButtonsRenderer && expenseButtonsRenderer()}
+        </div>
+      </div>
     </div>
   );
 };

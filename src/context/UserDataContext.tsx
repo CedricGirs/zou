@@ -1,3 +1,4 @@
+
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -250,9 +251,58 @@ const defaultFinanceModule: FinanceModule = {
   
   // Default budget templates
   budgetTemplates: [
-    { id: "regular", name: "Budget standard", income: 2000, expenses: 1500, description: "Revenus et dépenses mensuels typiques" },
-    { id: "vacation", name: "Mois de vacances", income: 2000, expenses: 2200, description: "Budget pour un mois de vacances" },
-    { id: "bonus", name: "Mois avec prime", income: 3000, expenses: 1500, description: "Mois avec une prime ou revenu supplémentaire" }
+    { 
+      id: "regular", 
+      name: "Budget standard", 
+      income: 2000, 
+      expenses: 1500, 
+      description: "Revenus et dépenses mensuels typiques",
+      incomeItems: [
+        { id: "salary", description: "Salaire", amount: 1800, category: "Salaire" },
+        { id: "sidejob", description: "Job secondaire", amount: 200, category: "Autres revenus" }
+      ],
+      expenseItems: [
+        { id: "rent", description: "Loyer", amount: 800, category: "Logement" },
+        { id: "food", description: "Alimentation", amount: 300, category: "Alimentation" },
+        { id: "transport", description: "Transport", amount: 150, category: "Transport" },
+        { id: "leisure", description: "Loisirs", amount: 250, category: "Loisirs" }
+      ]
+    },
+    { 
+      id: "vacation", 
+      name: "Mois de vacances", 
+      income: 2000, 
+      expenses: 2200, 
+      description: "Budget pour un mois de vacances",
+      incomeItems: [
+        { id: "salary", description: "Salaire", amount: 1800, category: "Salaire" },
+        { id: "bonus", description: "Prime vacances", amount: 200, category: "Autres revenus" }
+      ],
+      expenseItems: [
+        { id: "rent", description: "Loyer", amount: 800, category: "Logement" },
+        { id: "food", description: "Alimentation", amount: 300, category: "Alimentation" },
+        { id: "transport", description: "Transport", amount: 150, category: "Transport" },
+        { id: "vacation", description: "Vacances", amount: 800, category: "Loisirs" },
+        { id: "leisure", description: "Autres loisirs", amount: 150, category: "Loisirs" }
+      ]
+    },
+    { 
+      id: "bonus", 
+      name: "Mois avec prime", 
+      income: 3000, 
+      expenses: 1500, 
+      description: "Mois avec une prime ou revenu supplémentaire",
+      incomeItems: [
+        { id: "salary", description: "Salaire", amount: 1800, category: "Salaire" },
+        { id: "bonus", description: "Prime exceptionnelle", amount: 1200, category: "Autres revenus" }
+      ],
+      expenseItems: [
+        { id: "rent", description: "Loyer", amount: 800, category: "Logement" },
+        { id: "food", description: "Alimentation", amount: 300, category: "Alimentation" },
+        { id: "transport", description: "Transport", amount: 150, category: "Transport" },
+        { id: "leisure", description: "Loisirs", amount: 250, category: "Loisirs" }
+      ]
+    }
   ],
   
   // Gamification elements
