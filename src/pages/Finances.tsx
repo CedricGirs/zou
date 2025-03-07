@@ -79,18 +79,9 @@ const Finances = () => {
     console.log(`Changement de mois: de ${selectedMonth} à ${month}`);
     
     // Sauvegarder les données du mois actuel avant de changer
-    const saveResult = await saveMonthData();
-    if (!saveResult) {
-      console.error(`Échec de la sauvegarde des données pour ${selectedMonth}`);
-      toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder les données du mois actuel.",
-        variant: "destructive"
-      });
-      return;
-    }
+    await saveMonthData();
     
-    // Changer le mois sélectionné - useEffect se déclenchera ensuite
+    // Changer le mois sélectionné de manière synchrone
     setSelectedMonth(month);
     
     toast({

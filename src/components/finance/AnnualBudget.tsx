@@ -1,5 +1,5 @@
 
 import React from 'react';
-import AnnualBudgetComponent from './annual-budget/index';
+import AnnualBudgetComponent from '@/components/finance/annual-budget/index';
 
 export default AnnualBudgetComponent;

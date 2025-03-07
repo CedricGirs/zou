@@ -25,13 +25,13 @@ const MonthSelector = ({
     <div className="flex flex-col gap-1 p-2 bg-muted rounded-lg shadow-sm">
       <Select
         value={selectedMonth}
-        onValueChange={handleMonthChange}
+        onValueChange={(value) => {
+          console.log(`Sélection du mois: ${value}`);
+          handleMonthChange(value);
+        }}
       >
         <SelectTrigger className="w-[180px] bg-white">
-          <div className="flex justify-between items-center w-full">
-            <SelectValue placeholder="Sélectionner un mois" />
-            <ChevronDown size={16} className="ml-2 shrink-0" />
-          </div>
+          <SelectValue placeholder="Sélectionner un mois" />
         </SelectTrigger>
         <SelectContent className="bg-white">
           {months.map((month) => (
