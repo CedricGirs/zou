@@ -56,9 +56,11 @@ const Finances = () => {
   
   // Sauvegarder les données du mois actuel
   const saveMonthData = async () => {
-    if (userData?.financeModule) {
-      console.log(`Tentative de sauvegarde des données pour ${selectedMonth}:`, currentMonthData);
-      
+    if (!userData?.financeModule) return false;
+    
+    console.log(`Tentative de sauvegarde des données pour ${selectedMonth}:`, currentMonthData);
+    
+    try {
       const monthlyData = {
         ...(userData.financeModule.monthlyData || {}),
         [selectedMonth]: currentMonthData
@@ -66,16 +68,13 @@ const Finances = () => {
       
       console.log(`Structure complète des données mensuelles après mise à jour:`, monthlyData);
       
-      try {
-        await updateFinanceModule({ monthlyData });
-        console.log(`Données sauvegardées avec succès pour ${selectedMonth}`);
-        return true;
-      } catch (error) {
-        console.error("Erreur lors de la sauvegarde des données:", error);
-        return false;
-      }
+      await updateFinanceModule({ monthlyData });
+      console.log(`Données sauvegardées avec succès pour ${selectedMonth}`);
+      return true;
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde des données:", error);
+      return false;
     }
-    return false;
   };
   
   const handleMonthChange = async (month: string) => {
@@ -95,29 +94,14 @@ const Finances = () => {
       return;
     }
     
-    // Changer le mois
+    // Changer le mois sélectionné
     setSelectedMonth(month);
     
-    // Charger les données du nouveau mois
-    if (userData?.financeModule?.monthlyData) {
-      const newMonthData = userData.financeModule.monthlyData[month] || {
-        income: 0,
-        expenses: 0,
-        balance: 0,
-        savingsRate: 0,
-        transactions: []
-      };
-      
-      console.log(`Données chargées pour ${month}:`, newMonthData);
-      setCurrentMonthData(newMonthData);
-      
-      toast({
-        title: `${month} sélectionné`,
-        description: newMonthData.transactions.length > 0 
-          ? `Données financières pour ${month} chargées.`
-          : `Aucune donnée existante pour ${month}. Valeurs initialisées à 0.`,
-      });
-    }
+    // Charger les données du nouveau mois - la mise à jour des données se fera via l'effet useEffect
+    toast({
+      title: `${month} sélectionné`,
+      description: `Chargement des données pour ${month}...`,
+    });
   };
   
   // S'assurer de sauvegarder les données lors de la fermeture de l'application
