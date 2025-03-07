@@ -1,9 +1,10 @@
-
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from '@/hooks/use-toast';
 import { playSound } from '@/utils/audioUtils';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 // Types pour les données utilisateur
 export interface HeroProfile {

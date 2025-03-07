@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   PieChart, 
@@ -41,12 +40,22 @@ import { fr } from "date-fns/locale";
 
 interface TransactionTrackerProps {
   selectedMonth?: string;
+  selectedYear?: string;
+  transactions?: Transaction[];
   completeQuestStep?: (questId: string, progress: number) => Promise<void>;
+  addTransaction?: (transaction: Transaction) => void;
+  deleteTransaction?: (transactionId: string) => void;
 }
 
-const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTrackerProps) => {
+const TransactionTracker = ({ 
+  selectedMonth, 
+  selectedYear, 
+  transactions = [], 
+  completeQuestStep,
+  addTransaction,
+  deleteTransaction 
+}: TransactionTrackerProps) => {
   const { userData, updateFinanceModule } = useUserData();
-  const transactions = userData?.financeModule?.transactions || [];
   
   const [newTransaction, setNewTransaction] = useState<Partial<Transaction>>({
     date: new Date().toISOString().split('T')[0],
@@ -55,6 +64,7 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
     category: 'Autre',
     type: 'expense',
     month: selectedMonth || new Date().toLocaleString('fr-FR', { month: 'long' }),
+    year: selectedYear || new Date().getFullYear(),
     isVerified: false
   });
 
@@ -72,8 +82,8 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
   ];
 
   const [filterMonth, setFilterMonth] = useState(selectedMonth || new Date().toLocaleString('fr-FR', { month: 'long' }));
+  const [filterYear, setFilterYear] = useState(selectedYear || new Date().getFullYear());
   
-  // Update new transaction when selected month changes
   useEffect(() => {
     if (selectedMonth) {
       setFilterMonth(selectedMonth);
@@ -83,6 +93,16 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
       }));
     }
   }, [selectedMonth]);
+
+  useEffect(() => {
+    if (selectedYear) {
+      setFilterYear(selectedYear);
+      setNewTransaction(prev => ({
+        ...prev,
+        year: selectedYear
+      }));
+    }
+  }, [selectedYear]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -113,6 +133,13 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
     });
   };
 
+  const handleYearChange = (value: string) => {
+    setNewTransaction({
+      ...newTransaction,
+      year: value
+    });
+  };
+
   const handleTypeChange = (value: 'income' | 'expense') => {
     setNewTransaction({
       ...newTransaction,
@@ -121,7 +148,6 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
   };
 
   const handleAddTransaction = async () => {
-    // Validation
     if (!newTransaction.description || !newTransaction.date) {
       toast({
         title: "Erreur",
@@ -139,6 +165,7 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
       category: newTransaction.category || 'Autre',
       type: newTransaction.type || 'expense',
       month: newTransaction.month,
+      year: newTransaction.year,
       isVerified: newTransaction.isVerified
     };
 
@@ -146,7 +173,6 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
     
     await updateFinanceModule({ transactions: updatedTransactions });
     
-    // Aussi mettre à jour les dépenses/revenus mensuels
     if (transaction.type === 'expense') {
       const newMonthlyExpenses = (userData?.financeModule?.monthlyExpenses || 0) + transaction.amount;
       await updateFinanceModule({ 
@@ -166,13 +192,11 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
       description: "La transaction a été ajoutée avec succès."
     });
     
-    // Advance quest if applicable
     if (completeQuestStep) {
       const transactionCount = updatedTransactions.length;
       const progress = Math.min((transactionCount / 5) * 100, 100);
       completeQuestStep("track_transactions", progress);
       
-      // If this is the first transaction, unlock achievement
       if (transactionCount === 1 && userData?.financeModule?.achievements) {
         const firstTransactionAchievement = userData.financeModule.achievements.find(a => a.id === "first_transaction");
         if (firstTransactionAchievement && !firstTransactionAchievement.completed) {
@@ -191,7 +215,10 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
       }
     }
     
-    // Reset form
+    if (addTransaction) {
+      addTransaction(transaction);
+    }
+    
     setNewTransaction({
       date: new Date().toISOString().split('T')[0],
       description: '',
@@ -199,6 +226,7 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
       category: 'Autre',
       type: 'expense',
       month: selectedMonth || new Date().toLocaleString('fr-FR', { month: 'long' }),
+      year: selectedYear || new Date().getFullYear(),
       isVerified: false
     });
   };
@@ -210,7 +238,6 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
     const updatedTransactions = transactions.filter(t => t.id !== id);
     await updateFinanceModule({ transactions: updatedTransactions });
     
-    // Update monthly income/expenses
     if (transactionToDelete.type === 'expense') {
       const newMonthlyExpenses = (userData?.financeModule?.monthlyExpenses || 0) - transactionToDelete.amount;
       await updateFinanceModule({ 
@@ -229,29 +256,32 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
       title: "Transaction supprimée",
       description: "La transaction a été supprimée avec succès."
     });
+    
+    if (deleteTransaction) {
+      deleteTransaction(id);
+    }
   };
 
-  // Filter transactions
   const filteredTransactions = transactions.filter(transaction => {
-    // Month filter
     if (filterMonth !== 'Tous' && transaction.month !== filterMonth) {
       return false;
     }
     
-    // Category filter
+    if (filterYear !== 'Tous' && transaction.year !== filterYear) {
+      return false;
+    }
+    
     if (categoryFilter !== 'Tous' && transaction.category !== categoryFilter) {
       return false;
     }
     
-    // Search term
     if (searchTerm && !transaction.description.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
     
     return true;
   });
-  
-  // Calculate totals
+
   const totalIncome = filteredTransactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -260,7 +290,6 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
   
-  // Prepare data for pie chart
   const pieChartData = categories.map(category => {
     const value = filteredTransactions
       .filter(t => t.category === category && t.type === 'expense')
@@ -269,7 +298,6 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
     return { name: category, value };
   }).filter(item => item.value > 0);
 
-  // Colors for the pie chart
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
   return (
@@ -301,6 +329,17 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
                   <SelectItem value="Tous">Tous les mois</SelectItem>
                   {months.map(month => (
                     <SelectItem key={month} value={month}>{month}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={filterYear} onValueChange={setFilterYear}>
+                <SelectTrigger className="w-full md:w-32">
+                  <SelectValue placeholder="Année" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -380,6 +419,25 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
                     </div>
                     
                     <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="year" className="text-right">Année</Label>
+                      <div className="col-span-3">
+                        <Select 
+                          value={newTransaction.year} 
+                          onValueChange={handleYearChange}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Sélectionner une année" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                              <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="description" className="text-right">Description</Label>
                       <Input
                         id="description"
@@ -447,7 +505,7 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
             <div className="text-center p-6 border border-dashed rounded-md">
               <CalendarDays className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground font-medium">
-                Aucune transaction pour {filterMonth === 'Tous' ? 'cette période' : filterMonth}.
+                Aucune transaction pour {filterMonth === 'Tous' ? 'cette période' : filterMonth} {filterYear === 'Tous' ? 'cette année' : filterYear}.
               </p>
               <p className="text-muted-foreground text-sm mt-1 mb-4">
                 Ajoutez votre première transaction en cliquant sur le bouton "Ajouter".
@@ -460,7 +518,6 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
-                  {/* Contenu de la fenêtre modale - identique à celui ci-dessus */}
                   <DialogHeader>
                     <DialogTitle>Ajouter une transaction</DialogTitle>
                   </DialogHeader>
@@ -509,6 +566,25 @@ const TransactionTracker = ({ selectedMonth, completeQuestStep }: TransactionTra
                           <SelectContent>
                             {months.map(month => (
                               <SelectItem key={month} value={month}>{month}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="year2" className="text-right">Année</Label>
+                      <div className="col-span-3">
+                        <Select 
+                          value={newTransaction.year} 
+                          onValueChange={handleYearChange}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Sélectionner une année" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                              <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
