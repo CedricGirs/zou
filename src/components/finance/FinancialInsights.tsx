@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Transaction, BudgetTemplate } from "@/context/UserDataContext";
-import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus, Trash2, Edit2, Check as CheckIcon, Save } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus, Trash2, Edit2, Check as CheckIcon, Save, List } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -50,6 +50,9 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
   const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
+
+  const [isTemplatesListOpen, setIsTemplatesListOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<BudgetTemplate | null>(null);
   
   const incomeCategories = [
     'Salaire', 'Freelance', 'Dividendes', 'Loyers', 'Cadeaux', 'Remboursements', 'Autres'
@@ -291,9 +294,165 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     setIsCreateTemplateOpen(false);
   };
 
+  const applyTemplate = (template: BudgetTemplate) => {
+    if (!template.incomeItems && !template.expenseItems) {
+      toast({
+        title: "Template incompatible",
+        description: "Ce template ne contient pas de détails de revenus et dépenses.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newTransactions = [...transactions];
+    
+    if (template.incomeItems && template.incomeItems.length > 0) {
+      template.incomeItems.forEach(item => {
+        newTransactions.push({
+          id: uuidv4(),
+          date: new Date().toISOString().split('T')[0],
+          description: item.description,
+          amount: item.amount,
+          category: item.category,
+          type: 'income',
+          month: month,
+          isVerified: false
+        });
+      });
+    }
+    
+    if (template.expenseItems && template.expenseItems.length > 0) {
+      template.expenseItems.forEach(item => {
+        newTransactions.push({
+          id: uuidv4(),
+          date: new Date().toISOString().split('T')[0],
+          description: item.description,
+          amount: item.amount,
+          category: item.category,
+          type: 'expense',
+          month: month,
+          isVerified: false
+        });
+      });
+    }
+    
+    const updatedData = recalculateTotals(newTransactions);
+    updateMonthData(updatedData);
+    
+    toast({
+      title: "Template appliqué",
+      description: `Le template "${template.name}" a été appliqué avec succès.`,
+    });
+    
+    setIsTemplatesListOpen(false);
+    setSelectedTemplate(null);
+  };
+
   return (
     <div className="space-y-6">      
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end mb-4 gap-2">
+        <Dialog open={isTemplatesListOpen} onOpenChange={setIsTemplatesListOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <List size={16} />
+              <span>Utiliser un template</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>Mes templates</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              {userData?.financeModule?.budgetTemplates && userData.financeModule.budgetTemplates.length > 0 ? (
+                <div className="space-y-4">
+                  {userData.financeModule.budgetTemplates.map((template) => (
+                    <div key={template.id} className="border rounded-md p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{template.name}</h3>
+                          {template.description && (
+                            <p className="text-sm text-muted-foreground">{template.description}</p>
+                          )}
+                          <div className="mt-2 flex items-center gap-2 text-sm">
+                            <span className="flex items-center text-green-600">
+                              <TrendingUp size={14} className="mr-1" />
+                              {template.income} €
+                            </span>
+                            <span className="text-gray-400">|</span>
+                            <span className="flex items-center text-red-600">
+                              <TrendingDown size={14} className="mr-1" />
+                              {template.expenses} €
+                            </span>
+                          </div>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setSelectedTemplate(template)}
+                        >
+                          Détails
+                        </Button>
+                      </div>
+                      
+                      {selectedTemplate?.id === template.id && (
+                        <div className="mt-4 pt-4 border-t">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <h4 className="font-medium text-sm mb-2">Revenus ({template.incomeItems?.length || 0})</h4>
+                              {template.incomeItems && template.incomeItems.length > 0 ? (
+                                <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                                  {template.incomeItems.map((item) => (
+                                    <div key={item.id} className="text-xs p-2 bg-green-50 rounded flex justify-between">
+                                      <span>{item.description}</span>
+                                      <span className="font-medium">{item.amount} €</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-muted-foreground">Aucun revenu détaillé</p>
+                              )}
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-sm mb-2">Dépenses ({template.expenseItems?.length || 0})</h4>
+                              {template.expenseItems && template.expenseItems.length > 0 ? (
+                                <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                                  {template.expenseItems.map((item) => (
+                                    <div key={item.id} className="text-xs p-2 bg-red-50 rounded flex justify-between">
+                                      <span>{item.description}</span>
+                                      <span className="font-medium">{item.amount} €</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-muted-foreground">Aucune dépense détaillée</p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="mt-4 flex justify-end">
+                            <Button 
+                              variant="default" 
+                              size="sm"
+                              onClick={() => applyTemplate(template)}
+                              className="bg-emerald-600 hover:bg-emerald-700"
+                            >
+                              Appliquer ce template
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Vous n'avez pas encore créé de templates</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={isCreateTemplateOpen} onOpenChange={setIsCreateTemplateOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="flex items-center gap-1">
