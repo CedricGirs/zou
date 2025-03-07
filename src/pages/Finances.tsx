@@ -18,7 +18,7 @@ import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import XPBar from "@/components/dashboard/XPBar";
-import { MonthlyData } from "@/context/UserDataContext";
+import { MonthlyData, FinanceAchievement } from "@/context/UserDataContext";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const Finances = () => {
@@ -40,20 +40,32 @@ const Finances = () => {
   );
 
   // Functions for achievements and quests
-  const unlockAchievement = useCallback((achievementId: string) => {
+  const unlockAchievement = useCallback(async (achievementId: string): Promise<void> => {
     if (!userData?.financeModule?.achievements) return;
     
     const achievementExists = userData.financeModule.achievements.some(a => a.id === achievementId);
+    
+    // Find the achievement in the default list to get its name, description, and xpReward
+    const existingAchievement = financeAchievements.find(a => a.id === achievementId);
+    if (!existingAchievement) return;
+    
     const updatedAchievements = achievementExists 
       ? userData.financeModule.achievements.map(a => 
           a.id === achievementId ? { ...a, completed: true } : a
         )
       : [
           ...userData.financeModule.achievements,
-          { id: achievementId, completed: true, date: new Date().toISOString() }
+          { 
+            id: achievementId, 
+            name: existingAchievement.name,
+            description: existingAchievement.description,
+            completed: true, 
+            date: new Date().toISOString(),
+            xpReward: 25 // Default XP reward if not specified
+          }
         ];
     
-    updateFinanceModule({ achievements: updatedAchievements });
+    await updateFinanceModule({ achievements: updatedAchievements });
     
     toast({
       title: "Nouvel accomplissement !",
@@ -61,7 +73,7 @@ const Finances = () => {
     });
   }, [userData?.financeModule?.achievements, updateFinanceModule]);
 
-  const completeQuestStep = useCallback((questId: string, progress: number) => {
+  const completeQuestStep = useCallback(async (questId: string, progress: number): Promise<void> => {
     if (!userData?.financeModule?.quests) return;
     
     const updatedQuests = userData.financeModule.quests.map(q => {
@@ -86,7 +98,7 @@ const Finances = () => {
       return q;
     });
     
-    updateFinanceModule({ quests: updatedQuests });
+    await updateFinanceModule({ quests: updatedQuests });
   }, [userData?.financeModule?.quests, updateFinanceModule]);
 
   useEffect(() => {
