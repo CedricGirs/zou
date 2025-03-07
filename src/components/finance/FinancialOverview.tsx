@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap, BadgeDollarSign } from 'lucide-react';
+import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUserData } from '@/context/UserDataContext';
 import { useState, useEffect } from 'react';
@@ -46,6 +46,7 @@ const FinancialOverview = ({
   // Calculate actual totals from transactions
   const [actualIncome, setActualIncome] = useState(0);
   const [actualExpenses, setActualExpenses] = useState(0);
+  const [savingsPercentage, setSavingsPercentage] = useState(0);
 
   useEffect(() => {
     // Calculate totals from the transactions
@@ -61,13 +62,20 @@ const FinancialOverview = ({
       setActualIncome(incomeTotal);
       setActualExpenses(expensesTotal);
       
+      // Calculate savings percentage
+      const calculatedSavings = incomeTotal - expensesTotal;
+      const savingsPercent = incomeTotal > 0 ? Math.round((calculatedSavings / incomeTotal) * 100) : 0;
+      setSavingsPercentage(savingsPercent);
+      
       // Update the finance module with the calculated totals
       if (incomeTotal !== userData.financeModule.monthlyIncome || 
-          expensesTotal !== userData.financeModule.monthlyExpenses) {
+          expensesTotal !== userData.financeModule.monthlyExpenses ||
+          savingsPercent !== userData.financeModule.savingsRate) {
         updateFinanceModule({
           monthlyIncome: incomeTotal,
           monthlyExpenses: expensesTotal,
-          balance: incomeTotal - expensesTotal
+          balance: calculatedSavings,
+          savingsRate: savingsPercent
         });
       }
     }
@@ -128,24 +136,40 @@ const FinancialOverview = ({
         </div>
       </div>
       
+      {/* Savings Rate - Calculated from income and expenses */}
+      <div className="glass-card p-4 flex flex-col gap-2 relative group overflow-hidden">
+        <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-blue-400 to-blue-600"></div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+            <PiggyBank size={16} />
+          </div>
+          <span>Taux d'épargne</span>
+        </div>
+        <div className="text-2xl font-semibold text-primary">{savingsPercentage}%</div>
+        <div className="flex items-center gap-1 text-xs text-blue-500">
+          <TrendingUp size={12} />
+          <span>Épargne: {actualIncome > 0 ? Math.round((actualIncome - actualExpenses) / actualIncome * 100) : 0}% des revenus</span>
+        </div>
+      </div>
+      
       {/* Savings Goal - Still interactive */}
       <Dialog open={isEditingSavingsGoal} onOpenChange={setIsEditingSavingsGoal}>
         <div 
           onClick={handleOpenSavingsGoalDialog}
-          className="glass-card p-4 flex flex-col gap-2 hover:shadow-md transition-all cursor-pointer relative group overflow-hidden"
+          className="glass-card p-4 flex flex-col gap-2 hover:shadow-md transition-all cursor-pointer relative group overflow-hidden col-span-3"
         >
-          <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-blue-400 to-blue-600"></div>
+          <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <Edit size={16} />
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+            <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-500">
               <Target size={16} />
             </div>
             <span>Objectif épargne</span>
           </div>
           <div className="text-2xl font-semibold text-primary">{userData.financeModule?.savingsGoal || 0} €</div>
-          <div className="flex items-center gap-1 text-xs text-blue-500">
+          <div className="flex items-center gap-1 text-xs text-purple-500">
             <TrendingUp size={12} />
             <span>Cliquez pour définir un objectif</span>
           </div>

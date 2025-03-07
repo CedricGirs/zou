@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -40,7 +39,6 @@ const Finances = () => {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: fr }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   
-  // If data is loading, show a loading state
   if (loading) {
     return (
       <MainLayout>
@@ -54,7 +52,6 @@ const Finances = () => {
     );
   }
   
-  // Get finance data from context with safety checks
   const { 
     financeLevel = 1, 
     currentXP = 0, 
@@ -67,13 +64,11 @@ const Finances = () => {
     savingsRate = 0
   } = userData?.financeModule || {};
   
-  // Months available for selection
   const months = [
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
   
-  // Years available for selection
   const years = ['2022', '2023', '2024', '2025'];
 
   const handleMonthChange = (value: string) => {
@@ -120,7 +115,6 @@ const Finances = () => {
           description: `Vous avez gagné ${quests[questIndex].xpReward} XP!`,
         });
         
-        // Update XP
         const newXP = userData.financeModule.currentXP + quests[questIndex].xpReward;
         let newLevel = userData.financeModule.financeLevel;
         let newMaxXP = userData.financeModule.maxXP;
@@ -162,7 +156,6 @@ const Finances = () => {
         description: `Vous avez débloqué: ${achievements[achievementIndex].name}`,
       });
       
-      // Update XP
       const newXP = userData.financeModule.currentXP + achievements[achievementIndex].xpReward;
       let newLevel = userData.financeModule.financeLevel;
       let newMaxXP = userData.financeModule.maxXP;
@@ -187,7 +180,6 @@ const Finances = () => {
   return (
     <MainLayout>
       <div className="flex flex-col space-y-6">
-        {/* Header with title and date selectors */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="font-pixel text-3xl mb-2">Finance Quest</h1>
@@ -224,7 +216,6 @@ const Finances = () => {
           </div>
         </div>
 
-        {/* Gamified progression section - Simplified */}
         <Card variant="minimal" className="p-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
             <div className="flex items-center gap-2">
@@ -243,18 +234,7 @@ const Finances = () => {
           </div>
         </Card>
 
-        {/* Financial Overview - Simplified */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card variant="minimal" className="hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Balance</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{balance} €</div>
-            </CardContent>
-          </Card>
-          
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card variant="minimal" className="hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Revenus</CardTitle>
@@ -286,7 +266,6 @@ const Finances = () => {
           </Card>
         </div>
 
-        {/* Current Quests - Simplified */}
         <Card variant="minimal">
           <CardHeader>
             <CardTitle>Quêtes Actives</CardTitle>
@@ -322,7 +301,6 @@ const Finances = () => {
           </CardContent>
         </Card>
         
-        {/* Tab navigation for different sections - Simplified */}
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="mb-4 grid grid-cols-5 gap-2">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
@@ -389,7 +367,6 @@ const Finances = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Achievements section - Simplified */}
         <Card variant="minimal">
           <CardHeader>
             <CardTitle>Accomplissements</CardTitle>
