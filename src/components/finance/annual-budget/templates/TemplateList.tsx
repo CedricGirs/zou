@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Bookmark, Plus } from 'lucide-react';
 import TemplateItem from './TemplateItem';

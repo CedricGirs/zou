@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ArrowUp, ArrowDown, Wallet, Edit, Copy } from 'lucide-react';
 import { Button } from "@/components/ui/button";

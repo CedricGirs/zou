@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DollarSign, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
