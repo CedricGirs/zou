@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -57,7 +56,6 @@ const Finances = () => {
     balance: number;
   } | null>(null);
   
-  // Mois français
   const months = [
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
@@ -65,7 +63,6 @@ const Finances = () => {
   
   const years = ['2022', '2023', '2024', '2025'];
 
-  // Charger les données financières du mois sélectionné au chargement et lorsque le mois change
   useEffect(() => {
     if (loading || !userData?.financeModule) return;
     
@@ -74,7 +71,6 @@ const Finances = () => {
       console.log(`Chargement des données pour ${selectedMonth} ${selectedYear}`);
       
       try {
-        // Vérifier si des données existent pour ce mois dans la structure monthlyData de financeModule
         const monthKey = `${selectedMonth}_${selectedYear}`;
         const savedMonthData = userData.financeModule.monthlyData?.[monthKey];
         
@@ -88,12 +84,23 @@ const Finances = () => {
           });
         } else {
           console.log("Aucune donnée trouvée pour ce mois, réinitialisation");
-          // Si aucune donnée n'existe pour ce mois, initialiser à zéro
           setMonthlyData({
             transactions: [],
             monthlyIncome: 0,
             monthlyExpenses: 0,
             balance: 0
+          });
+          
+          const currentMonthlyData = userData.financeModule.monthlyData || {};
+          currentMonthlyData[monthKey] = {
+            transactions: [],
+            monthlyIncome: 0,
+            monthlyExpenses: 0,
+            balance: 0
+          };
+          
+          await updateFinanceModule({
+            monthlyData: currentMonthlyData
           });
         }
       } catch (error) {
@@ -109,28 +116,25 @@ const Finances = () => {
     };
     
     loadMonthData();
-  }, [selectedMonth, selectedYear, userData?.financeModule, loading]);
+  }, [selectedMonth, selectedYear, userData?.financeModule, loading, updateFinanceModule]);
 
-  // Fonction pour sauvegarder les données du mois actuel avant de changer de mois
   const saveCurrentMonthData = async () => {
     if (!userData?.financeModule || !monthlyData) return;
     
     try {
       const monthKey = `${selectedMonth}_${selectedYear}`;
       
-      // Créer/mettre à jour la structure monthlyData si elle n'existe pas déjà
       const currentMonthlyData = userData.financeModule.monthlyData || {};
       
       currentMonthlyData[monthKey] = {
-        transactions: monthlyData.transactions,
-        monthlyIncome: monthlyData.monthlyIncome,
-        monthlyExpenses: monthlyData.monthlyExpenses,
-        balance: monthlyData.balance
+        transactions: monthlyData.transactions || [],
+        monthlyIncome: monthlyData.monthlyIncome || 0,
+        monthlyExpenses: monthlyData.monthlyExpenses || 0,
+        balance: monthlyData.balance || 0
       };
       
       console.log(`Sauvegarde des données pour ${monthKey}:`, currentMonthlyData[monthKey]);
       
-      // Mettre à jour le module finance avec les nouvelles données mensuelles
       await updateFinanceModule({
         monthlyData: currentMonthlyData
       });
@@ -148,12 +152,8 @@ const Finances = () => {
   };
 
   const handleMonthChange = async (value: string) => {
-    // Sauvegarder les données du mois actuel avant de changer
     await saveCurrentMonthData();
-    
-    // Changer le mois
     setSelectedMonth(value);
-    
     playSound('click');
     toast({
       title: "Mois sélectionné",
@@ -162,12 +162,8 @@ const Finances = () => {
   };
   
   const handleYearChange = async (value: string) => {
-    // Sauvegarder les données du mois actuel avant de changer
     await saveCurrentMonthData();
-    
-    // Changer l'année
     setSelectedYear(value);
-    
     playSound('click');
     toast({
       title: "Année sélectionnée",
@@ -182,7 +178,6 @@ const Finances = () => {
     });
   };
   
-  // Mise à jour des données mensuelles après une modification
   const updateMonthlyData = (updates: Partial<{
     transactions: Transaction[];
     monthlyIncome: number;
@@ -197,7 +192,6 @@ const Finances = () => {
     });
   };
   
-  // Fonction pour ajouter une transaction qui met à jour les données mensuelles
   const addTransaction = (transaction: Transaction) => {
     if (!monthlyData) return;
     
@@ -221,7 +215,6 @@ const Finances = () => {
     });
   };
   
-  // Fonction pour supprimer une transaction qui met à jour les données mensuelles
   const deleteTransaction = (transactionId: string) => {
     if (!monthlyData) return;
     
@@ -431,7 +424,6 @@ const Finances = () => {
     );
   }
   
-  // Récupérer les données du module finance
   const { 
     financeLevel = 1, 
     currentXP = 0, 
@@ -441,7 +433,6 @@ const Finances = () => {
     savingsRate = 0
   } = userData?.financeModule || {};
   
-  // Utiliser les données du mois sélectionné ou les valeurs par défaut
   const { 
     transactions = [], 
     monthlyIncome = 0,
