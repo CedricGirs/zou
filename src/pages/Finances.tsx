@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -18,9 +19,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import XPBar from "@/components/dashboard/XPBar";
 import { MonthlyData } from "@/context/UserDataContext";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const Finances = () => {
-  const { userData, loading } = useUserData();
+  const { userData, loading, updateFinanceModule } = useUserData();
   const { 
     normalizeMonthName, 
     getMonthData, 
@@ -36,6 +38,56 @@ const Finances = () => {
   const [currentMonthData, setCurrentMonthData] = useState(() => 
     getMonthData(selectedMonth)
   );
+
+  // Functions for achievements and quests
+  const unlockAchievement = useCallback((achievementId: string) => {
+    if (!userData?.financeModule?.achievements) return;
+    
+    const achievementExists = userData.financeModule.achievements.some(a => a.id === achievementId);
+    const updatedAchievements = achievementExists 
+      ? userData.financeModule.achievements.map(a => 
+          a.id === achievementId ? { ...a, completed: true } : a
+        )
+      : [
+          ...userData.financeModule.achievements,
+          { id: achievementId, completed: true, date: new Date().toISOString() }
+        ];
+    
+    updateFinanceModule({ achievements: updatedAchievements });
+    
+    toast({
+      title: "Nouvel accomplissement !",
+      description: `Vous avez débloqué un nouvel accomplissement financier.`,
+    });
+  }, [userData?.financeModule?.achievements, updateFinanceModule]);
+
+  const completeQuestStep = useCallback((questId: string, progress: number) => {
+    if (!userData?.financeModule?.quests) return;
+    
+    const updatedQuests = userData.financeModule.quests.map(q => {
+      if (q.id === questId) {
+        const wasCompleted = q.completed;
+        const newCompleted = progress >= 100;
+        
+        // If the quest is newly completed, show a toast
+        if (newCompleted && !wasCompleted) {
+          toast({
+            title: "Quête complétée !",
+            description: `Vous avez terminé la quête "${q.name}" !`,
+          });
+        }
+        
+        return {
+          ...q,
+          progress,
+          completed: newCompleted
+        };
+      }
+      return q;
+    });
+    
+    updateFinanceModule({ quests: updatedQuests });
+  }, [userData?.financeModule?.quests, updateFinanceModule]);
 
   useEffect(() => {
     if (!loading) {
@@ -72,7 +124,7 @@ const Finances = () => {
         saveMonthData(selectedMonth, currentMonthData);
       }
     };
-  }, [selectedMonth, currentMonthData]);
+  }, [selectedMonth, currentMonthData, saveMonthData]);
 
   if (loading) {
     return (
