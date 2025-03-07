@@ -7,13 +7,12 @@ const soundEffects = {
   click: "/sounds/click.mp3",
   badge: "/sounds/badge.mp3",
   levelUp: "/sounds/level-up.mp3",
-  success: "/sounds/level-up.mp3",  // Using level-up sound for success temporarily
-  delete: "/sounds/click.mp3"       // Using click sound for delete temporarily
+  success: "/sounds/level-up.mp3"  // Using level-up sound for success temporarily
 };
 
 /**
  * Plays a sound effect
- * @param sound The sound effect to play (click, badge, levelUp, success, delete)
+ * @param sound The sound effect to play (click, badge, levelUp, success)
  */
 export const playSound = (sound: keyof typeof soundEffects) => {
   try {
