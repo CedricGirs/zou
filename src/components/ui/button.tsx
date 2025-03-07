@@ -36,22 +36,14 @@ const buttonVariants = cva(
   }
 )
 
+// Define the valid sound effect names
+type SoundEffect = "click" | "badge" | "levelUp" | "success" | "delete" | "achievement" | "transaction";
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
-  sound?: keyof typeof soundEffects | false
-}
-
-// Obtenir les noms des sons depuis audioUtils sans importer tout le fichier
-type soundEffects = {
-  click: string
-  badge: string
-  levelUp: string
-  success: string
-  delete: string
-  achievement: string
-  transaction: string
+  sound?: SoundEffect | false
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

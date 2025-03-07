@@ -3,7 +3,7 @@
 const audioCache: Record<string, HTMLAudioElement> = {};
 
 // Chemins des effets sonores
-const soundEffects = {
+export const soundEffects = {
   click: "/sounds/click.mp3",
   badge: "/sounds/badge.mp3",
   levelUp: "/sounds/level-up.mp3",
@@ -13,12 +13,15 @@ const soundEffects = {
   transaction: "/sounds/click.mp3"
 };
 
+// Type des effets sonores disponibles
+export type SoundEffectType = keyof typeof soundEffects;
+
 /**
  * Joue un effet sonore
  * @param sound L'effet sonore à jouer (click, badge, levelUp, success, delete, achievement, transaction)
  * @param volume Volume du son (0-1, par défaut 0.7)
  */
-export const playSound = (sound: keyof typeof soundEffects, volume: number = 0.7) => {
+export const playSound = (sound: SoundEffectType, volume: number = 0.7) => {
   try {
     // Vérifier si l'audio est déjà en cache
     if (!audioCache[sound]) {
@@ -44,7 +47,7 @@ export const playSound = (sound: keyof typeof soundEffects, volume: number = 0.7
  */
 export const preloadSounds = () => {
   Object.keys(soundEffects).forEach(key => {
-    const sound = key as keyof typeof soundEffects;
+    const sound = key as SoundEffectType;
     if (!audioCache[sound]) {
       const audio = new Audio(soundEffects[sound]);
       audio.preload = "auto";
