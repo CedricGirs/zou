@@ -9,11 +9,8 @@ import {
   PiggyBank, 
   ChartPie, 
   Wallet,
-  Calendar,
   ArrowUpDown,
   Trophy,
-  BadgeDollarSign,
-  Medal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AnnualBudget from "@/components/finance/AnnualBudget";
@@ -37,22 +34,36 @@ import { Progress } from "@/components/ui/progress";
 import XPBar from "@/components/dashboard/XPBar";
 
 const Finances = () => {
-  const { userData } = useUserData();
+  const { userData, loading } = useUserData();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: fr }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   
-  // Get finance data from context
+  // If data is loading, show a loading state
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center h-[80vh]">
+          <div className="text-center">
+            <h2 className="text-2xl font-pixel mb-4">Chargement des données financières...</h2>
+            <Progress value={80} className="w-64 h-2" />
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+  
+  // Get finance data from context with safety checks
   const { 
-    financeLevel, 
-    currentXP, 
-    maxXP, 
-    achievements,
-    quests,
-    balance,
-    monthlyIncome,
-    monthlyExpenses,
-    savingsRate
-  } = userData.financeModule;
+    financeLevel = 1, 
+    currentXP = 0, 
+    maxXP = 100, 
+    achievements = [],
+    quests = [],
+    balance = 0,
+    monthlyIncome = 0,
+    monthlyExpenses = 0,
+    savingsRate = 0
+  } = userData?.financeModule || {};
   
   // Months available for selection
   const months = [
@@ -180,7 +191,7 @@ const Finances = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {userData.financeModule.quests.map(quest => (
+              {quests && quests.map(quest => (
                 <div key={quest.id} className="border rounded-lg p-3">
                   <div className="flex justify-between items-center mb-2">
                     <h4 className="font-medium">{quest.name}</h4>
@@ -233,7 +244,7 @@ const Finances = () => {
               />
               
               <FinancialInsights 
-                transactions={userData.financeModule.transactions}
+                transactions={userData.financeModule?.transactions || []}
                 month={selectedMonth}
               />
             </div>
@@ -264,7 +275,7 @@ const Finances = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              {userData.financeModule.achievements.map(achievement => (
+              {achievements && achievements.map(achievement => (
                 <div 
                   key={achievement.id} 
                   className={`p-3 rounded-lg border flex flex-col items-center text-center gap-2 ${
@@ -276,7 +287,7 @@ const Finances = () => {
                   <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
                     achievement.completed ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400'
                   }`}>
-                    <Medal size={18} />
+                    <Trophy size={18} />
                   </div>
                   <h4 className="font-medium text-sm">{achievement.name}</h4>
                   <p className="text-xs text-muted-foreground">{achievement.description}</p>
