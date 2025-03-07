@@ -48,7 +48,8 @@ const Finances = () => {
   const { userData, loading, updateFinanceModule } = useUserData();
   const [selectedMonth, setSelectedMonth] = useState(() => {
     try {
-      return format(new Date(), 'MMMM', { locale: fr });
+      const currentMonth = format(new Date(), 'MMMM', { locale: fr });
+      return normalizeMonthName(currentMonth);
     } catch (error) {
       console.error("Erreur format date:", error);
       return "Janvier";
@@ -64,6 +65,7 @@ const Finances = () => {
   });
 
   const normalizeMonthName = (month: string): string => {
+    if (!month) return "Janvier";
     return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
   };
   
@@ -72,13 +74,28 @@ const Finances = () => {
     
     try {
       const normalizedMonth = normalizeMonthName(selectedMonth);
-      const monthlyData = {
-        ...(userData.financeModule.monthlyData || {}),
-        [normalizedMonth]: currentMonthData
+      
+      const safeTransactions = currentMonthData.transactions.map(t => ({...t}));
+      
+      const dataToSave = {
+        ...currentMonthData,
+        transactions: safeTransactions
       };
       
+      const monthlyData = {
+        ...(userData.financeModule.monthlyData || {})
+      };
+      
+      monthlyData[normalizedMonth] = dataToSave;
+      
+      if (normalizedMonth !== normalizedMonth.toLowerCase() && 
+          monthlyData[normalizedMonth.toLowerCase()]) {
+        delete monthlyData[normalizedMonth.toLowerCase()];
+      }
+      
+      console.log(`Sauvegarde des données du mois ${normalizedMonth}:`, dataToSave);
       await updateFinanceModule({ monthlyData });
-      console.log(`Données du mois ${normalizedMonth} sauvegardées:`, currentMonthData);
+      
     } catch (error) {
       console.error("Erreur lors de la sauvegarde des données mensuelles:", error);
       toast({
@@ -90,19 +107,34 @@ const Finances = () => {
   };
 
   useEffect(() => {
-    if (!loading && userData?.financeModule) {
+    if (!loading && userData?.financeModule?.monthlyData) {
       const monthlyData = userData.financeModule.monthlyData || {};
       const normalizedMonth = normalizeMonthName(selectedMonth);
       
-      const monthData = {
+      const lowercaseMonth = normalizedMonth.toLowerCase();
+      
+      const monthData: MonthlyData = {
         income: 0,
         expenses: 0,
         balance: 0,
         savingsRate: 0,
-        transactions: [],
-        ...monthlyData[normalizedMonth],
-        ...monthlyData[selectedMonth.toLowerCase()]
+        transactions: []
       };
+      
+      if (monthlyData[normalizedMonth]) {
+        Object.assign(monthData, monthlyData[normalizedMonth]);
+      }
+      
+      if (monthlyData[lowercaseMonth] && lowercaseMonth !== normalizedMonth) {
+        const combinedTransactions = [
+          ...monthData.transactions,
+          ...(monthlyData[lowercaseMonth].transactions || [])
+        ];
+        
+        Object.assign(monthData, monthlyData[lowercaseMonth], {
+          transactions: combinedTransactions
+        });
+      }
       
       console.log(`Chargement des données pour le mois: ${normalizedMonth}`, monthData);
       setCurrentMonthData(monthData);
@@ -139,12 +171,16 @@ const Finances = () => {
     await saveCurrentMonthData();
     
     const normalizedMonth = normalizeMonthName(value);
-    setSelectedMonth(normalizedMonth);
+    console.log(`Changement de mois: ${selectedMonth} -> ${normalizedMonth}`);
     
-    toast({
-      title: "Mois sélectionné",
-      description: `Données financières pour ${normalizedMonth} chargées.`,
-    });
+    if (normalizedMonth !== selectedMonth) {
+      setSelectedMonth(normalizedMonth);
+      
+      toast({
+        title: "Mois sélectionné",
+        description: `Données financières pour ${normalizedMonth} chargées.`,
+      });
+    }
   };
   
   const completeQuestStep = async (questId: string, progress: number) => {
@@ -323,7 +359,11 @@ const Finances = () => {
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
-            <Select value={selectedMonth} onValueChange={handleMonthChange}>
+            <Select 
+              value={selectedMonth} 
+              onValueChange={handleMonthChange}
+              defaultValue={selectedMonth}
+            >
               <SelectTrigger className="w-[130px]">
                 <SelectValue placeholder="Mois" />
               </SelectTrigger>

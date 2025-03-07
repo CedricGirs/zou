@@ -25,11 +25,42 @@ export const useFinanceXP = () => {
     return completedAchievements.length * XP_PER_ACHIEVEMENT;
   }, [userData?.financeModule?.achievements]);
 
+  // Calculate total balance across all months
+  const calculateTotalSavings = useCallback(() => {
+    if (!userData?.financeModule?.monthlyData) return 0;
+    
+    try {
+      const monthlyData = userData.financeModule.monthlyData;
+      let totalBalance = 0;
+      
+      // Sum up all monthly balances
+      Object.values(monthlyData).forEach(monthData => {
+        if (monthData && typeof monthData.balance === 'number') {
+          totalBalance += monthData.balance;
+        }
+      });
+      
+      console.log("Total économies cumulées:", totalBalance);
+      return totalBalance;
+    } catch (error) {
+      console.error("Erreur lors du calcul des économies totales:", error);
+      return 0;
+    }
+  }, [userData?.financeModule?.monthlyData]);
+
   const updateXPAndLevel = useCallback(async () => {
     if (!userData?.financeModule) return;
 
     try {
-      const savingsXP = calculateXPFromSavings(userData.financeModule.balance || 0);
+      // Calculate total savings across all months
+      const totalSavings = calculateTotalSavings();
+      
+      // Update the balance property with total savings
+      if (userData.financeModule.balance !== totalSavings) {
+        await updateFinanceModule({ balance: totalSavings });
+      }
+      
+      const savingsXP = calculateXPFromSavings(totalSavings);
       const achievementsXP = calculateXPFromAchievements();
       const totalXP = savingsXP + achievementsXP;
       
@@ -42,6 +73,7 @@ export const useFinanceXP = () => {
         maxXP: userData.financeModule.maxXP
       });
 
+      // Calculate new level based on XP
       let newLevel = 1;
       let threshold = calculateLevelThreshold(newLevel + 1);
 
@@ -53,6 +85,7 @@ export const useFinanceXP = () => {
       const currentLevel = userData.financeModule.financeLevel || 1;
       const hasLeveledUp = newLevel > currentLevel;
 
+      // Show toast if user leveled up
       if (hasLeveledUp) {
         toast({
           title: "Niveau supérieur !",
@@ -61,16 +94,21 @@ export const useFinanceXP = () => {
         });
       }
 
-      await updateFinanceModule({
-        currentXP: totalXP,
-        financeLevel: newLevel,
-        maxXP: calculateLevelThreshold(newLevel + 1)
-      });
+      // Only update if values have changed to avoid infinite loops
+      if (totalXP !== userData.financeModule.currentXP || 
+          newLevel !== userData.financeModule.financeLevel) {
+        await updateFinanceModule({
+          currentXP: totalXP,
+          financeLevel: newLevel,
+          maxXP: calculateLevelThreshold(newLevel + 1)
+        });
+      }
     } catch (error) {
       console.error("Erreur lors de la mise à jour de l'XP:", error);
     }
-  }, [userData?.financeModule, calculateXPFromSavings, calculateXPFromAchievements, updateFinanceModule]);
+  }, [userData?.financeModule, calculateXPFromSavings, calculateXPFromAchievements, calculateTotalSavings, updateFinanceModule]);
 
+  // Update XP and level when finance module data changes
   useEffect(() => {
     if (userData?.financeModule) {
       updateXPAndLevel();
