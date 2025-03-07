@@ -17,6 +17,8 @@ interface FinanceTabsProps {
   selectedMonth: string;
   currentMonthData: MonthlyData;
   setCurrentMonthData: React.Dispatch<React.SetStateAction<MonthlyData>>;
+  updateCurrentMonthData: (updates: Partial<MonthlyData>) => Promise<MonthlyData>;
+  addTransaction: (transaction: any) => Promise<MonthlyData>;
   savingsGoal: number;
   unlockAchievement: (achievementId: string) => Promise<void>;
   completeQuestStep: (questId: string, progress: number) => Promise<void>;
@@ -26,6 +28,8 @@ const FinanceTabs = ({
   selectedMonth,
   currentMonthData,
   setCurrentMonthData,
+  updateCurrentMonthData,
+  addTransaction,
   savingsGoal,
   unlockAchievement,
   completeQuestStep
@@ -86,12 +90,8 @@ const FinanceTabs = ({
           selectedMonth={selectedMonth} 
           completeQuestStep={completeQuestStep}
           transactions={currentMonthData.transactions || []}
-          updateMonthData={(newData) => {
-            setCurrentMonthData(prev => ({
-              ...prev,
-              ...newData
-            }));
-          }}
+          updateMonthData={updateCurrentMonthData}
+          addTransaction={addTransaction}
         />
       </TabsContent>
       
