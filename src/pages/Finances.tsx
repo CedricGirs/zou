@@ -66,6 +66,7 @@ const Finances = () => {
   // Charger les données pour le mois sélectionné
   useEffect(() => {
     if (!loading && userData?.financeModule) {
+      // Récupérer les données du mois sélectionné ou initialiser à 0 si aucune donnée n'existe
       const monthData = userData.financeModule.monthlyData?.[selectedMonth] || {
         income: 0,
         expenses: 0,
@@ -74,6 +75,7 @@ const Finances = () => {
         transactions: []
       };
       
+      console.log(`Chargement des données pour ${selectedMonth}:`, monthData);
       setCurrentMonthData(monthData);
     }
   }, [selectedMonth, userData, loading]);
@@ -86,6 +88,7 @@ const Finances = () => {
         [selectedMonth]: currentMonthData
       };
       
+      console.log(`Sauvegarde des données pour ${selectedMonth}:`, currentMonthData);
       await updateFinanceModule({ monthlyData });
       
       return true;
@@ -140,7 +143,7 @@ const Finances = () => {
       // Sauvegarder également lors du démontage du composant
       saveMonthData();
     };
-  }, [userData, currentMonthData, selectedMonth, saveMonthData]);
+  }, [userData, currentMonthData, selectedMonth]);
   
   const unlockAchievement = async (achievementId: string): Promise<void> => {
     if (!userData.financeModule) return;

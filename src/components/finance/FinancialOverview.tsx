@@ -65,6 +65,7 @@ const FinancialOverview = ({
       }
     });
     
+    console.log("Total des économies cumulées:", totalSavings);
     return totalSavings;
   };
 
@@ -77,11 +78,18 @@ const FinancialOverview = ({
     const savingsPercent = income > 0 ? Math.round(((income - expenses) / income) * 100) : 0;
     setSavingsPercentage(savingsPercent);
     
+    console.log(`Données du mois ${selectedMonth}:`, { income, expenses, savingsPercent });
+    
     // Calculate and set total cumulative savings
     const calculatedTotalSavings = calculateTotalSavings();
     setTotalCumulativeSavings(calculatedTotalSavings);
     
   }, [income, expenses, selectedMonth, userData.financeModule?.monthlyData]);
+
+  useEffect(() => {
+    // Mettre à jour la valeur de l'objectif d'épargne lorsque userData change
+    setSavingsGoalValue(userData.financeModule?.savingsGoal || 0);
+  }, [userData.financeModule?.savingsGoal]);
 
   const handleOpenSavingsGoalDialog = () => {
     setSavingsGoalValue(userData.financeModule?.savingsGoal || 0);
