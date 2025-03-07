@@ -75,7 +75,7 @@ const AnnualBudget = () => {
 
   // Update chart data when userData changes
   useEffect(() => {
-    if (userData.financeModule.annualBudget) {
+    if (userData?.financeModule?.annualBudget) {
       // Ensure months are in the correct order
       const formattedData = months.map(month => {
         const data = userData.financeModule.annualBudget[month] || { income: 0, expenses: 0 };
@@ -88,17 +88,17 @@ const AnnualBudget = () => {
       });
       setChartData(formattedData);
     }
-  }, [userData.financeModule.annualBudget]);
+  }, [userData?.financeModule?.annualBudget]);
 
   const handleEditMonth = (month: string) => {
-    const monthData = userData.financeModule.annualBudget?.[month] || { income: 0, expenses: 0 };
+    const monthData = userData?.financeModule?.annualBudget?.[month] || { income: 0, expenses: 0 };
     setMonthlyIncome(monthData.income);
     setMonthlyExpenses(monthData.expenses);
     setSelectedMonth(month);
   };
 
   const handleSaveMonth = async () => {
-    if (selectedMonth && userData.financeModule.annualBudget) {
+    if (selectedMonth && userData?.financeModule?.annualBudget) {
       const updatedBudget = {
         ...userData.financeModule.annualBudget,
         [selectedMonth]: {
@@ -119,7 +119,7 @@ const AnnualBudget = () => {
   };
 
   const calculateTotals = () => {
-    if (!userData.financeModule.annualBudget) return { totalIncome: 0, totalExpenses: 0, totalSavings: 0 };
+    if (!userData?.financeModule?.annualBudget) return { totalIncome: 0, totalExpenses: 0, totalSavings: 0 };
     
     let totalIncome = 0;
     let totalExpenses = 0;
@@ -139,7 +139,7 @@ const AnnualBudget = () => {
   const { totalIncome, totalExpenses, totalSavings } = calculateTotals();
 
   const getMonthColor = (month: string) => {
-    if (!userData.financeModule.annualBudget?.[month]) return "bg-gray-100 border-gray-200";
+    if (!userData?.financeModule?.annualBudget?.[month]) return "bg-gray-100 border-gray-200";
     
     const data = userData.financeModule.annualBudget[month];
     const savings = data.income - data.expenses;
@@ -150,7 +150,7 @@ const AnnualBudget = () => {
   };
 
   const getMonthIcon = (month: string) => {
-    if (!userData.financeModule.annualBudget?.[month]) return <Wallet className="text-gray-400" size={18} />;
+    if (!userData?.financeModule?.annualBudget?.[month]) return <Wallet className="text-gray-400" size={18} />;
     
     const data = userData.financeModule.annualBudget[month];
     const savings = data.income - data.expenses;
@@ -175,7 +175,7 @@ const AnnualBudget = () => {
       return;
     }
 
-    const currentTemplates = [...userData.financeModule.budgetTemplates];
+    const currentTemplates = [...(userData?.financeModule?.budgetTemplates || [])];
     
     if (editingTemplateId) {
       // Update existing template
@@ -219,7 +219,7 @@ const AnnualBudget = () => {
   };
 
   const handleEditTemplate = (templateId: string) => {
-    const template = userData.financeModule.budgetTemplates.find(t => t.id === templateId);
+    const template = userData?.financeModule?.budgetTemplates?.find(t => t.id === templateId);
     if (template) {
       setEditingTemplateId(templateId);
       setTemplateName(template.name);
@@ -231,7 +231,7 @@ const AnnualBudget = () => {
   };
 
   const handleDeleteTemplate = async (templateId: string) => {
-    const updatedTemplates = userData.financeModule.budgetTemplates.filter(t => t.id !== templateId);
+    const updatedTemplates = userData?.financeModule?.budgetTemplates?.filter(t => t.id !== templateId) || [];
     await updateFinanceModule({ budgetTemplates: updatedTemplates });
     toast({
       title: "Modèle supprimé",
@@ -256,10 +256,10 @@ const AnnualBudget = () => {
   const handleApplyTemplate = async () => {
     if (!selectedMonth || !selectedTemplateId) return;
     
-    const template = userData.financeModule.budgetTemplates.find(t => t.id === selectedTemplateId);
+    const template = userData?.financeModule?.budgetTemplates?.find(t => t.id === selectedTemplateId);
     if (template) {
       const updatedBudget = {
-        ...userData.financeModule.annualBudget,
+        ...(userData?.financeModule?.annualBudget || {}),
         [selectedMonth]: {
           income: template.income,
           expenses: template.expenses
@@ -350,7 +350,7 @@ const AnnualBudget = () => {
         
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
           {months.map((month) => {
-            const monthData = userData.financeModule.annualBudget?.[month] || { income: 0, expenses: 0 };
+            const monthData = userData?.financeModule?.annualBudget?.[month] || { income: 0, expenses: 0 };
             const savings = monthData.income - monthData.expenses;
             const isPositive = savings > 0;
             const isNegative = savings < 0;
@@ -427,7 +427,7 @@ const AnnualBudget = () => {
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {userData.financeModule.budgetTemplates.map((template) => (
+            {userData?.financeModule?.budgetTemplates?.map((template) => (
               <div 
                 key={template.id}
                 className="border rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
@@ -686,7 +686,7 @@ const AnnualBudget = () => {
                     <SelectValue placeholder="Choisir un modèle" />
                   </SelectTrigger>
                   <SelectContent>
-                    {userData.financeModule.budgetTemplates.map((template) => (
+                    {(userData?.financeModule?.budgetTemplates || []).map((template) => (
                       <SelectItem key={template.id} value={template.id}>
                         {template.name} ({formatCurrency(template.income)} / {formatCurrency(template.expenses)})
                       </SelectItem>
@@ -698,7 +698,7 @@ const AnnualBudget = () => {
               {selectedTemplateId && (
                 <div className="border rounded-md p-3 bg-gray-50">
                   {(() => {
-                    const template = userData.financeModule.budgetTemplates.find(t => t.id === selectedTemplateId);
+                    const template = userData?.financeModule?.budgetTemplates?.find(t => t.id === selectedTemplateId);
                     if (!template) return null;
                     
                     return (
