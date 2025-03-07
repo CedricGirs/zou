@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
-import { useUserData } from "@/context/UserDataContext";
+import { useUserData, FinanceAchievement } from "@/context/UserDataContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   DollarSign, 
@@ -40,8 +41,6 @@ import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import XPBar from "@/components/dashboard/XPBar";
-import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
 import { MonthlyData } from "@/context/UserDataContext";
 
 const Finances = () => {
@@ -55,6 +54,7 @@ const Finances = () => {
     transactions: []
   });
   
+  // Effet pour charger les données du mois sélectionné
   useEffect(() => {
     if (!loading && userData?.financeModule) {
       const monthData = userData.financeModule.monthlyData?.[selectedMonth] || {
@@ -68,6 +68,34 @@ const Finances = () => {
       setCurrentMonthData(monthData);
     }
   }, [selectedMonth, userData, loading]);
+  
+  // Effet pour sauvegarder les données du mois actuel avant de quitter la page
+  useEffect(() => {
+    const saveCurrentData = async () => {
+      if (userData?.financeModule) {
+        const monthlyData = {
+          ...(userData.financeModule.monthlyData || {}),
+          [selectedMonth]: currentMonthData
+        };
+        
+        await updateFinanceModule({ monthlyData });
+      }
+    };
+    
+    // Sauvegarder les données lorsque l'utilisateur quitte la page
+    window.addEventListener('beforeunload', () => {
+      saveCurrentData();
+    });
+    
+    return () => {
+      window.removeEventListener('beforeunload', () => {
+        saveCurrentData();
+      });
+      
+      // Sauvegarder aussi quand le composant est démonté
+      saveCurrentData();
+    };
+  }, [selectedMonth, currentMonthData, userData, updateFinanceModule]);
   
   if (loading) {
     return (
@@ -95,7 +123,9 @@ const Finances = () => {
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
 
+  // Gérer le changement de mois
   const handleMonthChange = async (value: string) => {
+    // Sauvegarder d'abord les données du mois actuel
     if (userData?.financeModule) {
       const monthlyData = {
         ...(userData.financeModule.monthlyData || {}),
@@ -105,8 +135,10 @@ const Finances = () => {
       await updateFinanceModule({ monthlyData });
     }
     
+    // Puis changer le mois sélectionné
     setSelectedMonth(value);
     
+    // Charger les données du nouveau mois sélectionné
     const newMonthData = userData?.financeModule?.monthlyData?.[value] || {
       income: 0,
       expenses: 0,
@@ -123,6 +155,7 @@ const Finances = () => {
     });
   };
   
+  // Fonction pour compléter une étape de quête
   const completeQuestStep = async (questId: string, progress: number) => {
     if (!userData.financeModule) return;
     
@@ -166,6 +199,7 @@ const Finances = () => {
     }
   };
   
+  // Fonction pour débloquer un succès
   const unlockAchievement = async (achievementId: string) => {
     if (!userData.financeModule) return;
     

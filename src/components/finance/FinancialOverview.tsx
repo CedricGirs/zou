@@ -98,7 +98,7 @@ const FinancialOverview = ({
     if (completeQuestStep && userData.financeModule?.quests) {
       const createSavingsQuest = userData.financeModule.quests.find(q => q.id === "create_savings");
       if (createSavingsQuest) {
-        completeQuestStep("create_savings", 50);
+        await completeQuestStep("create_savings", 50);
       }
     }
     
