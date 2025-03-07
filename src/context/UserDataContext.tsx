@@ -1,5 +1,6 @@
+
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { doc, setDoc, getDoc, updateDoc, collection } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from '@/hooks/use-toast';
 import { playSound } from '@/utils/audioUtils';
@@ -31,14 +32,14 @@ export interface LookModule {
   style: 'classic' | 'sporty' | 'streetwear';
 }
 
+// Simplified finance data structure
 export interface Transaction {
   id: string;
-  date: string;
-  month: string;
+  date: string; 
   description: string;
   amount: number;
   category: string;
-  isVerified: boolean;
+  type: 'income' | 'expense';
 }
 
 export interface SavingsGoal {
@@ -49,25 +50,48 @@ export interface SavingsGoal {
   deadline: string;
 }
 
+export interface MonthlyBudget {
+  income: number;
+  expenses: number;
+}
+
+export interface FinanceAchievement {
+  id: string;
+  name: string;
+  description: string;
+  completed: boolean;
+  xpReward: number;
+}
+
+export interface FinanceQuest {
+  id: string;
+  name: string;
+  description: string;
+  completed: boolean;
+  progress: number;
+  xpReward: number;
+}
+
 export interface FinanceModule {
+  // Core financial data
+  balance: number;
   monthlyIncome: number;
-  fixedExpenses: number;
-  savingsGoal: number;
-  additionalIncome?: number;
-  housingExpenses?: number;
-  transportExpenses?: number;
-  foodExpenses?: number;
-  leisureExpenses?: number;
-  debtPayments?: number;
-  emergencyFund?: number;
-  transactions?: Transaction[];
-  savingsGoals?: SavingsGoal[];
-  annualBudget?: {
-    [month: string]: {
-      income: number;
-      expenses: number;
-    }
+  monthlyExpenses: number;
+  savingsRate: number;
+  transactions: Transaction[];
+  savingsGoals: SavingsGoal[];
+  
+  // Budgeting
+  annualBudget: {
+    [month: string]: MonthlyBudget;
   };
+  
+  // Gamification elements
+  financeLevel: number;
+  currentXP: number;
+  maxXP: number;
+  achievements: FinanceAchievement[];
+  quests: FinanceQuest[];
 }
 
 export interface CourseItem {
@@ -135,22 +159,20 @@ const defaultLookModule: LookModule = {
   style: 'classic',
 };
 
+// New default finance module with all values reset
 const defaultFinanceModule: FinanceModule = {
+  // Core financial data
+  balance: 0,
   monthlyIncome: 0,
-  fixedExpenses: 0,
-  savingsGoal: 0,
-  additionalIncome: 0,
-  housingExpenses: 0,
-  transportExpenses: 0,
-  foodExpenses: 0,
-  leisureExpenses: 0,
-  debtPayments: 0,
-  emergencyFund: 0,
+  monthlyExpenses: 0,
+  savingsRate: 0,
   transactions: [],
   savingsGoals: [
-    { id: "emergency", name: "Fonds d'urgence", target: 0, saved: 0, deadline: "2024-12-31" },
-    { id: "vacation", name: "Vacances", target: 0, saved: 0, deadline: "2024-06-30" }
+    { id: "emergency", name: "Fonds d'urgence", target: 3000, saved: 0, deadline: "2024-12-31" },
+    { id: "vacation", name: "Vacances", target: 1200, saved: 0, deadline: "2024-06-30" }
   ],
+  
+  // Budgeting
   annualBudget: {
     "Janvier": { income: 0, expenses: 0 },
     "Février": { income: 0, expenses: 0 },
@@ -164,7 +186,23 @@ const defaultFinanceModule: FinanceModule = {
     "Octobre": { income: 0, expenses: 0 },
     "Novembre": { income: 0, expenses: 0 },
     "Décembre": { income: 0, expenses: 0 }
-  }
+  },
+  
+  // Gamification elements
+  financeLevel: 1,
+  currentXP: 0,
+  maxXP: 100,
+  achievements: [
+    { id: "first_budget", name: "Planificateur", description: "Créer votre premier budget", completed: false, xpReward: 25 },
+    { id: "first_transaction", name: "Comptable", description: "Enregistrer votre première transaction", completed: false, xpReward: 15 },
+    { id: "first_savings", name: "Épargnant", description: "Créer votre premier objectif d'épargne", completed: false, xpReward: 20 },
+    { id: "financial_balance", name: "Équilibriste", description: "Maintenir un budget équilibré pendant 1 mois", completed: false, xpReward: 50 }
+  ],
+  quests: [
+    { id: "set_budget", name: "Définir un budget", description: "Établir vos revenus et dépenses mensuels", completed: false, progress: 0, xpReward: 30 },
+    { id: "track_transactions", name: "Suivre vos dépenses", description: "Enregistrer 5 transactions", completed: false, progress: 0, xpReward: 25 },
+    { id: "create_savings", name: "Objectif d'épargne", description: "Créer un objectif d'épargne avec échéance", completed: false, progress: 0, xpReward: 20 }
+  ]
 };
 
 // État utilisateur par défaut
