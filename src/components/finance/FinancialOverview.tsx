@@ -49,35 +49,41 @@ const FinancialOverview = ({
   const [actualIncome, setActualIncome] = useState(0);
   const [actualExpenses, setActualExpenses] = useState(0);
   const [savingsPercentage, setSavingsPercentage] = useState(0);
-  const [currentSavings, setCurrentSavings] = useState(0);
   const [totalCumulativeSavings, setTotalCumulativeSavings] = useState(0);
 
+  // Fonction pour calculer le total des économies cumulées
+  const calculateTotalSavings = () => {
+    if (!userData.financeModule?.monthlyData) return 0;
+    
+    let totalSavings = 0;
+    
+    // Parcourir toutes les données mensuelles et additionner les économies positives
+    Object.values(userData.financeModule.monthlyData).forEach(monthData => {
+      const monthSavings = monthData.income - monthData.expenses;
+      if (monthSavings > 0) {
+        totalSavings += monthSavings;
+      }
+    });
+    
+    return totalSavings;
+  };
+
   useEffect(() => {
-    // Calculate current month data
+    // Update current month data
     setActualIncome(income);
     setActualExpenses(expenses);
     
-    // Calculer l'épargne du mois actuel
-    const calculatedSavings = income - expenses;
-    
-    // Calculer le pourcentage d'épargne du mois actuel
-    const savingsPercent = income > 0 ? Math.round((calculatedSavings / income) * 100) : 0;
+    // Calculate current month savings percentage
+    const savingsPercent = income > 0 ? Math.round(((income - expenses) / income) * 100) : 0;
     setSavingsPercentage(savingsPercent);
     
-    // Calculate cumulative savings from all months
-    if (userData.financeModule?.monthlyData) {
-      let totalSavings = 0;
-      
-      // Sum up positive balance (savings) from all months
-      Object.values(userData.financeModule.monthlyData).forEach(monthData => {
-        const monthSavings = monthData.income - monthData.expenses;
-        if (monthSavings > 0) {
-          totalSavings += monthSavings;
-        }
-      });
-      
-      setTotalCumulativeSavings(totalSavings);
-    }
+    // Calculate and set total cumulative savings
+    const calculatedTotalSavings = calculateTotalSavings();
+    setTotalCumulativeSavings(calculatedTotalSavings);
+    
+    // Log pour vérification
+    console.log('Données mensuelles:', userData.financeModule?.monthlyData);
+    console.log('Total économies cumulées:', calculatedTotalSavings);
     
   }, [income, expenses, selectedMonth, userData.financeModule?.monthlyData]);
 
