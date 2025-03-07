@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap, Award, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,36 +32,20 @@ const FinancialOverview = ({
   completeQuestStep
 }: FinancialOverviewProps) => {
   const { userData, updateFinanceModule } = useUserData();
-  const { updateXPAndLevel } = useFinanceXP();
+  const { updateXPAndLevel, calculateTotalSavings } = useFinanceXP();
   
   const [isEditingSavingsGoal, setIsEditingSavingsGoal] = useState(false);
-  
   const [savingsGoalValue, setSavingsGoalValue] = useState(userData.financeModule?.savingsGoal || 0);
-
   const [actualIncome, setActualIncome] = useState(0);
   const [actualExpenses, setActualExpenses] = useState(0);
   const [savingsPercentage, setSavingsPercentage] = useState(0);
   const [totalCumulativeSavings, setTotalCumulativeSavings] = useState(0);
 
-  const calculateTotalSavings = () => {
-    if (!userData.financeModule?.monthlyData) return 0;
-    
-    let totalSavings = 0;
-    
-    Object.entries(userData.financeModule.monthlyData).forEach(([month, monthData]) => {
-      const monthSavings = monthData.income - monthData.expenses;
-      if (monthSavings > 0) {
-        totalSavings += monthSavings;
-        console.log(`Économies du mois ${month}: ${monthSavings}€`);
-      }
-    });
-    
-    return totalSavings;
-  };
-
   useEffect(() => {
-    // Ajout d'une protection contre l'exécution avant que userData ne soit chargé
     if (!userData || !userData.financeModule) return;
+    
+    const calculatedTotalSavings = calculateTotalSavings();
+    setTotalCumulativeSavings(calculatedTotalSavings);
     
     setActualIncome(income);
     setActualExpenses(expenses);
@@ -70,22 +53,10 @@ const FinancialOverview = ({
     const savingsPercent = income > 0 ? Math.round(((income - expenses) / income) * 100) : 0;
     setSavingsPercentage(savingsPercent);
     
-    const calculatedTotalSavings = calculateTotalSavings();
-    setTotalCumulativeSavings(calculatedTotalSavings);
-    
-    console.log('Données mensuelles:', userData.financeModule?.monthlyData);
-    console.log('Total économies cumulées:', calculatedTotalSavings);
-    
     if (userData.financeModule && calculatedTotalSavings !== userData.financeModule.balance) {
-      updateFinanceModule({ balance: calculatedTotalSavings }).then(() => {
-        updateXPAndLevel();
-      }).catch(error => {
-        console.error("Erreur lors de la mise à jour du module finance:", error);
-      });
-    } else {
-      updateXPAndLevel();
+      updateFinanceModule({ balance: calculatedTotalSavings });
     }
-  }, [income, expenses, selectedMonth, userData?.financeModule?.monthlyData, updateXPAndLevel, updateFinanceModule]);
+  }, [income, expenses, selectedMonth, userData?.financeModule?.monthlyData, calculateTotalSavings, updateFinanceModule]);
 
   const handleOpenSavingsGoalDialog = () => {
     setSavingsGoalValue(userData.financeModule?.savingsGoal || 0);

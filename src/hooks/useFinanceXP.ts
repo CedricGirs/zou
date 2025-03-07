@@ -28,7 +28,20 @@ export const useFinanceXP = () => {
   // Normaliser le nom du mois
   const normalizeMonthName = useCallback((month: string): string => {
     if (!month) return "";
-    return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+    const normalized = month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+    
+    // Correction des mois spécifiques
+    const monthCorrections: { [key: string]: string } = {
+      "Fevrier": "Février",
+      "Fev": "Février",
+      "Fév": "Février",
+      "Aout": "Août",
+      "Decembre": "Décembre",
+      "Dec": "Décembre",
+      "Déc": "Décembre"
+    };
+    
+    return monthCorrections[normalized] || normalized;
   }, []);
 
   // Calculate total balance across all months
@@ -40,24 +53,34 @@ export const useFinanceXP = () => {
       let totalBalance = 0;
       const processedMonths = new Set<string>();
       
-      // Sum up all monthly balances, handle case-insensitive duplicates
-      Object.entries(monthlyData).forEach(([month, monthData]) => {
-        // Normalize month name
+      // Nettoyer et fusionner les données des mois
+      const cleanedMonthlyData: Record<string, any> = {};
+      
+      Object.entries(monthlyData).forEach(([month, data]) => {
         const normalizedMonth = normalizeMonthName(month);
         
-        // Skip if we've already processed this month (case-insensitive)
-        if (processedMonths.has(normalizedMonth.toLowerCase())) {
-          return;
-        }
-        
-        if (monthData && typeof monthData.balance === 'number') {
-          totalBalance += monthData.balance;
-          processedMonths.add(normalizedMonth.toLowerCase());
+        if (!cleanedMonthlyData[normalizedMonth]) {
+          cleanedMonthlyData[normalizedMonth] = data;
+        } else {
+          // Fusionner les données si le mois existe déjà
+          cleanedMonthlyData[normalizedMonth] = {
+            income: (cleanedMonthlyData[normalizedMonth].income || 0) + (data.income || 0),
+            expenses: (cleanedMonthlyData[normalizedMonth].expenses || 0) + (data.expenses || 0),
+            balance: (cleanedMonthlyData[normalizedMonth].balance || 0) + (data.balance || 0),
+            transactions: [...(cleanedMonthlyData[normalizedMonth].transactions || []), ...(data.transactions || [])]
+          };
         }
       });
       
-      console.log("Total économies cumulées (normalisé):", totalBalance);
-      return totalBalance;
+      // Calculer le total des économies
+      Object.values(cleanedMonthlyData).forEach((monthData: any) => {
+        if (monthData && typeof monthData.balance === 'number') {
+          totalBalance += monthData.balance;
+        }
+      });
+      
+      console.log("Total économies après nettoyage:", totalBalance);
+      return Math.max(0, totalBalance); // Pas d'économies négatives
     } catch (error) {
       console.error("Erreur lors du calcul des économies totales:", error);
       return 0;
@@ -68,10 +91,9 @@ export const useFinanceXP = () => {
     if (!userData?.financeModule) return;
 
     try {
-      // Calculate total savings across all months
       const totalSavings = calculateTotalSavings();
       
-      // Update the balance property with total savings
+      // Mettre à jour le solde total si nécessaire
       if (userData.financeModule.balance !== totalSavings) {
         await updateFinanceModule({ balance: totalSavings });
       }
@@ -89,7 +111,7 @@ export const useFinanceXP = () => {
         maxXP: userData.financeModule.maxXP
       });
 
-      // Calculate new level based on XP
+      // Calculer le nouveau niveau
       let newLevel = 1;
       let threshold = calculateLevelThreshold(newLevel + 1);
 
@@ -101,7 +123,6 @@ export const useFinanceXP = () => {
       const currentLevel = userData.financeModule.financeLevel || 1;
       const hasLeveledUp = newLevel > currentLevel;
 
-      // Show toast if user leveled up
       if (hasLeveledUp) {
         toast({
           title: "Niveau supérieur !",
@@ -110,7 +131,7 @@ export const useFinanceXP = () => {
         });
       }
 
-      // Only update if values have changed to avoid infinite loops
+      // Mettre à jour uniquement si les valeurs ont changé
       if (totalXP !== userData.financeModule.currentXP || 
           newLevel !== userData.financeModule.financeLevel) {
         await updateFinanceModule({
@@ -126,14 +147,21 @@ export const useFinanceXP = () => {
 
   // Update XP and level when finance module data changes
   useEffect(() => {
-    if (userData?.financeModule) {
+    let isMounted = true;
+    
+    if (userData?.financeModule && isMounted) {
       updateXPAndLevel();
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [updateXPAndLevel, userData?.financeModule]);
 
   return {
     updateXPAndLevel,
     calculateLevelThreshold,
-    normalizeMonthName
+    normalizeMonthName,
+    calculateTotalSavings
   };
 };
