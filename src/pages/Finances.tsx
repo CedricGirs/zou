@@ -7,16 +7,16 @@ import {
   DollarSign, 
   TrendingUp, 
   PiggyBank, 
-  CreditCard, 
   ChartPie, 
   Wallet,
   Calendar,
-  Settings,
   ArrowUpDown,
-  Download,
-  FileText,
+  Trophy,
   Target,
-  BadgeDollarSign
+  Sparkles,
+  Star,
+  BadgeDollarSign,
+  Medal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AnnualBudget from "@/components/finance/AnnualBudget";
@@ -36,36 +36,44 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import XPBar from "@/components/dashboard/XPBar";
 
 const Finances = () => {
   const { userData } = useUserData();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'MMMM', { locale: fr }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   
-  // Calcul des statistiques financières
-  const totalIncome = (userData.financeModule.monthlyIncome || 0) + (userData.financeModule.additionalIncome || 0);
-  const totalExpenses = (
-    (userData.financeModule.housingExpenses || 0) + 
-    (userData.financeModule.foodExpenses || 0) + 
-    (userData.financeModule.transportExpenses || 0) + 
-    (userData.financeModule.leisureExpenses || 0) + 
-    (userData.financeModule.fixedExpenses || 0) +
-    (userData.financeModule.debtPayments || 0)
-  );
-  const balance = totalIncome - totalExpenses;
-  const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
+  // User's finance level and experience
+  const financeLevel = 3;
+  const currentXP = 320;
+  const maxXP = 500;
   
-  // Mois disponibles pour la sélection
+  // Financial achievements
+  const achievements = [
+    { id: 1, name: "Budget Master", icon: <Wallet size={20} />, completed: true, xp: 50 },
+    { id: 2, name: "Savings Hero", icon: <PiggyBank size={20} />, completed: true, xp: 100 },
+    { id: 3, name: "Transaction Tracker", icon: <ArrowUpDown size={20} />, completed: false, xp: 75 },
+    { id: 4, name: "Investment Guru", icon: <TrendingUp size={20} />, completed: false, xp: 150 },
+  ];
+  
+  // Finance quests
+  const quests = [
+    { id: 1, name: "Set monthly budget", description: "Define your income and expenses", reward: "25 XP", progress: 100 },
+    { id: 2, name: "Track 10 transactions", description: "Add real transactions to your tracker", reward: "50 XP", progress: 30 },
+    { id: 3, name: "Create a savings goal", description: "Set up a savings target with deadline", reward: "30 XP", progress: 0 },
+  ];
+  
+  // Months available for selection
   const months = [
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
   
-  // Années disponibles pour la sélection
+  // Years available for selection
   const years = ['2022', '2023', '2024', '2025'];
 
   const handleExportData = () => {
-    // Cette fonction permettrait d'exporter toutes les données financières
     toast({
       title: "Export des données financières",
       description: "Vos données financières ont été exportées avec succès.",
@@ -75,11 +83,11 @@ const Finances = () => {
   return (
     <MainLayout>
       <div className="flex flex-col space-y-6">
-        {/* En-tête avec titre et sélecteurs de date */}
+        {/* Header with title and date selectors */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h1 className="font-pixel text-3xl mb-2">Finance Master</h1>
-            <p className="text-muted-foreground">Votre tableau de bord financier personnel</p>
+            <h1 className="font-pixel text-3xl mb-2">Finance Quest</h1>
+            <p className="text-muted-foreground">Votre aventure financière commence ici</p>
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
@@ -106,13 +114,53 @@ const Finances = () => {
             </Select>
             
             <Button variant="outline" size="sm" onClick={handleExportData}>
-              <Download size={16} className="mr-2" />
-              Exporter
+              <Trophy size={16} className="mr-2 text-amber-500" />
+              Récompenses
             </Button>
           </div>
         </div>
 
-        {/* Aperçu financier */}
+        {/* Gamified progression section */}
+        <div className="glass-card p-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="h-12 w-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold">
+                {financeLevel}
+              </div>
+              <div>
+                <h3 className="font-pixel text-lg">Niveau Finance</h3>
+                <p className="text-sm text-muted-foreground">Maître du Budget</p>
+              </div>
+            </div>
+            <div className="w-full md:w-1/2">
+              <XPBar currentXP={currentXP} maxXP={maxXP} />
+              <p className="text-xs text-right text-muted-foreground mt-1">Prochain niveau: Planificateur Financier</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
+            {quests.map(quest => (
+              <Card key={quest.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex justify-between">
+                    <span>{quest.name}</span>
+                    <Sparkles size={16} className="text-amber-500" />
+                  </CardTitle>
+                  <CardDescription className="text-xs">{quest.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Progress value={quest.progress} className="h-2 mb-1" />
+                  <div className="flex justify-between text-xs">
+                    <span>{quest.progress}% complété</span>
+                    <span className="text-purple-500">{quest.reward}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Financial Overview */}
         <FinancialOverview 
           income={0}
           expenses={0}
@@ -121,9 +169,9 @@ const Finances = () => {
           savingsRate={0}
         />
 
-        {/* Statistiques rapides */}
+        {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
+          <Card className="hover:shadow-md transition-shadow border-t-4 border-t-violet-500">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Revenu mensuel</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -134,7 +182,7 @@ const Finances = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="hover:shadow-md transition-shadow border-t-4 border-t-orange-500">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Dépenses</CardTitle>
               <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
@@ -145,7 +193,7 @@ const Finances = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="hover:shadow-md transition-shadow border-t-4 border-t-green-500">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Épargne</CardTitle>
               <PiggyBank className="h-4 w-4 text-muted-foreground" />
@@ -156,25 +204,55 @@ const Finances = () => {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="hover:shadow-md transition-shadow border-t-4 border-t-blue-500">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Budget restant</CardTitle>
-              <BadgeDollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Score Financier</CardTitle>
+              <Star className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0 €</div>
-              <p className="text-xs text-muted-foreground">Jusqu'à la fin du mois</p>
+              <div className="text-2xl font-bold">42/100</div>
+              <p className="text-xs text-muted-foreground">En progression</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Aperçu des tendances financières */}
+        {/* Achievements section */}
+        <div className="glass-card p-4">
+          <h3 className="font-pixel text-lg mb-4">Réalisations Financières</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {achievements.map(achievement => (
+              <div 
+                key={achievement.id} 
+                className={`p-4 rounded-lg border flex flex-col items-center text-center gap-2 ${
+                  achievement.completed 
+                    ? 'bg-gradient-to-br from-violet-50 to-purple-50 border-purple-200' 
+                    : 'bg-gray-50 border-gray-200 opacity-70'
+                }`}
+              >
+                <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
+                  achievement.completed ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-400'
+                }`}>
+                  {achievement.icon}
+                </div>
+                <h4 className="font-semibold">{achievement.name}</h4>
+                <div className={`text-xs px-2 py-1 rounded-full ${
+                  achievement.completed ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                }`}>
+                  {achievement.completed ? 'Complété' : 'À débloquer'} 
+                </div>
+                <p className="text-xs text-purple-500">+{achievement.xp} XP</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Financial Insights */}
         <FinancialInsights 
           transactions={[]}
           month={selectedMonth}
         />
         
-        {/* Navigation par onglets pour les différentes sections */}
+        {/* Tab navigation for different sections */}
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="mb-4 grid grid-cols-2 md:grid-cols-6 gap-2">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
@@ -232,14 +310,19 @@ const Finances = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Échéances à venir</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar size={16} />
+                      Échéances à venir
+                    </CardTitle>
                     <CardDescription>Vos paiements et revenus planifiés</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center py-2 border-b">
                         <div className="flex items-center gap-2">
-                          <FileText size={14} />
+                          <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center text-red-500">
+                            <BadgeDollarSign size={16} />
+                          </div>
                           <span>Loyer</span>
                         </div>
                         <div className="flex flex-col items-end">
@@ -250,7 +333,9 @@ const Finances = () => {
                       
                       <div className="flex justify-between items-center py-2 border-b">
                         <div className="flex items-center gap-2">
-                          <DollarSign size={14} />
+                          <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-500">
+                            <DollarSign size={16} />
+                          </div>
                           <span>Salaire</span>
                         </div>
                         <div className="flex flex-col items-end">
@@ -261,7 +346,9 @@ const Finances = () => {
                       
                       <div className="flex justify-between items-center py-2 border-b">
                         <div className="flex items-center gap-2">
-                          <CreditCard size={14} />
+                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+                            <BadgeDollarSign size={16} />
+                          </div>
                           <span>Assurance</span>
                         </div>
                         <div className="flex flex-col items-end">
@@ -275,30 +362,35 @@ const Finances = () => {
                 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Objectifs à atteindre</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target size={16} />
+                      Objectifs à atteindre
+                    </CardTitle>
                     <CardDescription>Échéances pour vos projets d'épargne</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex flex-col gap-2">
                         <div className="flex justify-between">
-                          <span>Fonds d'urgence</span>
+                          <div className="flex items-center gap-2">
+                            <Medal size={16} className="text-amber-500" />
+                            <span>Fonds d'urgence</span>
+                          </div>
                           <span className="text-sm">0/0 €</span>
                         </div>
-                        <div className="w-full bg-muted rounded-full h-2">
-                          <div className="bg-green-500 h-2 rounded-full" style={{ width: '0%' }}></div>
-                        </div>
+                        <Progress value={0} className="h-2" />
                         <div className="text-xs text-muted-foreground">Échéance: Décembre 2024</div>
                       </div>
                       
                       <div className="flex flex-col gap-2">
                         <div className="flex justify-between">
-                          <span>Vacances d'été</span>
+                          <div className="flex items-center gap-2">
+                            <Medal size={16} className="text-blue-500" />
+                            <span>Vacances d'été</span>
+                          </div>
                           <span className="text-sm">0/0 €</span>
                         </div>
-                        <div className="w-full bg-muted rounded-full h-2">
-                          <div className="bg-blue-500 h-2 rounded-full" style={{ width: '0%' }}></div>
-                        </div>
+                        <Progress value={0} className="h-2" />
                         <div className="text-xs text-muted-foreground">Échéance: Juin 2024</div>
                       </div>
                     </div>

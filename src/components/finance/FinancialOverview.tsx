@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp } from 'lucide-react';
+import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap, BadgeDollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUserData } from '@/context/UserDataContext';
 import { useState } from 'react';
@@ -74,7 +74,7 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
     
     toast({
       title: "Revenus mis à jour",
-      description: "Vos revenus mensuels ont été mis à jour avec succès.",
+      description: "Vos revenus mensuels ont été mis à jour avec succès. +15 XP!",
     });
     
     setIsEditingIncome(false);
@@ -92,7 +92,7 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
     
     toast({
       title: "Dépenses mises à jour",
-      description: "Vos dépenses mensuelles ont été mises à jour avec succès.",
+      description: "Vos dépenses mensuelles ont été mises à jour avec succès. +15 XP!",
     });
     
     setIsEditingExpenses(false);
@@ -103,7 +103,7 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
     
     toast({
       title: "Objectif d'épargne mis à jour",
-      description: "Votre objectif d'épargne a été mis à jour avec succès.",
+      description: "Votre objectif d'épargne a été mis à jour avec succès. +20 XP!",
     });
     
     setIsEditingSavingsGoal(false);
@@ -114,19 +114,29 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
       <Dialog open={isEditingIncome} onOpenChange={setIsEditingIncome}>
         <div 
           onClick={handleOpenIncomeDialog}
-          className="glass-card p-4 flex flex-col gap-2 hover:bg-muted/30 transition-colors cursor-pointer relative group"
+          className="glass-card p-4 flex flex-col gap-2 hover:shadow-md transition-all cursor-pointer relative group overflow-hidden"
         >
+          <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-green-400 to-green-600"></div>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <Edit size={16} />
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <DollarSign size={16} />
+            <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-500">
+              <DollarSign size={16} />
+            </div>
             <span>Revenus mensuels</span>
           </div>
           <div className="text-2xl font-semibold text-primary">0 €</div>
           <div className="flex items-center gap-1 text-xs text-green-500">
             <ArrowUp size={12} />
             <span>Définissez vos revenus</span>
+          </div>
+          <div className="mt-2 p-1.5 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-between">
+            <div className="flex items-center text-xs text-purple-700">
+              <Trophy size={12} className="mr-1 text-amber-500" />
+              <span>+15 XP</span>
+            </div>
+            <span className="text-xs text-purple-600">Mission: Définir les revenus</span>
           </div>
         </div>
         
@@ -163,7 +173,11 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
               />
             </div>
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-sm text-purple-600">
+              <Zap size={16} className="mr-1 text-amber-500" />
+              <span>+15 XP</span>
+            </div>
             <Button onClick={handleSaveIncome}>
               Enregistrer
             </Button>
@@ -174,19 +188,29 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
       <Dialog open={isEditingExpenses} onOpenChange={setIsEditingExpenses}>
         <div 
           onClick={handleOpenExpensesDialog}
-          className="glass-card p-4 flex flex-col gap-2 hover:bg-muted/30 transition-colors cursor-pointer relative group"
+          className="glass-card p-4 flex flex-col gap-2 hover:shadow-md transition-all cursor-pointer relative group overflow-hidden"
         >
+          <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-orange-400 to-orange-600"></div>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <Edit size={16} />
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <ArrowUp size={16} className="rotate-180" />
+            <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500">
+              <ArrowDown size={16} />
+            </div>
             <span>Dépenses mensuelles</span>
           </div>
           <div className="text-2xl font-semibold text-destructive">0 €</div>
-          <div className="flex items-center gap-1 text-xs text-red-500">
-            <ArrowUp size={12} />
+          <div className="flex items-center gap-1 text-xs text-orange-500">
+            <ArrowUp size={12} className="rotate-180" />
             <span>Ajoutez vos dépenses</span>
+          </div>
+          <div className="mt-2 p-1.5 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-between">
+            <div className="flex items-center text-xs text-purple-700">
+              <Trophy size={12} className="mr-1 text-amber-500" />
+              <span>+15 XP</span>
+            </div>
+            <span className="text-xs text-purple-600">Mission: Définir les dépenses</span>
           </div>
         </div>
         
@@ -271,7 +295,11 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
               />
             </div>
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-sm text-purple-600">
+              <Zap size={16} className="mr-1 text-amber-500" />
+              <span>+15 XP</span>
+            </div>
             <Button onClick={handleSaveExpenses}>
               Enregistrer
             </Button>
@@ -282,19 +310,29 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
       <Dialog open={isEditingSavingsGoal} onOpenChange={setIsEditingSavingsGoal}>
         <div 
           onClick={handleOpenSavingsGoalDialog}
-          className="glass-card p-4 flex flex-col gap-2 hover:bg-muted/30 transition-colors cursor-pointer relative group"
+          className="glass-card p-4 flex flex-col gap-2 hover:shadow-md transition-all cursor-pointer relative group overflow-hidden"
         >
+          <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-blue-400 to-blue-600"></div>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <Edit size={16} />
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <PiggyBank size={16} />
+            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+              <Target size={16} />
+            </div>
             <span>Objectif épargne</span>
           </div>
           <div className="text-2xl font-semibold text-primary">0 €</div>
-          <div className="flex items-center gap-1 text-xs text-green-500">
+          <div className="flex items-center gap-1 text-xs text-blue-500">
             <TrendingUp size={12} />
             <span>Définir un objectif</span>
+          </div>
+          <div className="mt-2 p-1.5 rounded-md bg-purple-50 border border-purple-100 flex items-center justify-between">
+            <div className="flex items-center text-xs text-purple-700">
+              <Trophy size={12} className="mr-1 text-amber-500" />
+              <span>+20 XP</span>
+            </div>
+            <span className="text-xs text-purple-600">Mission: Fixer un objectif d'épargne</span>
           </div>
         </div>
         
@@ -328,7 +366,11 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
               </div>
             </div>
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-sm text-purple-600">
+              <Zap size={16} className="mr-1 text-amber-500" />
+              <span>+20 XP</span>
+            </div>
             <Button onClick={handleSaveSavingsGoal}>
               Enregistrer
             </Button>
