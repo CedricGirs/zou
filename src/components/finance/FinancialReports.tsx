@@ -90,13 +90,20 @@ const FinancialReports = () => {
   
   // Calculate expense breakdown by category
   const calculateExpensesBreakdown = () => {
+    const housingExpenses = userData.financeModule.housingExpenses || 0;
+    const foodExpenses = userData.financeModule.foodExpenses || 0;
+    const transportExpenses = userData.financeModule.transportExpenses || 0;
+    const leisureExpenses = userData.financeModule.leisureExpenses || 0;
+    const fixedExpenses = userData.financeModule.fixedExpenses || 0;
+    const debtPayments = userData.financeModule.debtPayments || 0;
+    
     const totalExpenses = (
-      (userData.financeModule.housingExpenses || 0) +
-      (userData.financeModule.foodExpenses || 0) +
-      (userData.financeModule.transportExpenses || 0) +
-      (userData.financeModule.leisureExpenses || 0) +
-      (userData.financeModule.fixedExpenses || 0) +
-      (userData.financeModule.debtPayments || 0)
+      housingExpenses +
+      foodExpenses +
+      transportExpenses +
+      leisureExpenses +
+      fixedExpenses +
+      debtPayments
     );
     
     if (totalExpenses === 0) {
@@ -113,27 +120,27 @@ const FinancialReports = () => {
     return [
       { 
         name: 'Logement', 
-        value: Math.round((userData.financeModule.housingExpenses || 0) / totalExpenses * 100) 
+        value: Math.round(housingExpenses / totalExpenses * 100) 
       },
       { 
         name: 'Alimentation', 
-        value: Math.round((userData.financeModule.foodExpenses || 0) / totalExpenses * 100) 
+        value: Math.round(foodExpenses / totalExpenses * 100) 
       },
       { 
         name: 'Transport', 
-        value: Math.round((userData.financeModule.transportExpenses || 0) / totalExpenses * 100) 
+        value: Math.round(transportExpenses / totalExpenses * 100) 
       },
       { 
         name: 'Loisirs', 
-        value: Math.round((userData.financeModule.leisureExpenses || 0) / totalExpenses * 100) 
+        value: Math.round(leisureExpenses / totalExpenses * 100) 
       },
       { 
         name: 'Charges fixes', 
-        value: Math.round((userData.financeModule.fixedExpenses || 0) / totalExpenses * 100) 
+        value: Math.round(fixedExpenses / totalExpenses * 100) 
       },
       { 
         name: 'Dettes', 
-        value: Math.round((userData.financeModule.debtPayments || 0) / totalExpenses * 100) 
+        value: Math.round(debtPayments / totalExpenses * 100) 
       }
     ];
   };

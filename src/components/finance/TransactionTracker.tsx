@@ -38,10 +38,11 @@ const TransactionTracker = ({ selectedMonth }: TransactionTrackerProps) => {
   
   const [newTransaction, setNewTransaction] = useState<Partial<Transaction>>({
     date: new Date().toISOString().split('T')[0],
-    month: new Date().toLocaleString('fr-FR', { month: 'long' }),
     description: '',
     amount: 0,
     category: 'Autre',
+    type: 'expense',
+    month: new Date().toLocaleString('fr-FR', { month: 'long' }),
     isVerified: false
   });
 
@@ -103,11 +104,12 @@ const TransactionTracker = ({ selectedMonth }: TransactionTrackerProps) => {
     const transaction: Transaction = {
       id: uuidv4(),
       date: newTransaction.date || format(new Date(), 'yyyy-MM-dd'),
-      month: newTransaction.month || format(new Date(), 'MMMM', { locale: fr }),
       description: newTransaction.description || '',
       amount: newTransaction.amount || 0,
       category: newTransaction.category || 'Autre',
-      isVerified: newTransaction.isVerified || false
+      type: 'expense',
+      month: newTransaction.month,
+      isVerified: newTransaction.isVerified
     };
 
     const updatedTransactions = [...transactions, transaction];
@@ -122,10 +124,11 @@ const TransactionTracker = ({ selectedMonth }: TransactionTrackerProps) => {
     // Reset form
     setNewTransaction({
       date: new Date().toISOString().split('T')[0],
-      month: new Date().toLocaleString('fr-FR', { month: 'long' }),
       description: '',
       amount: 0,
       category: 'Autre',
+      type: 'expense',
+      month: new Date().toLocaleString('fr-FR', { month: 'long' }),
       isVerified: false
     });
   };

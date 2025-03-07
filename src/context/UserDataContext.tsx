@@ -40,6 +40,8 @@ export interface Transaction {
   amount: number;
   category: string;
   type: 'income' | 'expense';
+  month?: string;
+  isVerified?: boolean;
 }
 
 export interface SavingsGoal {
@@ -80,6 +82,16 @@ export interface FinanceModule {
   savingsRate: number;
   transactions: Transaction[];
   savingsGoals: SavingsGoal[];
+  savingsGoal?: number;
+  
+  // Expense categories
+  housingExpenses?: number;
+  foodExpenses?: number;
+  transportExpenses?: number;
+  leisureExpenses?: number;
+  fixedExpenses?: number;
+  debtPayments?: number;
+  additionalIncome?: number;
   
   // Budgeting
   annualBudget: {
@@ -171,6 +183,16 @@ const defaultFinanceModule: FinanceModule = {
     { id: "emergency", name: "Fonds d'urgence", target: 3000, saved: 0, deadline: "2024-12-31" },
     { id: "vacation", name: "Vacances", target: 1200, saved: 0, deadline: "2024-06-30" }
   ],
+  savingsGoal: 0,
+  
+  // Expense categories
+  housingExpenses: 0,
+  foodExpenses: 0,
+  transportExpenses: 0,
+  leisureExpenses: 0,
+  fixedExpenses: 0,
+  debtPayments: 0,
+  additionalIncome: 0,
   
   // Budgeting
   annualBudget: {

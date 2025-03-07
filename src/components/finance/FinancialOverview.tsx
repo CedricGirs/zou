@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap, BadgeDollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,7 +42,7 @@ const FinancialOverview = ({ income, expenses, balance, savingsGoal, savingsRate
   const [fixedExpenses, setFixedExpenses] = useState(userData.financeModule.fixedExpenses || 0);
   const [debtPayments, setDebtPayments] = useState(userData.financeModule.debtPayments || 0);
   
-  const [savingsGoalValue, setSavingsGoalValue] = useState(userData.financeModule.savingsGoal);
+  const [savingsGoalValue, setSavingsGoalValue] = useState(userData.financeModule.savingsGoal || 0);
 
   const handleOpenIncomeDialog = () => {
     setMonthlyIncome(userData.financeModule.monthlyIncome);
