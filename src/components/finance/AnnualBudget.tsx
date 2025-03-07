@@ -17,16 +17,38 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Edit, TrendingUp, ArrowUp, ArrowDown, DollarSign, Wallet, PiggyBank } from 'lucide-react';
+import { 
+  Edit, 
+  TrendingUp, 
+  ArrowUp, 
+  ArrowDown, 
+  DollarSign, 
+  Wallet, 
+  PiggyBank, 
+  Copy, 
+  Bookmark,
+  Plus,
+  Save,
+  Trash2
+} from 'lucide-react';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useUserData } from "@/context/UserDataContext";
 import { toast } from '@/hooks/use-toast';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { playSound } from "@/utils/audioUtils";
+import { v4 as uuidv4 } from 'uuid';
 
 const months = [
   'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -40,6 +62,16 @@ const AnnualBudget = () => {
   const [monthlyExpenses, setMonthlyExpenses] = useState(0);
   const [chartData, setChartData] = useState<any[]>([]);
   const [hoveredMonth, setHoveredMonth] = useState<string | null>(null);
+  
+  // Template management state
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templateIncome, setTemplateIncome] = useState(0);
+  const [templateExpenses, setTemplateExpenses] = useState(0);
+  const [templateDescription, setTemplateDescription] = useState('');
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [showApplyTemplateDialog, setShowApplyTemplateDialog] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   // Update chart data when userData changes
   useEffect(() => {
@@ -132,11 +164,140 @@ const AnnualBudget = () => {
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value);
   };
 
+  // Template management functions
+  const handleCreateTemplate = async () => {
+    if (!templateName) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez donner un nom à votre modèle.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const currentTemplates = [...userData.financeModule.budgetTemplates];
+    
+    if (editingTemplateId) {
+      // Update existing template
+      const updatedTemplates = currentTemplates.map(template => 
+        template.id === editingTemplateId ? 
+        {
+          ...template,
+          name: templateName,
+          income: templateIncome,
+          expenses: templateExpenses,
+          description: templateDescription || undefined
+        } : template
+      );
+      
+      await updateFinanceModule({ budgetTemplates: updatedTemplates });
+      toast({
+        title: "Modèle mis à jour",
+        description: `Le modèle "${templateName}" a été mis à jour.`,
+      });
+    } else {
+      // Create new template
+      const newTemplate = {
+        id: uuidv4(),
+        name: templateName,
+        income: templateIncome,
+        expenses: templateExpenses,
+        description: templateDescription || undefined
+      };
+      
+      await updateFinanceModule({ budgetTemplates: [...currentTemplates, newTemplate] });
+      toast({
+        title: "Modèle créé",
+        description: `Le modèle "${templateName}" a été créé.`,
+      });
+    }
+    
+    // Reset form and close dialog
+    resetTemplateForm();
+    setIsTemplateDialogOpen(false);
+    playSound('success');
+  };
+
+  const handleEditTemplate = (templateId: string) => {
+    const template = userData.financeModule.budgetTemplates.find(t => t.id === templateId);
+    if (template) {
+      setEditingTemplateId(templateId);
+      setTemplateName(template.name);
+      setTemplateIncome(template.income);
+      setTemplateExpenses(template.expenses);
+      setTemplateDescription(template.description || '');
+      setIsTemplateDialogOpen(true);
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId: string) => {
+    const updatedTemplates = userData.financeModule.budgetTemplates.filter(t => t.id !== templateId);
+    await updateFinanceModule({ budgetTemplates: updatedTemplates });
+    toast({
+      title: "Modèle supprimé",
+      description: "Le modèle a été supprimé avec succès.",
+    });
+    playSound('delete');
+  };
+
+  const resetTemplateForm = () => {
+    setEditingTemplateId(null);
+    setTemplateName('');
+    setTemplateIncome(0);
+    setTemplateExpenses(0);
+    setTemplateDescription('');
+  };
+
+  const openNewTemplateDialog = () => {
+    resetTemplateForm();
+    setIsTemplateDialogOpen(true);
+  };
+
+  const handleApplyTemplate = async () => {
+    if (!selectedMonth || !selectedTemplateId) return;
+    
+    const template = userData.financeModule.budgetTemplates.find(t => t.id === selectedTemplateId);
+    if (template) {
+      const updatedBudget = {
+        ...userData.financeModule.annualBudget,
+        [selectedMonth]: {
+          income: template.income,
+          expenses: template.expenses
+        }
+      };
+      
+      await updateFinanceModule({ annualBudget: updatedBudget });
+      toast({
+        title: "Modèle appliqué",
+        description: `Le modèle "${template.name}" a été appliqué à ${selectedMonth}.`,
+      });
+      
+      setShowApplyTemplateDialog(false);
+      setSelectedTemplateId(null);
+      playSound('success');
+    }
+  };
+
+  const openApplyTemplateDialog = (month: string) => {
+    setSelectedMonth(month);
+    setShowApplyTemplateDialog(true);
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Budget Annuel</CardTitle>
         <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-1" 
+            onClick={openNewTemplateDialog}
+          >
+            <Plus size={16} />
+            <span className="hidden sm:inline">Nouveau modèle</span>
+            <span className="sm:hidden">Modèle</span>
+          </Button>
           <DollarSign className="text-muted-foreground" size={18} />
           <TrendingUp className="text-muted-foreground" size={18} />
           <PiggyBank className="text-muted-foreground" size={18} />
@@ -198,11 +359,10 @@ const AnnualBudget = () => {
               <div 
                 key={month}
                 className={cn(
-                  "border rounded-lg p-3 transition-all duration-200 cursor-pointer relative overflow-hidden",
+                  "border rounded-lg p-3 transition-all duration-200 relative overflow-hidden",
                   getMonthColor(month),
                   hoveredMonth === month ? "transform scale-105 shadow-md" : ""
                 )}
-                onClick={() => handleEditMonth(month)}
                 onMouseEnter={() => setHoveredMonth(month)}
                 onMouseLeave={() => setHoveredMonth(null)}
               >
@@ -230,19 +390,110 @@ const AnnualBudget = () => {
                   </div>
                 </div>
                 
-                {/* Show edit button on hover */}
+                {/* Show action buttons on hover */}
                 <div className={cn(
                   "absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 transition-opacity",
                   hoveredMonth === month ? "opacity-100" : "opacity-0"
                 )}>
-                  <Edit size={16} className="text-gray-700" />
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0 rounded-full bg-white/80"
+                      onClick={() => handleEditMonth(month)}
+                    >
+                      <Edit size={14} className="text-gray-700" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0 rounded-full bg-white/80"
+                      onClick={() => openApplyTemplateDialog(month)}
+                    >
+                      <Copy size={14} className="text-gray-700" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
         
-        <Dialog open={!!selectedMonth} onOpenChange={(open) => !open && setSelectedMonth(null)}>
+        {/* Templates section */}
+        <div className="mt-8 border-t pt-4">
+          <h3 className="font-medium text-base mb-3 flex items-center gap-2">
+            <Bookmark size={18} className="text-muted-foreground" />
+            Modèles de budget
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {userData.financeModule.budgetTemplates.map((template) => (
+              <div 
+                key={template.id}
+                className="border rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-medium">{template.name}</h4>
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 w-7 p-0"
+                      onClick={() => handleEditTemplate(template.id)}
+                    >
+                      <Edit size={14} />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 w-7 p-0 text-red-500"
+                      onClick={() => handleDeleteTemplate(template.id)}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
+                </div>
+                
+                {template.description && (
+                  <p className="text-sm text-muted-foreground mb-2">{template.description}</p>
+                )}
+                
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span>Revenus:</span>
+                    <span className="font-medium">{formatCurrency(template.income)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Dépenses:</span>
+                    <span className="font-medium">{formatCurrency(template.expenses)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Solde:</span>
+                    <span className={cn(
+                      "font-medium",
+                      template.income - template.expenses > 0 ? "text-green-600" : 
+                      template.income - template.expenses < 0 ? "text-red-600" : ""
+                    )}>
+                      {formatCurrency(template.income - template.expenses)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Add new template card */}
+            <div 
+              className="border border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={openNewTemplateDialog}
+            >
+              <Plus size={24} className="text-gray-400" />
+              <span className="text-sm text-gray-500">Nouveau modèle</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Edit month dialog */}
+        <Dialog open={!!selectedMonth && !showApplyTemplateDialog} onOpenChange={(open) => !open && setSelectedMonth(null)}>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Modifier le budget de {selectedMonth}</DialogTitle>
@@ -314,6 +565,181 @@ const AnnualBudget = () => {
                 Enregistrer
               </Button>
             </div>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Create/Edit Template Dialog */}
+        <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{editingTemplateId ? 'Modifier le modèle' : 'Créer un nouveau modèle'}</DialogTitle>
+              <DialogDescription>
+                {editingTemplateId 
+                  ? 'Modifiez les détails de votre modèle de budget.' 
+                  : 'Créez un modèle réutilisable pour vos budgets mensuels.'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="templateName">Nom du modèle</Label>
+                <Input
+                  id="templateName"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  placeholder="ex: Budget mensuel standard"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="templateDescription">Description (optionnelle)</Label>
+                <Input
+                  id="templateDescription"
+                  value={templateDescription}
+                  onChange={(e) => setTemplateDescription(e.target.value)}
+                  placeholder="ex: Pour les mois ordinaires sans dépenses exceptionnelles"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="templateIncome" className="flex items-center gap-2">
+                  <ArrowUp size={16} className="text-green-500" />
+                  Revenus
+                </Label>
+                <div className="relative">
+                  <DollarSign size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="templateIncome"
+                    type="number"
+                    value={templateIncome}
+                    onChange={(e) => setTemplateIncome(Number(e.target.value))}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="templateExpenses" className="flex items-center gap-2">
+                  <ArrowDown size={16} className="text-red-500" />
+                  Dépenses
+                </Label>
+                <div className="relative">
+                  <DollarSign size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="templateExpenses"
+                    type="number"
+                    value={templateExpenses}
+                    onChange={(e) => setTemplateExpenses(Number(e.target.value))}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              
+              {/* Summary calculation */}
+              <div className="pt-2 border-t">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Solde:</span>
+                  <span className={cn(
+                    "font-medium",
+                    templateIncome - templateExpenses > 0 ? "text-green-600" : 
+                    templateIncome - templateExpenses < 0 ? "text-red-600" : ""
+                  )}>
+                    {formatCurrency(templateIncome - templateExpenses)}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  resetTemplateForm();
+                  setIsTemplateDialogOpen(false);
+                }}
+              >
+                Annuler
+              </Button>
+              <Button 
+                onClick={handleCreateTemplate}
+                className="gap-1"
+              >
+                <Save size={16} />
+                {editingTemplateId ? 'Mettre à jour' : 'Créer'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Apply template dialog */}
+        <Dialog open={showApplyTemplateDialog} onOpenChange={setShowApplyTemplateDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Appliquer un modèle à {selectedMonth}</DialogTitle>
+              <DialogDescription>
+                Choisissez un modèle de budget à appliquer pour ce mois
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="templateSelect">Sélectionner un modèle</Label>
+                <Select onValueChange={setSelectedTemplateId} defaultValue={selectedTemplateId || undefined}>
+                  <SelectTrigger id="templateSelect">
+                    <SelectValue placeholder="Choisir un modèle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {userData.financeModule.budgetTemplates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name} ({formatCurrency(template.income)} / {formatCurrency(template.expenses)})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {selectedTemplateId && (
+                <div className="border rounded-md p-3 bg-gray-50">
+                  {(() => {
+                    const template = userData.financeModule.budgetTemplates.find(t => t.id === selectedTemplateId);
+                    if (!template) return null;
+                    
+                    return (
+                      <>
+                        <div className="font-medium mb-2">{template.name}</div>
+                        {template.description && (
+                          <p className="text-sm text-muted-foreground mb-2">{template.description}</p>
+                        )}
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Revenus:</span>
+                            <span className="ml-2 font-medium">{formatCurrency(template.income)}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Dépenses:</span>
+                            <span className="ml-2 font-medium">{formatCurrency(template.expenses)}</span>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowApplyTemplateDialog(false);
+                  setSelectedTemplateId(null);
+                }}
+              >
+                Annuler
+              </Button>
+              <Button 
+                onClick={handleApplyTemplate}
+                disabled={!selectedTemplateId}
+              >
+                Appliquer
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </CardContent>

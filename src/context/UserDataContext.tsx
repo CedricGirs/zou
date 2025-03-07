@@ -1,4 +1,3 @@
-
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -57,6 +56,15 @@ export interface MonthlyBudget {
   expenses: number;
 }
 
+// New interface for budget templates
+export interface BudgetTemplate {
+  id: string;
+  name: string;
+  income: number;
+  expenses: number;
+  description?: string;
+}
+
 export interface FinanceAchievement {
   id: string;
   name: string;
@@ -111,6 +119,9 @@ export interface FinanceModule {
   annualBudget: {
     [month: string]: MonthlyBudget;
   };
+  
+  // New property for budget templates
+  budgetTemplates: BudgetTemplate[];
   
   // Gamification elements
   financeLevel: number;
@@ -226,6 +237,13 @@ const defaultFinanceModule: FinanceModule = {
     "Novembre": { income: 0, expenses: 0 },
     "Décembre": { income: 0, expenses: 0 }
   },
+  
+  // Default budget templates
+  budgetTemplates: [
+    { id: "regular", name: "Budget standard", income: 2000, expenses: 1500, description: "Revenus et dépenses mensuels typiques" },
+    { id: "vacation", name: "Mois de vacances", income: 2000, expenses: 2200, description: "Budget pour un mois de vacances" },
+    { id: "bonus", name: "Mois avec prime", income: 3000, expenses: 1500, description: "Mois avec une prime ou revenu supplémentaire" }
+  ],
   
   // Gamification elements
   financeLevel: 1,
