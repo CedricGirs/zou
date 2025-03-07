@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Transaction } from "@/context/UserDataContext";
-import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus, Trash2, Edit2, Check as CheckIcon } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus, Trash2, Edit2, Check as CheckIcon, Save } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -19,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useUserData } from "@/context/UserDataContext";
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
+import { Textarea } from "@/components/ui/textarea";
 
 interface FinancialInsightsProps {
   transactions: Transaction[];
@@ -48,6 +48,11 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     amount: number;
     type: 'income' | 'expense';
   } | null>(null);
+  
+  // État pour le dialogue de création de template
+  const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templateDescription, setTemplateDescription] = useState('');
   
   // Catégories de revenus et dépenses
   const incomeCategories = [
@@ -259,8 +264,110 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     });
   };
 
+  // Nouvelles fonctions pour la création de template
+  const handleCreateTemplate = async () => {
+    if (!templateName.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez donner un nom à votre template.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Extraire les données de revenus et dépenses des transactions actuelles
+    const incomeTransactions = transactions.filter(t => t.type === 'income');
+    const expenseTransactions = transactions.filter(t => t.type === 'expense');
+
+    // Créer le nouveau template
+    const newTemplate = {
+      id: uuidv4(),
+      name: templateName,
+      description: templateDescription,
+      incomeItems: incomeTransactions.map(t => ({
+        id: uuidv4(),
+        description: t.description,
+        amount: t.amount,
+        category: t.category
+      })),
+      expenseItems: expenseTransactions.map(t => ({
+        id: uuidv4(),
+        description: t.description,
+        amount: t.amount,
+        category: t.category
+      }))
+    };
+
+    // Ajouter le template à la liste des templates
+    const currentTemplates = userData?.financeModule?.budgetTemplates || [];
+    await updateFinanceModule({
+      budgetTemplates: [...currentTemplates, newTemplate]
+    });
+
+    // Notifier l'utilisateur
+    toast({
+      title: "Template créé",
+      description: `Le template "${templateName}" a été créé avec succès.`,
+    });
+
+    // Réinitialiser et fermer
+    setTemplateName('');
+    setTemplateDescription('');
+    setIsCreateTemplateOpen(false);
+  };
+
   return (
     <div className="space-y-6">      
+      <div className="flex justify-end mb-4">
+        <Dialog open={isCreateTemplateOpen} onOpenChange={setIsCreateTemplateOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Save size={16} />
+              <span>Créer template</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Créer un template</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="templateName" className="text-right">Nom</Label>
+                <Input
+                  id="templateName"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Ex: Budget mensuel standard"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="templateDescription" className="text-right">Description</Label>
+                <Textarea
+                  id="templateDescription"
+                  value={templateDescription}
+                  onChange={(e) => setTemplateDescription(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Description du template (optionnel)"
+                />
+              </div>
+              <div className="col-span-4 mt-2">
+                <div className="p-3 bg-amber-50 border border-amber-100 rounded-md text-sm text-amber-700">
+                  <p>Ce template contiendra :</p>
+                  <ul className="list-disc list-inside mt-1 space-y-1">
+                    <li>{transactions.filter(t => t.type === 'income').length} revenus pour un total de {transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)} €</li>
+                    <li>{transactions.filter(t => t.type === 'expense').length} dépenses pour un total de {transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)} €</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleCreateTemplate}>Créer template</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
