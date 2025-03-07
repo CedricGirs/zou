@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   PieChart, 
@@ -37,7 +38,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { useFinanceXP } from '@/hooks/useFinanceXP';
 
 interface TransactionTrackerProps {
   selectedMonth: string;
@@ -53,7 +53,6 @@ const TransactionTracker = ({
   completeQuestStep 
 }: TransactionTrackerProps) => {
   const { userData, updateFinanceModule } = useUserData();
-  const { normalizeMonthName } = useFinanceXP();
   
   const [newTransaction, setNewTransaction] = useState<Partial<Transaction>>({
     date: new Date().toISOString().split('T')[0],
@@ -85,11 +84,11 @@ const TransactionTracker = ({
   const recalculateTotals = (updatedTransactions: Transaction[]) => {
     const totalIncome = updatedTransactions
       .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + (parseFloat(String(t.amount)) || 0), 0);
+      .reduce((sum, t) => sum + t.amount, 0);
       
     const totalExpenses = updatedTransactions
       .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + (parseFloat(String(t.amount)) || 0), 0);
+      .reduce((sum, t) => sum + t.amount, 0);
       
     const balance = totalIncome - totalExpenses;
     const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
@@ -107,7 +106,7 @@ const TransactionTracker = ({
     const { name, value, type } = e.target;
     setNewTransaction({
       ...newTransaction,
-      [name]: type === 'number' ? parseFloat(value) : value
+      [name]: type === 'number' ? Number(value) : value
     });
   };
 
@@ -143,8 +142,6 @@ const TransactionTracker = ({
       return;
     }
 
-    const normalizedMonth = normalizeMonthName(selectedMonth);
-    
     const transaction: Transaction = {
       id: uuidv4(),
       date: newTransaction.date || format(new Date(), 'yyyy-MM-dd'),
@@ -152,7 +149,7 @@ const TransactionTracker = ({
       amount: newTransaction.amount || 0,
       category: newTransaction.category || 'Autre',
       type: newTransaction.type || 'expense',
-      month: normalizedMonth, // Utiliser le mois normalisé
+      month: selectedMonth,
       isVerified: newTransaction.isVerified
     };
 
@@ -237,17 +234,17 @@ const TransactionTracker = ({
   // Calculate totals
   const totalIncome = filteredTransactions
     .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + (parseFloat(String(t.amount)) || 0), 0);
+    .reduce((sum, t) => sum + t.amount, 0);
     
   const totalExpenses = filteredTransactions
     .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + (parseFloat(String(t.amount)) || 0), 0);
+    .reduce((sum, t) => sum + t.amount, 0);
   
   // Prepare data for pie chart
   const pieChartData = categories.map(category => {
     const value = filteredTransactions
       .filter(t => t.category === category && t.type === 'expense')
-      .reduce((sum, t) => sum + (parseFloat(String(t.amount)) || 0), 0);
+      .reduce((sum, t) => sum + t.amount, 0);
     
     return { name: category, value };
   }).filter(item => item.value > 0);
@@ -412,6 +409,7 @@ const TransactionTracker = ({
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
+                  {/* Contenu de la fenêtre modale - identique à celui ci-dessus */}
                   <DialogHeader>
                     <DialogTitle>Ajouter une transaction</DialogTitle>
                   </DialogHeader>
