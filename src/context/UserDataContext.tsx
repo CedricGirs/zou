@@ -3,7 +3,7 @@ import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from '@/hooks/use-toast';
 import { playSound } from '@/utils/audioUtils';
-import { format } from 'date-fns';
+import { format as formatDate } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 // Types pour les données utilisateur
@@ -42,6 +42,7 @@ export interface Transaction {
   category: string;
   type: 'income' | 'expense';
   month?: string;
+  year?: string;
   isVerified?: boolean;
 }
 
@@ -202,7 +203,7 @@ const defaultFinanceModule: FinanceModule = {
   // Monthly data storage
   monthlyData: {
     // Format: "Month_Year": { transactions, monthlyIncome, monthlyExpenses, balance }
-    [`${format(new Date(), 'MMMM', { locale: fr })}_${new Date().getFullYear()}`]: {
+    [`${formatDate(new Date(), 'MMMM', { locale: fr })}_${new Date().getFullYear()}`]: {
       transactions: [],
       monthlyIncome: 0,
       monthlyExpenses: 0,

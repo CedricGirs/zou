@@ -64,7 +64,7 @@ const TransactionTracker = ({
     category: 'Autre',
     type: 'expense',
     month: selectedMonth || new Date().toLocaleString('fr-FR', { month: 'long' }),
-    year: selectedYear || new Date().getFullYear(),
+    year: selectedYear || new Date().getFullYear().toString(),
     isVerified: false
   });
 
@@ -82,7 +82,7 @@ const TransactionTracker = ({
   ];
 
   const [filterMonth, setFilterMonth] = useState(selectedMonth || new Date().toLocaleString('fr-FR', { month: 'long' }));
-  const [filterYear, setFilterYear] = useState(selectedYear || new Date().getFullYear());
+  const [filterYear, setFilterYear] = useState(selectedYear || new Date().getFullYear().toString());
   
   useEffect(() => {
     if (selectedMonth) {
@@ -164,8 +164,8 @@ const TransactionTracker = ({
       amount: newTransaction.amount || 0,
       category: newTransaction.category || 'Autre',
       type: newTransaction.type || 'expense',
-      month: newTransaction.month,
-      year: newTransaction.year,
+      month: newTransaction.month || '',
+      year: newTransaction.year || '',
       isVerified: newTransaction.isVerified
     };
 
@@ -226,7 +226,7 @@ const TransactionTracker = ({
       category: 'Autre',
       type: 'expense',
       month: selectedMonth || new Date().toLocaleString('fr-FR', { month: 'long' }),
-      year: selectedYear || new Date().getFullYear(),
+      year: selectedYear || new Date().getFullYear().toString(),
       isVerified: false
     });
   };
@@ -801,3 +801,4 @@ const TransactionTracker = ({
 };
 
 export default TransactionTracker;
+
