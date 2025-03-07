@@ -72,8 +72,14 @@ const FinancialOverview = ({
     console.log('Données mensuelles:', userData.financeModule?.monthlyData);
     console.log('Total économies cumulées:', calculatedTotalSavings);
     
-    updateXPAndLevel();
-  }, [income, expenses, selectedMonth, userData.financeModule?.monthlyData, updateXPAndLevel]);
+    if (userData.financeModule && calculatedTotalSavings !== userData.financeModule.balance) {
+      updateFinanceModule({ balance: calculatedTotalSavings }).then(() => {
+        updateXPAndLevel();
+      });
+    } else {
+      updateXPAndLevel();
+    }
+  }, [income, expenses, selectedMonth, userData.financeModule?.monthlyData, updateXPAndLevel, updateFinanceModule]);
 
   const handleOpenSavingsGoalDialog = () => {
     setSavingsGoalValue(userData.financeModule?.savingsGoal || 0);

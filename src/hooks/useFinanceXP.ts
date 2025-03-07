@@ -18,7 +18,9 @@ export const useFinanceXP = () => {
   }, []);
 
   const calculateXPFromAchievements = useCallback(() => {
-    const completedAchievements = userData.financeModule?.achievements.filter(a => a.completed) || [];
+    // Add null check to prevent the "filter of undefined" error
+    const achievements = userData.financeModule?.achievements || [];
+    const completedAchievements = achievements.filter(a => a.completed) || [];
     return completedAchievements.length * XP_PER_ACHIEVEMENT;
   }, [userData.financeModule?.achievements]);
 
@@ -28,6 +30,15 @@ export const useFinanceXP = () => {
     const savingsXP = calculateXPFromSavings(userData.financeModule.balance || 0);
     const achievementsXP = calculateXPFromAchievements();
     const totalXP = savingsXP + achievementsXP;
+    
+    console.log("XP calculations:", { 
+      savingsXP, 
+      achievementsXP, 
+      totalXP,
+      currentLevel: userData.financeModule.financeLevel,
+      currentXP: userData.financeModule.currentXP,
+      maxXP: userData.financeModule.maxXP
+    });
 
     let newLevel = 1;
     let threshold = calculateLevelThreshold(newLevel + 1);
