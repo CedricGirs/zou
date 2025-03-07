@@ -40,12 +40,13 @@ import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import XPBar from "@/components/dashboard/XPBar";
-import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { useFinanceXP } from "@/hooks/useFinanceXP";
 import { MonthlyData } from "@/context/UserDataContext";
 
 const Finances = () => {
   const { userData, loading, updateFinanceModule } = useUserData();
+  const { normalizeMonthName } = useFinanceXP();
+  
   const [selectedMonth, setSelectedMonth] = useState(() => {
     try {
       const currentMonth = format(new Date(), 'MMMM', { locale: fr });
@@ -63,39 +64,93 @@ const Finances = () => {
     savingsRate: 0,
     transactions: []
   });
-
-  const normalizeMonthName = (month: string): string => {
-    if (!month) return "Janvier";
-    return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+  
+  const [isChangingMonth, setIsChangingMonth] = useState(false);
+  
+  const mergeMonthData = (monthlyData: Record<string, MonthlyData>, normalizedMonth: string) => {
+    const result: MonthlyData = {
+      income: 0,
+      expenses: 0,
+      balance: 0,
+      savingsRate: 0,
+      transactions: []
+    };
+    
+    const variations = [
+      normalizedMonth,
+      normalizedMonth.toLowerCase(),
+      normalizedMonth.toUpperCase()
+    ];
+    
+    variations.forEach(variant => {
+      if (monthlyData[variant]) {
+        result.income += monthlyData[variant].income || 0;
+        result.expenses += monthlyData[variant].expenses || 0;
+        result.balance = result.income - result.expenses;
+        
+        result.savingsRate = result.income > 0 
+          ? Math.round((result.income - result.expenses) / result.income * 100) 
+          : 0;
+        
+        if (monthlyData[variant].transactions && Array.isArray(monthlyData[variant].transactions)) {
+          const existingIds = new Set(result.transactions.map(t => t.id));
+          
+          monthlyData[variant].transactions.forEach(transaction => {
+            if (!existingIds.has(transaction.id)) {
+              result.transactions.push({...transaction});
+              existingIds.add(transaction.id);
+            }
+          });
+        }
+      }
+    });
+    
+    return result;
   };
   
   const saveCurrentMonthData = async () => {
-    if (!userData?.financeModule) return;
+    if (!userData?.financeModule || isChangingMonth) return;
     
     try {
-      const normalizedMonth = normalizeMonthName(selectedMonth);
+      setIsChangingMonth(true);
       
-      const safeTransactions = currentMonthData.transactions.map(t => ({...t}));
+      const normalizedMonth = normalizeMonthName(selectedMonth);
+      console.log(`Sauvegarde des données du mois ${normalizedMonth}:`, currentMonthData);
+      
+      const safeTransactions = currentMonthData.transactions.map(t => ({
+        ...t,
+        month: normalizedMonth
+      }));
       
       const dataToSave = {
         ...currentMonthData,
         transactions: safeTransactions
       };
       
-      const monthlyData = {
+      const existingMonthlyData = {
         ...(userData.financeModule.monthlyData || {})
       };
       
-      monthlyData[normalizedMonth] = dataToSave;
+      existingMonthlyData[normalizedMonth] = dataToSave;
       
-      if (normalizedMonth !== normalizedMonth.toLowerCase() && 
-          monthlyData[normalizedMonth.toLowerCase()]) {
-        delete monthlyData[normalizedMonth.toLowerCase()];
-      }
+      const variations = [
+        normalizedMonth.toLowerCase(),
+        normalizedMonth.toUpperCase()
+      ];
       
-      console.log(`Sauvegarde des données du mois ${normalizedMonth}:`, dataToSave);
-      await updateFinanceModule({ monthlyData });
+      variations.forEach(variant => {
+        if (variant !== normalizedMonth && existingMonthlyData[variant]) {
+          delete existingMonthlyData[variant];
+        }
+      });
       
+      console.log(`Sauvegarde des données mensuelles:`, existingMonthlyData);
+      await updateFinanceModule({ monthlyData: existingMonthlyData });
+      
+      toast({
+        title: "Données sauvegardées",
+        description: `Les données pour ${normalizedMonth} ont été enregistrées.`,
+      });
     } catch (error) {
       console.error("Erreur lors de la sauvegarde des données mensuelles:", error);
       toast({
@@ -103,6 +158,8 @@ const Finances = () => {
         description: "Impossible de sauvegarder les données du mois.",
         variant: "destructive"
       });
+    } finally {
+      setIsChangingMonth(false);
     }
   };
 
@@ -111,35 +168,20 @@ const Finances = () => {
       const monthlyData = userData.financeModule.monthlyData || {};
       const normalizedMonth = normalizeMonthName(selectedMonth);
       
-      const lowercaseMonth = normalizedMonth.toLowerCase();
+      console.log(`Chargement des données pour le mois: ${normalizedMonth}`, monthlyData);
       
-      const monthData: MonthlyData = {
-        income: 0,
-        expenses: 0,
-        balance: 0,
-        savingsRate: 0,
-        transactions: []
-      };
+      const mergedData = mergeMonthData(monthlyData, normalizedMonth);
       
-      if (monthlyData[normalizedMonth]) {
-        Object.assign(monthData, monthlyData[normalizedMonth]);
-      }
-      
-      if (monthlyData[lowercaseMonth] && lowercaseMonth !== normalizedMonth) {
-        const combinedTransactions = [
-          ...monthData.transactions,
-          ...(monthlyData[lowercaseMonth].transactions || [])
-        ];
-        
-        Object.assign(monthData, monthlyData[lowercaseMonth], {
-          transactions: combinedTransactions
-        });
-      }
-      
-      console.log(`Chargement des données pour le mois: ${normalizedMonth}`, monthData);
-      setCurrentMonthData(monthData);
+      console.log(`Données après fusion pour ${normalizedMonth}:`, mergedData);
+      setCurrentMonthData(mergedData);
     }
-  }, [selectedMonth, userData?.financeModule?.monthlyData, loading]);
+  }, [selectedMonth, userData?.financeModule?.monthlyData, loading, normalizeMonthName]);
+  
+  useEffect(() => {
+    return () => {
+      saveCurrentMonthData();
+    };
+  }, []);
   
   if (loading) {
     return (
@@ -168,17 +210,19 @@ const Finances = () => {
   ];
 
   const handleMonthChange = async (value: string) => {
-    await saveCurrentMonthData();
+    if (isChangingMonth) return;
     
-    const normalizedMonth = normalizeMonthName(value);
-    console.log(`Changement de mois: ${selectedMonth} -> ${normalizedMonth}`);
+    const newMonth = normalizeMonthName(value);
+    console.log(`Changement de mois demandé: ${selectedMonth} -> ${newMonth}`);
     
-    if (normalizedMonth !== selectedMonth) {
-      setSelectedMonth(normalizedMonth);
+    if (newMonth !== selectedMonth) {
+      await saveCurrentMonthData();
+      
+      setSelectedMonth(newMonth);
       
       toast({
         title: "Mois sélectionné",
-        description: `Données financières pour ${normalizedMonth} chargées.`,
+        description: `Données financières pour ${newMonth} chargées.`,
       });
     }
   };
@@ -362,7 +406,7 @@ const Finances = () => {
             <Select 
               value={selectedMonth} 
               onValueChange={handleMonthChange}
-              defaultValue={selectedMonth}
+              disabled={isChangingMonth}
             >
               <SelectTrigger className="w-[130px]">
                 <SelectValue placeholder="Mois" />
@@ -373,6 +417,7 @@ const Finances = () => {
                 ))}
               </SelectContent>
             </Select>
+            {isChangingMonth && <span className="text-xs text-muted-foreground">Chargement...</span>}
           </div>
         </div>
 
@@ -528,3 +573,4 @@ const Finances = () => {
 };
 
 export default Finances;
+

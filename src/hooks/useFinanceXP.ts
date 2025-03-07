@@ -25,6 +25,12 @@ export const useFinanceXP = () => {
     return completedAchievements.length * XP_PER_ACHIEVEMENT;
   }, [userData?.financeModule?.achievements]);
 
+  // Normaliser le nom du mois
+  const normalizeMonthName = useCallback((month: string): string => {
+    if (!month) return "";
+    return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+  }, []);
+
   // Calculate total balance across all months
   const calculateTotalSavings = useCallback(() => {
     if (!userData?.financeModule?.monthlyData) return 0;
@@ -32,21 +38,31 @@ export const useFinanceXP = () => {
     try {
       const monthlyData = userData.financeModule.monthlyData;
       let totalBalance = 0;
+      const processedMonths = new Set<string>();
       
-      // Sum up all monthly balances
-      Object.values(monthlyData).forEach(monthData => {
+      // Sum up all monthly balances, handle case-insensitive duplicates
+      Object.entries(monthlyData).forEach(([month, monthData]) => {
+        // Normalize month name
+        const normalizedMonth = normalizeMonthName(month);
+        
+        // Skip if we've already processed this month (case-insensitive)
+        if (processedMonths.has(normalizedMonth.toLowerCase())) {
+          return;
+        }
+        
         if (monthData && typeof monthData.balance === 'number') {
           totalBalance += monthData.balance;
+          processedMonths.add(normalizedMonth.toLowerCase());
         }
       });
       
-      console.log("Total économies cumulées:", totalBalance);
+      console.log("Total économies cumulées (normalisé):", totalBalance);
       return totalBalance;
     } catch (error) {
       console.error("Erreur lors du calcul des économies totales:", error);
       return 0;
     }
-  }, [userData?.financeModule?.monthlyData]);
+  }, [userData?.financeModule?.monthlyData, normalizeMonthName]);
 
   const updateXPAndLevel = useCallback(async () => {
     if (!userData?.financeModule) return;
@@ -106,7 +122,7 @@ export const useFinanceXP = () => {
     } catch (error) {
       console.error("Erreur lors de la mise à jour de l'XP:", error);
     }
-  }, [userData?.financeModule, calculateXPFromSavings, calculateXPFromAchievements, calculateTotalSavings, updateFinanceModule]);
+  }, [userData?.financeModule, calculateXPFromSavings, calculateXPFromAchievements, calculateTotalSavings, updateFinanceModule, calculateLevelThreshold]);
 
   // Update XP and level when finance module data changes
   useEffect(() => {
@@ -117,6 +133,7 @@ export const useFinanceXP = () => {
 
   return {
     updateXPAndLevel,
-    calculateLevelThreshold
+    calculateLevelThreshold,
+    normalizeMonthName
   };
 };
