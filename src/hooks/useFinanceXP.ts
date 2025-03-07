@@ -25,58 +25,103 @@ export const useFinanceXP = () => {
     return completedAchievements.length * XP_PER_ACHIEVEMENT;
   }, [userData?.financeModule?.achievements]);
 
-  // Normaliser le nom du mois
+  // Normaliser le nom du mois de façon stricte et cohérente
   const normalizeMonthName = useCallback((month: string): string => {
     if (!month) return "";
-    const normalized = month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
     
-    // Correction des mois spécifiques
-    const monthCorrections: { [key: string]: string } = {
-      "Fevrier": "Février",
-      "Fev": "Février",
-      "Fév": "Février",
-      "Aout": "Août",
-      "Decembre": "Décembre",
-      "Dec": "Décembre",
-      "Déc": "Décembre"
+    // Conversion en minuscules pour standardisation
+    const monthLower = month.toLowerCase();
+    
+    // Tableau de mois standard avec accents
+    const standardMonths = [
+      "janvier", "février", "mars", "avril", "mai", "juin",
+      "juillet", "août", "septembre", "octobre", "novembre", "décembre"
+    ];
+    
+    // Variantes d'orthographe possibles pour chaque mois
+    const monthVariants: {[key: string]: string} = {
+      "january": "janvier", "jan": "janvier", "janv": "janvier",
+      "february": "février", "feb": "février", "fev": "février", "févr": "février", "fév": "février",
+      "march": "mars", "mar": "mars",
+      "april": "avril", "apr": "avril", "avr": "avril",
+      "may": "mai",
+      "june": "juin", "jun": "juin",
+      "july": "juillet", "jul": "juillet", "juil": "juillet",
+      "august": "août", "aug": "août", "aout": "août", "aoû": "août",
+      "september": "septembre", "sep": "septembre", "sept": "septembre",
+      "october": "octobre", "oct": "octobre",
+      "november": "novembre", "nov": "novembre",
+      "december": "décembre", "dec": "décembre", "déc": "décembre"
     };
     
-    return monthCorrections[normalized] || normalized;
+    // Vérifier si le mois est déjà dans le format standard
+    if (standardMonths.includes(monthLower)) {
+      // Première lettre en majuscule, reste en minuscules
+      return monthLower.charAt(0).toUpperCase() + monthLower.slice(1);
+    }
+    
+    // Vérifier si c'est une variante connue
+    if (monthVariants[monthLower]) {
+      const standardMonth = monthVariants[monthLower];
+      return standardMonth.charAt(0).toUpperCase() + standardMonth.slice(1);
+    }
+    
+    // Gestion des mois avec juste la première lettre en majuscule
+    const capitalizedMonth = monthLower.charAt(0).toUpperCase() + monthLower.slice(1);
+    if (monthVariants[capitalizedMonth.toLowerCase()]) {
+      const standardMonth = monthVariants[capitalizedMonth.toLowerCase()];
+      return standardMonth.charAt(0).toUpperCase() + standardMonth.slice(1);
+    }
+    
+    // Si aucune correspondance, retourner le mois avec première lettre en majuscule
+    console.log(`Mois non reconnu: ${month}, utilisation de la capitalisation standard`);
+    return monthLower.charAt(0).toUpperCase() + monthLower.slice(1);
   }, []);
 
-  // Calculate total balance across all months
+  // Calculate total balance across all months with improved deduplication
   const calculateTotalSavings = useCallback(() => {
     if (!userData?.financeModule?.monthlyData) return 0;
     
     try {
       const monthlyData = userData.financeModule.monthlyData;
-      let totalBalance = 0;
-      const processedMonths = new Set<string>();
+      console.log("Données mensuelles:", monthlyData);
       
-      // Nettoyer et fusionner les données des mois
-      const cleanedMonthlyData: Record<string, any> = {};
+      // Map pour stocker les mois déjà normalisés et leurs données
+      const normalizedMonthsMap = new Map();
       
+      // Normaliser tous les noms de mois et fusionner les données dupliquées
       Object.entries(monthlyData).forEach(([month, data]) => {
         const normalizedMonth = normalizeMonthName(month);
         
-        if (!cleanedMonthlyData[normalizedMonth]) {
-          cleanedMonthlyData[normalizedMonth] = data;
+        if (!normalizedMonthsMap.has(normalizedMonth)) {
+          // Nouveau mois normalisé
+          normalizedMonthsMap.set(normalizedMonth, {
+            income: data.income || 0,
+            expenses: data.expenses || 0,
+            balance: data.balance || 0,
+            transactions: [...(data.transactions || [])]
+          });
         } else {
-          // Fusionner les données si le mois existe déjà
-          cleanedMonthlyData[normalizedMonth] = {
-            income: (cleanedMonthlyData[normalizedMonth].income || 0) + (data.income || 0),
-            expenses: (cleanedMonthlyData[normalizedMonth].expenses || 0) + (data.expenses || 0),
-            balance: (cleanedMonthlyData[normalizedMonth].balance || 0) + (data.balance || 0),
-            transactions: [...(cleanedMonthlyData[normalizedMonth].transactions || []), ...(data.transactions || [])]
-          };
+          // Fusionner avec un mois existant
+          const existingData = normalizedMonthsMap.get(normalizedMonth);
+          
+          existingData.income += data.income || 0;
+          existingData.expenses += data.expenses || 0;
+          existingData.balance += data.balance || 0;
+          
+          // Fusionner les transactions en évitant les doublons par ID
+          const existingIds = new Set(existingData.transactions.map((t: any) => t.id));
+          if (Array.isArray(data.transactions)) {
+            const newTransactions = data.transactions.filter(t => !existingIds.has(t.id));
+            existingData.transactions.push(...newTransactions);
+          }
         }
       });
       
-      // Calculer le total des économies
-      Object.values(cleanedMonthlyData).forEach((monthData: any) => {
-        if (monthData && typeof monthData.balance === 'number') {
-          totalBalance += monthData.balance;
-        }
+      // Calculer le total des soldes mensuels
+      let totalBalance = 0;
+      normalizedMonthsMap.forEach((data) => {
+        totalBalance += data.balance;
       });
       
       console.log("Total économies après nettoyage:", totalBalance);

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +20,7 @@ import {
   CircleCheck,
   BarChart3,
   Bookmark,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AnnualBudget from "@/components/finance/AnnualBudget";
@@ -45,7 +47,7 @@ import { MonthlyData } from "@/context/UserDataContext";
 
 const Finances = () => {
   const { userData, loading, updateFinanceModule } = useUserData();
-  const { normalizeMonthName } = useFinanceXP();
+  const { normalizeMonthName, calculateTotalSavings } = useFinanceXP();
   
   const [selectedMonth, setSelectedMonth] = useState(() => {
     try {
@@ -67,7 +69,8 @@ const Finances = () => {
   
   const [isChangingMonth, setIsChangingMonth] = useState(false);
   
-  const mergeMonthData = (monthlyData: Record<string, MonthlyData>, normalizedMonth: string) => {
+  // Fonction améliorée pour fusionner les données de mois identiques mais avec des orthographes différentes
+  const mergeMonthData = useCallback((monthlyData: Record<string, MonthlyData>, normalizedMonth: string) => {
     const result: MonthlyData = {
       income: 0,
       expenses: 0,
@@ -76,39 +79,56 @@ const Finances = () => {
       transactions: []
     };
     
-    const variations = [
-      normalizedMonth,
-      normalizedMonth.toLowerCase(),
-      normalizedMonth.toUpperCase()
-    ];
+    // Récupérer toutes les clés des mois qui correspondraient au mois normalisé
+    const matchingMonthKeys = Object.keys(monthlyData).filter(key => 
+      normalizeMonthName(key) === normalizedMonth
+    );
     
-    variations.forEach(variant => {
-      if (monthlyData[variant]) {
-        result.income += monthlyData[variant].income || 0;
-        result.expenses += monthlyData[variant].expenses || 0;
-        result.balance = result.income - result.expenses;
-        
-        result.savingsRate = result.income > 0 
-          ? Math.round((result.income - result.expenses) / result.income * 100) 
-          : 0;
-        
-        if (monthlyData[variant].transactions && Array.isArray(monthlyData[variant].transactions)) {
-          const existingIds = new Set(result.transactions.map(t => t.id));
-          
-          monthlyData[variant].transactions.forEach(transaction => {
-            if (!existingIds.has(transaction.id)) {
-              result.transactions.push({...transaction});
-              existingIds.add(transaction.id);
-            }
-          });
-        }
+    if (matchingMonthKeys.length === 0) {
+      // Aucune correspondance trouvée, retourner un résultat vide
+      return result;
+    }
+    
+    // Set pour suivre les IDs des transactions déjà vues
+    const transactionIds = new Set<string>();
+    
+    // Fusionner les données de tous les mois correspondants
+    matchingMonthKeys.forEach(monthKey => {
+      const monthData = monthlyData[monthKey];
+      
+      if (!monthData) return;
+      
+      // Ajouter revenus et dépenses
+      result.income += monthData.income || 0;
+      result.expenses += monthData.expenses || 0;
+      
+      // Ajouter les transactions sans duplication
+      if (Array.isArray(monthData.transactions)) {
+        monthData.transactions.forEach(transaction => {
+          if (!transactionIds.has(transaction.id)) {
+            // Cloner la transaction pour éviter les références circulaires
+            const clonedTransaction = { ...transaction };
+            // S'assurer que le mois est normalisé
+            clonedTransaction.month = normalizedMonth;
+            
+            result.transactions.push(clonedTransaction);
+            transactionIds.add(transaction.id);
+          }
+        });
       }
     });
     
+    // Recalculer le solde et le taux d'épargne
+    result.balance = result.income - result.expenses;
+    result.savingsRate = result.income > 0 
+      ? Math.round((result.income - result.expenses) / result.income * 100) 
+      : 0;
+    
     return result;
-  };
+  }, [normalizeMonthName]);
   
-  const saveCurrentMonthData = async () => {
+  // Sauvegarde les données du mois courant
+  const saveCurrentMonthData = useCallback(async () => {
     if (!userData?.financeModule || isChangingMonth) return;
     
     try {
@@ -117,6 +137,7 @@ const Finances = () => {
       const normalizedMonth = normalizeMonthName(selectedMonth);
       console.log(`Sauvegarde des données du mois ${normalizedMonth}:`, currentMonthData);
       
+      // Nettoyer les transactions en normalisant le mois et en évitant les références circulaires
       const safeTransactions = currentMonthData.transactions.map(t => ({
         ...t,
         month: normalizedMonth
@@ -127,24 +148,24 @@ const Finances = () => {
         transactions: safeTransactions
       };
       
+      // Récupérer les données mensuelles existantes
       const existingMonthlyData = {
         ...(userData.financeModule.monthlyData || {})
       };
       
-      existingMonthlyData[normalizedMonth] = dataToSave;
+      // Identifier tous les mois qui doivent être fusionnés avec le mois normalisé
+      const keysToDelete = Object.keys(existingMonthlyData).filter(key => 
+        key !== normalizedMonth && normalizeMonthName(key) === normalizedMonth
+      );
       
-      const variations = [
-        normalizedMonth.toLowerCase(),
-        normalizedMonth.toUpperCase()
-      ];
-      
-      variations.forEach(variant => {
-        if (variant !== normalizedMonth && existingMonthlyData[variant]) {
-          delete existingMonthlyData[variant];
-        }
+      // Supprimer les anciennes entrées pour les remplacer par une seule entrée normalisée
+      keysToDelete.forEach(key => {
+        delete existingMonthlyData[key];
       });
       
-      console.log(`Sauvegarde des données mensuelles:`, existingMonthlyData);
+      // Ajouter les nouvelles données
+      existingMonthlyData[normalizedMonth] = dataToSave;
+      
       await updateFinanceModule({ monthlyData: existingMonthlyData });
       
       toast({
@@ -161,28 +182,177 @@ const Finances = () => {
     } finally {
       setIsChangingMonth(false);
     }
-  };
-
-  useEffect(() => {
-    if (!loading && userData?.financeModule?.monthlyData) {
-      const monthlyData = userData.financeModule.monthlyData || {};
-      const normalizedMonth = normalizeMonthName(selectedMonth);
-      
-      console.log(`Chargement des données pour le mois: ${normalizedMonth}`, monthlyData);
-      
-      const mergedData = mergeMonthData(monthlyData, normalizedMonth);
-      
-      console.log(`Données après fusion pour ${normalizedMonth}:`, mergedData);
-      setCurrentMonthData(mergedData);
-    }
-  }, [selectedMonth, userData?.financeModule?.monthlyData, loading, normalizeMonthName]);
+  }, [userData?.financeModule, isChangingMonth, selectedMonth, currentMonthData, normalizeMonthName, updateFinanceModule]);
   
+  // Charge les données du mois sélectionné
+  const loadMonthData = useCallback(() => {
+    if (!userData?.financeModule?.monthlyData || loading) return;
+    
+    const monthlyData = userData.financeModule.monthlyData || {};
+    const normalizedMonth = normalizeMonthName(selectedMonth);
+    
+    console.log(`Chargement des données pour le mois: ${normalizedMonth}`, monthlyData);
+    
+    const mergedData = mergeMonthData(monthlyData, normalizedMonth);
+    
+    console.log(`Données après fusion pour ${normalizedMonth}:`, mergedData);
+    setCurrentMonthData(mergedData);
+  }, [userData?.financeModule?.monthlyData, loading, selectedMonth, mergeMonthData, normalizeMonthName]);
+  
+  // Charger les données lorsque le mois change ou que les données utilisateur sont mises à jour
+  useEffect(() => {
+    loadMonthData();
+  }, [selectedMonth, userData?.financeModule?.monthlyData, loading, loadMonthData]);
+  
+  // Sauvegarder les données avant de quitter la page
   useEffect(() => {
     return () => {
       saveCurrentMonthData();
     };
-  }, []);
+  }, [saveCurrentMonthData]);
   
+  // Gérer le changement de mois
+  const handleMonthChange = async (value: string) => {
+    if (isChangingMonth) {
+      console.log("Changement de mois en cours, ignoré");
+      return;
+    }
+    
+    try {
+      const newMonth = normalizeMonthName(value);
+      console.log(`Changement de mois demandé: ${selectedMonth} -> ${newMonth}`);
+      
+      if (newMonth !== selectedMonth) {
+        // Sauvegarder les données du mois actuel avant de changer
+        setIsChangingMonth(true);
+        await saveCurrentMonthData();
+        
+        // Mettre à jour le mois sélectionné
+        setSelectedMonth(newMonth);
+        
+        // Notifier l'utilisateur
+        toast({
+          title: "Mois sélectionné",
+          description: `Données financières pour ${newMonth} chargées.`,
+        });
+        
+        // Recharger les données pour le nouveau mois
+        loadMonthData();
+      }
+    } catch (error) {
+      console.error("Erreur lors du changement de mois:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de changer de mois. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsChangingMonth(false);
+    }
+  };
+  
+  const completeQuestStep = async (questId: string, progress: number) => {
+    if (!userData.financeModule) return;
+    
+    try {
+      const quests = [...userData.financeModule.quests];
+      const questIndex = quests.findIndex(q => q.id === questId);
+      
+      if (questIndex !== -1) {
+        quests[questIndex] = {
+          ...quests[questIndex],
+          progress,
+          completed: progress === 100
+        };
+        
+        await updateFinanceModule({ quests });
+        
+        if (progress === 100) {
+          toast({
+            title: "Quête complétée!",
+            description: `Vous avez gagné ${quests[questIndex].xpReward} XP!`,
+          });
+          
+          const newXP = userData.financeModule.currentXP + quests[questIndex].xpReward;
+          let newLevel = userData.financeModule.financeLevel;
+          let newMaxXP = userData.financeModule.maxXP;
+          
+          if (newXP >= newMaxXP) {
+            newLevel += 1;
+            newMaxXP = newMaxXP * 1.5;
+            toast({
+              title: "Niveau supérieur!",
+              description: `Vous êtes maintenant niveau ${newLevel} en finances!`,
+            });
+          }
+          
+          await updateFinanceModule({ 
+            currentXP: newXP, 
+            financeLevel: newLevel,
+            maxXP: newMaxXP
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de la progression de quête:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour la progression.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const unlockAchievement = async (achievementId: string) => {
+    if (!userData.financeModule) return;
+    
+    try {
+      const achievements = [...userData.financeModule.achievements];
+      const achievementIndex = achievements.findIndex(a => a.id === achievementId);
+      
+      if (achievementIndex !== -1 && !achievements[achievementIndex].completed) {
+        achievements[achievementIndex] = {
+          ...achievements[achievementIndex],
+          completed: true
+        };
+        
+        await updateFinanceModule({ achievements });
+        
+        toast({
+          title: "Succès débloqué!",
+          description: `Vous avez débloqué: ${achievements[achievementIndex].name}`,
+        });
+        
+        const newXP = userData.financeModule.currentXP + achievements[achievementIndex].xpReward;
+        let newLevel = userData.financeModule.financeLevel;
+        let newMaxXP = userData.financeModule.maxXP;
+        
+        if (newXP >= newMaxXP) {
+          newLevel += 1;
+          newMaxXP = newMaxXP * 1.5;
+          toast({
+            title: "Niveau supérieur!",
+            description: `Vous êtes maintenant niveau ${newLevel} en finances!`,
+          });
+        }
+        
+        await updateFinanceModule({ 
+          currentXP: newXP, 
+          financeLevel: newLevel,
+          maxXP: newMaxXP
+        });
+      }
+    } catch (error) {
+      console.error("Erreur lors du déblocage du succès:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de débloquer le succès.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Afficher un indicateur de chargement pendant le chargement des données
   if (loading) {
     return (
       <MainLayout>
@@ -208,107 +378,6 @@ const Finances = () => {
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
-
-  const handleMonthChange = async (value: string) => {
-    if (isChangingMonth) return;
-    
-    const newMonth = normalizeMonthName(value);
-    console.log(`Changement de mois demandé: ${selectedMonth} -> ${newMonth}`);
-    
-    if (newMonth !== selectedMonth) {
-      await saveCurrentMonthData();
-      
-      setSelectedMonth(newMonth);
-      
-      toast({
-        title: "Mois sélectionné",
-        description: `Données financières pour ${newMonth} chargées.`,
-      });
-    }
-  };
-  
-  const completeQuestStep = async (questId: string, progress: number) => {
-    if (!userData.financeModule) return;
-    
-    const quests = [...userData.financeModule.quests];
-    const questIndex = quests.findIndex(q => q.id === questId);
-    
-    if (questIndex !== -1) {
-      quests[questIndex] = {
-        ...quests[questIndex],
-        progress,
-        completed: progress === 100
-      };
-      
-      await updateFinanceModule({ quests });
-      
-      if (progress === 100) {
-        toast({
-          title: "Quête complétée!",
-          description: `Vous avez gagné ${quests[questIndex].xpReward} XP!`,
-        });
-        
-        const newXP = userData.financeModule.currentXP + quests[questIndex].xpReward;
-        let newLevel = userData.financeModule.financeLevel;
-        let newMaxXP = userData.financeModule.maxXP;
-        
-        if (newXP >= newMaxXP) {
-          newLevel += 1;
-          newMaxXP = newMaxXP * 1.5;
-          toast({
-            title: "Niveau supérieur!",
-            description: `Vous êtes maintenant niveau ${newLevel} en finances!`,
-          });
-        }
-        
-        await updateFinanceModule({ 
-          currentXP: newXP, 
-          financeLevel: newLevel,
-          maxXP: newMaxXP
-        });
-      }
-    }
-  };
-  
-  const unlockAchievement = async (achievementId: string) => {
-    if (!userData.financeModule) return;
-    
-    const achievements = [...userData.financeModule.achievements];
-    const achievementIndex = achievements.findIndex(a => a.id === achievementId);
-    
-    if (achievementIndex !== -1 && !achievements[achievementIndex].completed) {
-      achievements[achievementIndex] = {
-        ...achievements[achievementIndex],
-        completed: true
-      };
-      
-      await updateFinanceModule({ achievements });
-      
-      toast({
-        title: "Succès débloqué!",
-        description: `Vous avez débloqué: ${achievements[achievementIndex].name}`,
-      });
-      
-      const newXP = userData.financeModule.currentXP + achievements[achievementIndex].xpReward;
-      let newLevel = userData.financeModule.financeLevel;
-      let newMaxXP = userData.financeModule.maxXP;
-      
-      if (newXP >= newMaxXP) {
-        newLevel += 1;
-        newMaxXP = newMaxXP * 1.5;
-        toast({
-          title: "Niveau supérieur!",
-          description: `Vous êtes maintenant niveau ${newLevel} en finances!`,
-        });
-      }
-      
-      await updateFinanceModule({ 
-        currentXP: newXP, 
-        financeLevel: newLevel,
-        maxXP: newMaxXP
-      });
-    }
-  };
 
   const financeAchievements = [
     {
@@ -409,7 +478,16 @@ const Finances = () => {
               disabled={isChangingMonth}
             >
               <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="Mois" />
+                <SelectValue placeholder="Mois">
+                  {isChangingMonth ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Chargement</span>
+                    </div>
+                  ) : (
+                    selectedMonth
+                  )}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {months.map(month => (
@@ -417,7 +495,6 @@ const Finances = () => {
                 ))}
               </SelectContent>
             </Select>
-            {isChangingMonth && <span className="text-xs text-muted-foreground">Chargement...</span>}
           </div>
         </div>
 
@@ -573,4 +650,3 @@ const Finances = () => {
 };
 
 export default Finances;
-

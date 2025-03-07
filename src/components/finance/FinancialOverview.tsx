@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { Edit, ArrowUp, ArrowDown, DollarSign, PiggyBank, TrendingUp, Trophy, Target, Zap, Award, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUserData } from '@/context/UserDataContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useFinanceXP } from '@/hooks/useFinanceXP';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -32,7 +33,7 @@ const FinancialOverview = ({
   completeQuestStep
 }: FinancialOverviewProps) => {
   const { userData, updateFinanceModule } = useUserData();
-  const { updateXPAndLevel, calculateTotalSavings } = useFinanceXP();
+  const { calculateTotalSavings } = useFinanceXP();
   
   const [isEditingSavingsGoal, setIsEditingSavingsGoal] = useState(false);
   const [savingsGoalValue, setSavingsGoalValue] = useState(userData.financeModule?.savingsGoal || 0);
@@ -41,22 +42,33 @@ const FinancialOverview = ({
   const [savingsPercentage, setSavingsPercentage] = useState(0);
   const [totalCumulativeSavings, setTotalCumulativeSavings] = useState(0);
 
-  useEffect(() => {
+  // Fonction pour mettre à jour les états locaux en fonction des props et des données utilisateur
+  const updateLocalState = useCallback(() => {
     if (!userData || !userData.financeModule) return;
     
+    // Calculer le total des économies cumulées à partir de useFinanceXP
     const calculatedTotalSavings = calculateTotalSavings();
-    setTotalCumulativeSavings(calculatedTotalSavings);
+    console.log("Total économies cumulées:", calculatedTotalSavings);
     
+    // Mettre à jour les états locaux
+    setTotalCumulativeSavings(calculatedTotalSavings);
     setActualIncome(income);
     setActualExpenses(expenses);
     
+    // Calculer le pourcentage d'épargne
     const savingsPercent = income > 0 ? Math.round(((income - expenses) / income) * 100) : 0;
     setSavingsPercentage(savingsPercent);
     
-    if (userData.financeModule && calculatedTotalSavings !== userData.financeModule.balance) {
-      updateFinanceModule({ balance: calculatedTotalSavings });
+    // Mettre à jour l'objectif d'épargne si nécessaire
+    if (userData.financeModule.savingsGoal !== savingsGoalValue) {
+      setSavingsGoalValue(userData.financeModule.savingsGoal || 0);
     }
-  }, [income, expenses, selectedMonth, userData?.financeModule?.monthlyData, calculateTotalSavings, updateFinanceModule]);
+  }, [income, expenses, userData, calculateTotalSavings, savingsGoalValue]);
+
+  // Mettre à jour les états locaux lorsque les props ou userData changent
+  useEffect(() => {
+    updateLocalState();
+  }, [income, expenses, selectedMonth, userData?.financeModule?.monthlyData, updateLocalState]);
 
   const handleOpenSavingsGoalDialog = () => {
     setSavingsGoalValue(userData.financeModule?.savingsGoal || 0);
@@ -76,7 +88,6 @@ const FinancialOverview = ({
         const createSavingsQuest = userData.financeModule.quests.find(q => q.id === "create_savings");
         if (createSavingsQuest) {
           await completeQuestStep("create_savings", 50);
-          updateXPAndLevel();
         }
       }
       
