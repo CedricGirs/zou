@@ -385,8 +385,7 @@ const Finances = () => {
         className="flex items-center gap-1"
         onClick={() => applyTemplate('income', '')}
       >
-        <FileText size={16} />
-        Appliquer Template
+        Créer template
       </Button>
     </div>
   );
@@ -399,8 +398,7 @@ const Finances = () => {
         className="flex items-center gap-1"
         onClick={() => applyTemplate('expense', '')}
       >
-        <FileText size={16} />
-        Appliquer Template
+        Créer template
       </Button>
     </div>
   );
