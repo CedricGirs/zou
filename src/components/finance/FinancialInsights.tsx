@@ -1,24 +1,24 @@
 
-import React from 'react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
+import React, { useState } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Transaction } from "@/context/UserDataContext";
-import { AlertCircle, TrendingUp, TrendingDown, Info, ArrowRight, Trophy, Target, BadgeDollarSign, Zap } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, ArrowRight, Trophy, Target, BadgeDollarSign, Plus } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUserData } from "@/context/UserDataContext";
+import { toast } from '@/hooks/use-toast';
+import { v4 as uuidv4 } from 'uuid';
 
 interface FinancialInsightsProps {
   transactions: Transaction[];
@@ -26,25 +26,7 @@ interface FinancialInsightsProps {
 }
 
 const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
-  // Filter transactions by month - empty to reset
-  const filteredTransactions: Transaction[] = [];
-  
-  // Data for expense categories chart - reset
-  const expensePieData = [
-    { name: 'Logement', value: 0 },
-    { name: 'Alimentation', value: 0 },
-    { name: 'Transport', value: 0 },
-    { name: 'Loisirs', value: 0 },
-    { name: 'Santé', value: 0 },
-    { name: 'Divers', value: 0 }
-  ];
-  
-  // Data for daily income vs expenses chart - reset
-  const dailyChartData = Array.from({ length: 30 }, (_, i) => ({
-    date: `${i + 1}/04`,
-    income: 0,
-    expenses: 0
-  }));
+  const { userData, updateFinanceModule } = useUserData();
   
   // Financial tips and challenges
   const financialTips = [
@@ -96,94 +78,157 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
     }
   ];
   
-  // Colors for charts
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'];
+  // États pour les formulaires d'ajout
+  const [newIncome, setNewIncome] = useState({
+    description: '',
+    amount: 0,
+    category: 'Salaire'
+  });
+  
+  const [newExpense, setNewExpense] = useState({
+    description: '',
+    amount: 0,
+    category: 'Logement'
+  });
+  
+  // Catégories de revenus et dépenses
+  const incomeCategories = [
+    'Salaire', 'Freelance', 'Dividendes', 'Loyers', 'Cadeaux', 'Remboursements', 'Autres'
+  ];
+  
+  const expenseCategories = [
+    'Logement', 'Alimentation', 'Transport', 'Loisirs', 'Santé', 'Éducation', 'Vêtements', 'Cadeaux', 'Autre'
+  ];
+  
+  // Gestion des formulaires
+  const handleIncomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
+    setNewIncome({
+      ...newIncome,
+      [name]: type === 'number' ? Number(value) : value
+    });
+  };
+  
+  const handleExpenseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
+    setNewExpense({
+      ...newExpense,
+      [name]: type === 'number' ? Number(value) : value
+    });
+  };
+  
+  const handleIncomeCategoryChange = (value: string) => {
+    setNewIncome({
+      ...newIncome,
+      category: value
+    });
+  };
+  
+  const handleExpenseCategoryChange = (value: string) => {
+    setNewExpense({
+      ...newExpense,
+      category: value
+    });
+  };
+  
+  // Ajouter revenu
+  const addIncome = async () => {
+    if (!newIncome.description || newIncome.amount <= 0) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs correctement.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Créer une transaction de type revenu
+    const transaction: Transaction = {
+      id: uuidv4(),
+      date: new Date().toISOString().split('T')[0],
+      description: newIncome.description,
+      amount: newIncome.amount,
+      category: newIncome.category,
+      type: 'income',
+      month: month,
+      isVerified: false
+    };
+    
+    // Mettre à jour les transactions et les revenus mensuels
+    const updatedTransactions = [...(userData?.financeModule?.transactions || []), transaction];
+    const newMonthlyIncome = (userData?.financeModule?.monthlyIncome || 0) + newIncome.amount;
+    const newBalance = newMonthlyIncome - (userData?.financeModule?.monthlyExpenses || 0);
+    
+    // Mettre à jour les données
+    await updateFinanceModule({ 
+      transactions: updatedTransactions,
+      monthlyIncome: newMonthlyIncome,
+      balance: newBalance
+    });
+    
+    toast({
+      title: "Revenu ajouté",
+      description: `${newIncome.description} : ${newIncome.amount}€ a été ajouté avec succès.`
+    });
+    
+    // Réinitialiser le formulaire
+    setNewIncome({
+      description: '',
+      amount: 0,
+      category: 'Salaire'
+    });
+  };
+  
+  // Ajouter dépense
+  const addExpense = async () => {
+    if (!newExpense.description || newExpense.amount <= 0) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs correctement.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Créer une transaction de type dépense
+    const transaction: Transaction = {
+      id: uuidv4(),
+      date: new Date().toISOString().split('T')[0],
+      description: newExpense.description,
+      amount: newExpense.amount,
+      category: newExpense.category,
+      type: 'expense',
+      month: month,
+      isVerified: false
+    };
+    
+    // Mettre à jour les transactions et les dépenses mensuelles
+    const updatedTransactions = [...(userData?.financeModule?.transactions || []), transaction];
+    const newMonthlyExpenses = (userData?.financeModule?.monthlyExpenses || 0) + newExpense.amount;
+    const newBalance = (userData?.financeModule?.monthlyIncome || 0) - newMonthlyExpenses;
+    
+    // Mettre à jour les données
+    await updateFinanceModule({ 
+      transactions: updatedTransactions,
+      monthlyExpenses: newMonthlyExpenses,
+      balance: newBalance
+    });
+    
+    toast({
+      title: "Dépense ajoutée",
+      description: `${newExpense.description} : ${newExpense.amount}€ a été ajoutée avec succès.`
+    });
+    
+    // Réinitialiser le formulaire
+    setNewExpense({
+      description: '',
+      amount: 0,
+      category: 'Logement'
+    });
+  };
 
   return (
     <div className="space-y-6">
-      <div className="glass-card p-6">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <TrendingUp size={18} className="text-purple-500" />
-          Aperçu du mois
-        </h3>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="col-span-2 overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="bg-gradient-to-r from-violet-50 to-purple-50">
-              <CardTitle className="text-sm font-medium">Tendances financières</CardTitle>
-              <CardDescription>Revenus et dépenses journaliers</CardDescription>
-            </CardHeader>
-            <CardContent className="px-2 pt-4">
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={dailyChartData}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `${value.toLocaleString('fr-FR')} €`} />
-                    <Legend />
-                    <Bar dataKey="income" name="Revenus" fill="#82ca9d" />
-                    <Bar dataKey="expenses" name="Dépenses" fill="#ff7c43" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-            <CardFooter className="bg-gradient-to-r from-violet-50 to-purple-50">
-              <p className="text-sm text-muted-foreground">
-                Ajoutez des transactions pour voir apparaître des données dans ce graphique.
-              </p>
-              <div className="ml-auto flex items-center bg-white px-2 py-1 rounded-full text-xs text-purple-600">
-                <Trophy size={12} className="mr-1 text-amber-500" />
-                <span>+25 XP pour 10 transactions</span>
-              </div>
-            </CardFooter>
-          </Card>
-          
-          <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="bg-gradient-to-r from-violet-50 to-purple-50">
-              <CardTitle className="text-sm font-medium">Répartition des dépenses</CardTitle>
-              <CardDescription>Par catégorie</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={expensePieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, value }) => value > 0 ? `${name}` : ''}
-                    >
-                      {expensePieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `${value.toLocaleString('fr-FR')} €`} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-            <CardFooter className="bg-gradient-to-r from-violet-50 to-purple-50">
-              <div className="w-full flex justify-between items-center">
-                <span className="text-xs text-muted-foreground">Complétez le graphique</span>
-                <div className="flex items-center bg-white px-2 py-1 rounded-full text-xs text-purple-600">
-                  <Target size={12} className="mr-1 text-purple-500" />
-                  <span>Équilibrez vos dépenses</span>
-                </div>
-              </div>
-            </CardFooter>
-          </Card>
-        </div>
-      </div>
-      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="overflow-hidden border-none shadow-md">
           <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
@@ -199,7 +244,6 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
                 <div key={tip.id} className="rounded-lg border border-green-100 p-3 hover:bg-green-50 transition-colors">
                   <div className="flex justify-between items-start mb-1">
                     <h4 className="font-medium text-sm flex items-center gap-1">
-                      <Zap size={14} className="text-green-500" />
                       {tip.title}
                     </h4>
                     <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
@@ -274,28 +318,97 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <span>Vous n'avez pas encore ajouté de revenus ce mois-ci.</span>
-                </AlertDescription>
-              </Alert>
-              
-              <div className="text-center py-4">
-                <div className="inline-block rounded-full bg-purple-100 p-3 mb-3">
-                  <BadgeDollarSign className="h-6 w-6 text-purple-500" />
+              {userData?.financeModule?.transactions?.filter(t => t.type === 'income').length === 0 ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <span>Vous n'avez pas encore ajouté de revenus ce mois-ci.</span>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Sources de revenus récentes :</p>
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                    {userData?.financeModule?.transactions
+                      ?.filter(t => t.type === 'income')
+                      .slice(0, 5)
+                      .map(income => (
+                        <div key={income.id} className="flex justify-between items-center p-2 border rounded hover:bg-muted/50">
+                          <div>
+                            <p className="font-medium text-sm">{income.description}</p>
+                            <p className="text-xs text-muted-foreground">{income.category}</p>
+                          </div>
+                          <span className="text-green-600 font-medium">{income.amount} €</span>
+                        </div>
+                      ))
+                    }
+                  </div>
                 </div>
-                <p className="text-muted-foreground mb-4">
-                  Commencez à ajouter vos sources de revenus pour obtenir des analyses détaillées.
-                </p>
-                <Button variant="outline" size="sm">
-                  Ajouter un revenu <ArrowRight size={14} className="ml-2" />
-                </Button>
-              </div>
+              )}
+              
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full mt-4">
+                    <Plus size={14} className="mr-2" />
+                    Ajouter un revenu
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Ajouter un revenu</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="incomeDescription" className="text-right">Description</Label>
+                      <Input
+                        id="incomeDescription"
+                        name="description"
+                        value={newIncome.description}
+                        onChange={handleIncomeChange}
+                        className="col-span-3"
+                        placeholder="Salaire, Freelance, etc."
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="incomeAmount" className="text-right">Montant (€)</Label>
+                      <Input
+                        id="incomeAmount"
+                        name="amount"
+                        type="number"
+                        value={newIncome.amount}
+                        onChange={handleIncomeChange}
+                        className="col-span-3"
+                        min={0}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="incomeCategory" className="text-right">Catégorie</Label>
+                      <div className="col-span-3">
+                        <Select 
+                          value={newIncome.category} 
+                          onValueChange={handleIncomeCategoryChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choisissez une catégorie" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {incomeCategories.map(category => (
+                              <SelectItem key={category} value={category}>{category}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button onClick={addIncome}>Ajouter</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardContent>
           <CardFooter className="bg-gray-50 flex justify-between">
-            <span className="text-xs text-muted-foreground">Revenu mensuel moyen: 0 €</span>
+            <span className="text-xs text-muted-foreground">Revenu mensuel total: {userData?.financeModule?.monthlyIncome || 0} €</span>
             <div className="flex items-center text-xs text-purple-600">
               <Trophy size={12} className="mr-1 text-amber-500" />
               <span>+30 XP pour 3 sources de revenus</span>
@@ -313,28 +426,97 @@ const FinancialInsights = ({ transactions, month }: FinancialInsightsProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <span>Vous n'avez pas encore ajouté de dépenses ce mois-ci.</span>
-                </AlertDescription>
-              </Alert>
-              
-              <div className="text-center py-4">
-                <div className="inline-block rounded-full bg-orange-100 p-3 mb-3">
-                  <BadgeDollarSign className="h-6 w-6 text-orange-500" />
+              {userData?.financeModule?.transactions?.filter(t => t.type === 'expense').length === 0 ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <span>Vous n'avez pas encore ajouté de dépenses ce mois-ci.</span>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Dépenses récentes :</p>
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                    {userData?.financeModule?.transactions
+                      ?.filter(t => t.type === 'expense')
+                      .slice(0, 5)
+                      .map(expense => (
+                        <div key={expense.id} className="flex justify-between items-center p-2 border rounded hover:bg-muted/50">
+                          <div>
+                            <p className="font-medium text-sm">{expense.description}</p>
+                            <p className="text-xs text-muted-foreground">{expense.category}</p>
+                          </div>
+                          <span className="text-red-600 font-medium">{expense.amount} €</span>
+                        </div>
+                      ))
+                    }
+                  </div>
                 </div>
-                <p className="text-muted-foreground mb-4">
-                  Commencez à ajouter vos dépenses pour obtenir des analyses détaillées par catégorie.
-                </p>
-                <Button variant="outline" size="sm">
-                  Ajouter une dépense <ArrowRight size={14} className="ml-2" />
-                </Button>
-              </div>
+              )}
+              
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full mt-4">
+                    <Plus size={14} className="mr-2" />
+                    Ajouter une dépense
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Ajouter une dépense</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="expenseDescription" className="text-right">Description</Label>
+                      <Input
+                        id="expenseDescription"
+                        name="description"
+                        value={newExpense.description}
+                        onChange={handleExpenseChange}
+                        className="col-span-3"
+                        placeholder="Loyer, Courses, etc."
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="expenseAmount" className="text-right">Montant (€)</Label>
+                      <Input
+                        id="expenseAmount"
+                        name="amount"
+                        type="number"
+                        value={newExpense.amount}
+                        onChange={handleExpenseChange}
+                        className="col-span-3"
+                        min={0}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="expenseCategory" className="text-right">Catégorie</Label>
+                      <div className="col-span-3">
+                        <Select 
+                          value={newExpense.category} 
+                          onValueChange={handleExpenseCategoryChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choisissez une catégorie" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {expenseCategories.map(category => (
+                              <SelectItem key={category} value={category}>{category}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button onClick={addExpense}>Ajouter</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardContent>
           <CardFooter className="bg-gray-50 flex justify-between">
-            <span className="text-xs text-muted-foreground">Dépense mensuelle moyenne: 0 €</span>
+            <span className="text-xs text-muted-foreground">Dépense mensuelle totale: {userData?.financeModule?.monthlyExpenses || 0} €</span>
             <div className="flex items-center text-xs text-purple-600">
               <Target size={12} className="mr-1 text-purple-500" />
               <span>Réduisez vos dépenses de 5%</span>
