@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   PieChart, 
@@ -86,11 +85,11 @@ const TransactionTracker = ({
   const recalculateTotals = (updatedTransactions: Transaction[]) => {
     const totalIncome = updatedTransactions
       .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+      .reduce((sum, t) => sum + (parseFloat(String(t.amount)) || 0), 0);
       
     const totalExpenses = updatedTransactions
       .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+      .reduce((sum, t) => sum + (parseFloat(String(t.amount)) || 0), 0);
       
     const balance = totalIncome - totalExpenses;
     const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
@@ -150,7 +149,7 @@ const TransactionTracker = ({
       id: uuidv4(),
       date: newTransaction.date || format(new Date(), 'yyyy-MM-dd'),
       description: newTransaction.description || '',
-      amount: parseFloat(newTransaction.amount) || 0,
+      amount: newTransaction.amount || 0,
       category: newTransaction.category || 'Autre',
       type: newTransaction.type || 'expense',
       month: normalizedMonth, // Utiliser le mois normalisé
@@ -238,17 +237,17 @@ const TransactionTracker = ({
   // Calculate totals
   const totalIncome = filteredTransactions
     .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+    .reduce((sum, t) => sum + (parseFloat(String(t.amount)) || 0), 0);
     
   const totalExpenses = filteredTransactions
     .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+    .reduce((sum, t) => sum + (parseFloat(String(t.amount)) || 0), 0);
   
   // Prepare data for pie chart
   const pieChartData = categories.map(category => {
     const value = filteredTransactions
       .filter(t => t.category === category && t.type === 'expense')
-      .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+      .reduce((sum, t) => sum + (parseFloat(String(t.amount)) || 0), 0);
     
     return { name: category, value };
   }).filter(item => item.value > 0);
@@ -413,7 +412,6 @@ const TransactionTracker = ({
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
-                  {/* Contenu de la fenêtre modale - identique à celui ci-dessus */}
                   <DialogHeader>
                     <DialogTitle>Ajouter une transaction</DialogTitle>
                   </DialogHeader>

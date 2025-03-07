@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -111,8 +110,8 @@ const Finances = () => {
       if (!monthData) return;
       
       // Ajouter revenus et dépenses
-      result.income += parseFloat(monthData.income) || 0;
-      result.expenses += parseFloat(monthData.expenses) || 0;
+      result.income += parseFloat(String(monthData.income)) || 0;
+      result.expenses += parseFloat(String(monthData.expenses)) || 0;
       
       // Ajouter les transactions sans duplication
       if (Array.isArray(monthData.transactions)) {
@@ -164,10 +163,10 @@ const Finances = () => {
         ...currentMonthData,
         transactions: safeTransactions,
         // Assurez-vous que ces champs sont des nombres
-        income: parseFloat(currentMonthData.income) || 0,
-        expenses: parseFloat(currentMonthData.expenses) || 0,
-        balance: parseFloat(currentMonthData.balance) || 0,
-        savingsRate: parseFloat(currentMonthData.savingsRate) || 0
+        income: parseFloat(String(currentMonthData.income)) || 0,
+        expenses: parseFloat(String(currentMonthData.expenses)) || 0,
+        balance: parseFloat(String(currentMonthData.balance)) || 0,
+        savingsRate: parseFloat(String(currentMonthData.savingsRate)) || 0
       };
       
       // Récupérer les données mensuelles existantes
@@ -682,4 +681,3 @@ const Finances = () => {
 };
 
 export default Finances;
-

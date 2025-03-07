@@ -97,18 +97,18 @@ export const useFinanceXP = () => {
         if (!normalizedMonthsMap.has(normalizedMonth)) {
           // Nouveau mois normalisé
           normalizedMonthsMap.set(normalizedMonth, {
-            income: parseFloat(data.income) || 0,
-            expenses: parseFloat(data.expenses) || 0,
-            balance: parseFloat(data.balance) || 0,
+            income: parseFloat(String(data.income)) || 0,
+            expenses: parseFloat(String(data.expenses)) || 0,
+            balance: parseFloat(String(data.balance)) || 0,
             transactions: [...(Array.isArray(data.transactions) ? data.transactions : [])]
           });
         } else {
           // Fusionner avec un mois existant
           const existingData = normalizedMonthsMap.get(normalizedMonth);
           
-          existingData.income += parseFloat(data.income) || 0;
-          existingData.expenses += parseFloat(data.expenses) || 0;
-          existingData.balance += parseFloat(data.balance) || 0;
+          existingData.income += parseFloat(String(data.income)) || 0;
+          existingData.expenses += parseFloat(String(data.expenses)) || 0;
+          existingData.balance += parseFloat(String(data.balance)) || 0;
           
           // Fusionner les transactions en évitant les doublons par ID
           if (Array.isArray(data.transactions)) {
@@ -166,8 +166,8 @@ export const useFinanceXP = () => {
         const transactionIds = new Set();
         
         allMonthData.forEach(monthData => {
-          mergedData.income += parseFloat(monthData.income) || 0;
-          mergedData.expenses += parseFloat(monthData.expenses) || 0;
+          mergedData.income += parseFloat(String(monthData.income)) || 0;
+          mergedData.expenses += parseFloat(String(monthData.expenses)) || 0;
           
           if (Array.isArray(monthData.transactions)) {
             monthData.transactions.forEach((transaction: any) => {
