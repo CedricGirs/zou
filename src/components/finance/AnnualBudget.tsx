@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   BarChart, 
@@ -807,3 +808,31 @@ const AnnualBudget = () => {
                           <span className="text-muted-foreground">Dépenses:</span>
                           <span className="ml-2 font-medium">{formatCurrency(template.expenses)}</span>
                         </div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowApplyTemplateDialog(false)}
+            >
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleApplyTemplate}
+              disabled={!selectedTemplateId}
+            >
+              Appliquer le modèle
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+};
+
+export default AnnualBudget;
