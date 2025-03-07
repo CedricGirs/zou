@@ -10,6 +10,15 @@ import {
   Wallet,
   ArrowUpDown,
   Trophy,
+  Medal,
+  Star,
+  Award,
+  Crown,
+  Flag,
+  Gem,
+  CircleCheck,
+  BarChart3,
+  Bookmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AnnualBudget from "@/components/finance/AnnualBudget";
@@ -18,6 +27,7 @@ import SavingsTracker from "@/components/finance/SavingsTracker";
 import FinancialReports from "@/components/finance/FinancialReports";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import FinancialInsights from "@/components/finance/FinancialInsights";
+import CustomBadge from "@/components/ui/CustomBadge";
 import { 
   Select,
   SelectContent,
@@ -177,6 +187,89 @@ const Finances = () => {
     }
   };
 
+  const financeAchievements = [
+    {
+      id: "budget_master",
+      icon: <BarChart3 size={18} />,
+      name: "Maître du Budget",
+      description: "Maintenir un équilibre budgétaire pendant 3 mois consécutifs",
+      rarity: "legendary" as const,
+      unlocked: false
+    },
+    {
+      id: "saving_expert",
+      icon: <PiggyBank size={18} />,
+      name: "Expert en Épargne",
+      description: "Atteindre un taux d'épargne de 30% pendant 2 mois",
+      rarity: "epic" as const,
+      unlocked: false
+    },
+    {
+      id: "income_diversifier",
+      icon: <DollarSign size={18} />,
+      name: "Diversificateur de Revenus",
+      description: "Ajouter 3 sources de revenus différentes",
+      rarity: "rare" as const,
+      unlocked: false
+    },
+    {
+      id: "expense_tracker",
+      icon: <ArrowUpDown size={18} />,
+      name: "Traqueur de Dépenses",
+      description: "Suivre toutes les dépenses pendant un mois entier",
+      rarity: "uncommon" as const,
+      unlocked: false
+    },
+    {
+      id: "goal_achiever",
+      icon: <Flag size={18} />,
+      name: "Atteigneur d'Objectifs",
+      description: "Atteindre votre premier objectif d'épargne",
+      rarity: "uncommon" as const,
+      unlocked: false
+    },
+    {
+      id: "financial_planner",
+      icon: <Crown size={18} />,
+      name: "Planificateur Financier",
+      description: "Créer un plan financier annuel complet",
+      rarity: "rare" as const,
+      unlocked: false
+    },
+    {
+      id: "debt_eliminator",
+      icon: <CircleCheck size={18} />,
+      name: "Éliminateur de Dettes",
+      description: "Rembourser entièrement une dette",
+      rarity: "epic" as const,
+      unlocked: false
+    },
+    {
+      id: "investment_starter",
+      icon: <TrendingUp size={18} />,
+      name: "Investisseur Débutant",
+      description: "Réaliser votre premier investissement",
+      rarity: "rare" as const,
+      unlocked: false
+    },
+    {
+      id: "emergency_fund",
+      icon: <Bookmark size={18} />,
+      name: "Fonds d'Urgence",
+      description: "Constituer un fonds d'urgence équivalent à 3 mois de dépenses",
+      rarity: "epic" as const,
+      unlocked: false
+    },
+    {
+      id: "financial_freedom",
+      icon: <Gem size={18} />,
+      name: "Liberté Financière",
+      description: "Atteindre un patrimoine suffisant pour couvrir vos besoins essentiels",
+      rarity: "legendary" as const,
+      unlocked: false
+    }
+  ];
+
   return (
     <MainLayout>
       <div className="flex flex-col space-y-6">
@@ -233,38 +326,6 @@ const Finances = () => {
             </div>
           </div>
         </Card>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card variant="minimal" className="hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Revenus</CardTitle>
-              <DollarSign className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{monthlyIncome} €</div>
-            </CardContent>
-          </Card>
-          
-          <Card variant="minimal" className="hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Dépenses</CardTitle>
-              <ArrowUpDown className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{monthlyExpenses} €</div>
-            </CardContent>
-          </Card>
-          
-          <Card variant="minimal" className="hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Épargne</CardTitle>
-              <PiggyBank className="h-4 w-4 text-amber-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{savingsRate}%</div>
-            </CardContent>
-          </Card>
-        </div>
 
         <Card variant="minimal">
           <CardHeader>
@@ -374,29 +435,16 @@ const Finances = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              {achievements && achievements.map(achievement => (
-                <div 
-                  key={achievement.id} 
-                  className={`p-3 rounded-lg border flex flex-col items-center text-center gap-2 ${
-                    achievement.completed 
-                      ? 'bg-amber-50 border-amber-200' 
-                      : 'bg-gray-50 border-gray-200 opacity-70 cursor-pointer hover:bg-gray-100'
-                  }`}
-                  onClick={() => !achievement.completed && unlockAchievement(achievement.id)}
-                >
-                  <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                    achievement.completed ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400'
-                  }`}>
-                    <Trophy size={18} />
-                  </div>
-                  <h4 className="font-medium text-sm">{achievement.name}</h4>
-                  <p className="text-xs text-muted-foreground">{achievement.description}</p>
-                  <div className={`text-xs px-2 py-1 rounded-full ${
-                    achievement.completed ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {achievement.completed ? 'Complété' : 'À débloquer'} 
-                  </div>
-                </div>
+              {financeAchievements.map(achievement => (
+                <CustomBadge
+                  key={achievement.id}
+                  icon={achievement.icon}
+                  name={achievement.name}
+                  description={achievement.description}
+                  rarity={achievement.rarity}
+                  unlocked={achievement.unlocked}
+                  onClick={() => !achievement.unlocked && unlockAchievement(achievement.id)}
+                />
               ))}
             </div>
           </CardContent>
