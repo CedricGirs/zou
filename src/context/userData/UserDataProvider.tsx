@@ -1,4 +1,4 @@
-importtypescript
+
 import { useState, ReactNode, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
