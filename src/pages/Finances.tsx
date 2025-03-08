@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -8,10 +9,11 @@ import FinanceTabs from "@/components/finance/FinanceTabs";
 import FinanceAchievements from "@/components/finance/FinanceAchievements";
 import { useFinanceFunctions } from "@/hooks/useFinanceFunctions";
 import { toast } from "@/hooks/use-toast";
-import { WifiOff } from "lucide-react";
+import { WifiOff, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Finances = () => {
-  const { userData, loading } = useUserData();
+  const { userData, loading, forceRefreshData } = useUserData();
   const {
     selectedMonth,
     setSelectedMonth,
@@ -25,6 +27,7 @@ const Finances = () => {
   } = useFinanceFunctions();
   
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   useEffect(() => {
     const handleOnline = () => {
@@ -53,6 +56,12 @@ const Finances = () => {
     };
   }, []);
   
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await forceRefreshData();
+    setIsRefreshing(false);
+  };
+  
   if (loading) {
     return (
       <MainLayout>
@@ -69,12 +78,26 @@ const Finances = () => {
   return (
     <MainLayout>
       <div className="flex flex-col space-y-6">
-        {!isOnline && (
-          <div className="bg-amber-100 border border-amber-300 text-amber-800 px-4 py-3 rounded-lg flex items-center gap-2">
-            <WifiOff size={18} />
-            <span>Mode hors ligne: Les modifications seront enregistrées localement et synchronisées à la reconnexion.</span>
+        <div className="flex justify-between items-center">
+          <div className="flex-1">
+            {!isOnline && (
+              <div className="bg-amber-100 border border-amber-300 text-amber-800 px-4 py-3 rounded-lg flex items-center gap-2">
+                <WifiOff size={18} />
+                <span>Mode hors ligne: Les modifications seront enregistrées localement et synchronisées à la reconnexion.</span>
+              </div>
+            )}
           </div>
-        )}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center gap-2" 
+            onClick={handleRefresh}
+            disabled={isRefreshing || !isOnline}
+          >
+            <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
+            Rafraîchir les données
+          </Button>
+        </div>
         
         <FinanceHeader 
           selectedMonth={selectedMonth}

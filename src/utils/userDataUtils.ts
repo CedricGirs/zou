@@ -1,5 +1,4 @@
-
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, enableIndexedDbPersistence, clearIndexedDbPersistence } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from '@/hooks/use-toast';
 import { UserData } from '@/types/UserDataTypes';
@@ -137,4 +136,41 @@ export const getLocalCachedData = (key: string) => {
   }
   
   return item.value;
+};
+
+// Forcer un rafraîchissement des données en vidant le cache Firestore
+export const clearFirestoreCache = async (): Promise<boolean> => {
+  try {
+    // Vider le cache Firestore IndexedDB
+    await clearIndexedDbPersistence(db);
+    
+    // Réactiver la persistance après avoir vidé le cache
+    await enableIndexedDbPersistence(db).catch((err) => {
+      if (err.code === 'failed-precondition') {
+        console.warn('La persistance ne peut pas être activée car plusieurs onglets sont ouverts');
+      } else if (err.code === 'unimplemented') {
+        console.warn('Le navigateur ne supporte pas la persistance IndexedDB');
+      }
+    });
+    
+    console.log("Cache Firestore vidé avec succès:", new Date().toISOString());
+    
+    toast({
+      title: "Cache vidé",
+      description: "Les données ont été rafraîchies avec succès.",
+      variant: "default",
+    });
+    
+    return true;
+  } catch (error) {
+    console.error("Erreur lors du vidage du cache Firestore:", error);
+    
+    toast({
+      title: "Erreur",
+      description: "Impossible de vider le cache Firestore. Réessayez plus tard.",
+      variant: "destructive",
+    });
+    
+    return false;
+  }
 };

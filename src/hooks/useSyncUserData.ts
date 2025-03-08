@@ -4,7 +4,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { UserData } from '@/types';
 import { toast } from '@/hooks/use-toast';
-import { saveUserData, loadUserData } from '@/utils/userDataUtils';
+import { saveUserData, loadUserData, clearFirestoreCache } from '@/utils/userDataUtils';
 
 /**
  * Hook personnalisé pour synchroniser les données utilisateur avec Firebase
@@ -122,11 +122,45 @@ export const useSyncUserData = (
     }
   };
   
+  // Fonction pour forcer le rafraîchissement des données
+  const refreshData = async () => {
+    setIsSyncing(true);
+    
+    try {
+      // Vider le cache Firestore
+      await clearFirestoreCache();
+      
+      // Recharger les données utilisateur
+      const { userData: freshData, error } = await loadUserData(uid);
+      if (freshData && !error) {
+        setUserData(freshData);
+        setLastSyncTime(new Date());
+        toast({
+          title: "Données rafraîchies",
+          description: "Les données ont été rechargées avec succès.",
+        });
+      }
+      
+      setIsSyncing(false);
+      return !error;
+    } catch (error) {
+      console.error("Erreur lors du rafraîchissement des données:", error);
+      setIsSyncing(false);
+      toast({
+        title: "Erreur de rafraîchissement",
+        description: "Impossible de rafraîchir les données. Réessayez plus tard.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+  
   return {
     isOnline,
     isSyncing,
     lastSyncTime,
     synchronizeData,
+    refreshData,
     hasPendingChanges: !!pendingChanges
   };
 };

@@ -1,4 +1,4 @@
-
+importtypescript
 import { useState, ReactNode, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -30,6 +30,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     isSyncing, 
     lastSyncTime, 
     synchronizeData, 
+    refreshData,
     hasPendingChanges 
   } = useSyncUserData(userData.uid, userData, setUserData);
 
@@ -152,6 +153,14 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     await synchronizeData();
   };
 
+  // Fonction pour rafraîchir les données en vidant le cache
+  const forceRefreshData = async () => {
+    setLoading(true);
+    const success = await refreshData();
+    setLoading(false);
+    return success;
+  };
+
   return (
     <UserDataContext.Provider
       value={{
@@ -163,6 +172,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         updateFinanceModule,
         updateStatusItems,
         updateSkills,
+        forceRefreshData,
       }}
     >
       {children}

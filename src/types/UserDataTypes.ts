@@ -24,6 +24,7 @@ export interface UserDataContextType {
   updateFinanceModule: (updates: Partial<FinanceModule>) => Promise<void>;
   updateStatusItems: (items: StatusItem[]) => Promise<void>;
   updateSkills: (skills: any[]) => Promise<void>;
+  forceRefreshData: () => Promise<boolean>; // Nouvelle fonction pour rafraîchir les données
 }
 
 // Interface pour le contexte de synchronisation des données
@@ -32,5 +33,6 @@ export interface SyncContextType {
   isSyncing: boolean;
   lastSyncTime: Date | null;
   synchronizeData: () => Promise<boolean>;
+  refreshData: () => Promise<boolean>;
   hasPendingChanges: boolean;
 }
