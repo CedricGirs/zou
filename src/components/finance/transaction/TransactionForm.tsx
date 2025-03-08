@@ -57,6 +57,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           value={newTransaction.date}
           onChange={handleInputChange}
           className="col-span-3"
+          required
         />
       </div>
       
@@ -68,6 +69,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           value={newTransaction.description}
           onChange={handleInputChange}
           className="col-span-3"
+          required
+          placeholder={newTransaction.type === 'income' ? "Salaire, Prime, etc." : "Loyer, Courses, etc."}
         />
       </div>
       
@@ -77,9 +80,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           id="amount"
           name="amount"
           type="number"
-          value={newTransaction.amount}
+          value={newTransaction.amount || ''}
           onChange={handleInputChange}
           className="col-span-3"
+          min={0}
+          step="0.01"
+          required
         />
       </div>
       

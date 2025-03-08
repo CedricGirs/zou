@@ -19,21 +19,31 @@ export const useMonthlyData = (selectedMonth: string) => {
     
     console.log(`Saving data for month ${selectedMonth}:`, monthData);
     
-    // Initialiser avec les données existantes ou un objet vide
+    // S'assurer que l'objet monthlyData existe
     const currentMonthlyData = userData.financeModule.monthlyData || {};
     
+    // Créer un nouvel objet avec les données mises à jour pour ce mois
     const monthlyData = {
       ...currentMonthlyData,
       [selectedMonth]: {
         ...monthData,
-        transactions: Array.isArray(monthData.transactions) ? monthData.transactions : []
+        transactions: Array.isArray(monthData.transactions) ? [...monthData.transactions] : []
       }
     };
     
     console.log("Full monthly data to save:", monthlyData);
     
     try {
-      await updateFinanceModule({ monthlyData });
+      // Mettre à jour le module finance avec les nouvelles données mensuelles
+      await updateFinanceModule({ 
+        monthlyData,
+        // Mettre à jour également les totaux globaux
+        balance: userData.financeModule.balance,
+        monthlyIncome: monthData.income,
+        monthlyExpenses: monthData.expenses,
+        savingsRate: monthData.savingsRate
+      });
+      
       console.log(`Data for month ${selectedMonth} saved successfully`);
     } catch (error) {
       console.error("Error saving monthly data:", error);
@@ -52,11 +62,11 @@ export const useMonthlyData = (selectedMonth: string) => {
     const updatedData = {
       ...currentData,
       ...updates,
-      // Assurer que l'array de transactions existe
+      // Assurer que l'array de transactions existe et est bien copié
       transactions: Array.isArray(updates.transactions) 
-        ? updates.transactions 
+        ? [...updates.transactions] 
         : Array.isArray(currentData.transactions)
-          ? currentData.transactions
+          ? [...currentData.transactions]
           : []
     };
     

@@ -34,18 +34,27 @@ const FinanceHeader = ({
   ];
 
   const handleMonthChange = async (value: string) => {
+    // Sauvegarder les données du mois actuel avant de changer
     if (userData?.financeModule) {
-      const monthlyData = {
-        ...(userData.financeModule.monthlyData || {}),
+      const currentMonthlyData = userData.financeModule.monthlyData || {};
+      
+      // Créer un nouvel objet avec les données mises à jour pour le mois actuel
+      const updatedMonthlyData = {
+        ...currentMonthlyData,
         [selectedMonth]: currentMonthData
       };
       
-      await updateFinanceModule({ monthlyData });
+      // Mettre à jour le module finance avec les nouvelles données
+      await updateFinanceModule({ monthlyData: updatedMonthlyData });
+      console.log(`Saved data for ${selectedMonth} before switching month`);
     }
     
+    // Changer le mois sélectionné
     setSelectedMonth(value);
     
-    const newMonthData = userData?.financeModule?.monthlyData?.[value] || {
+    // Charger les données du nouveau mois sélectionné
+    const monthlyData = userData?.financeModule?.monthlyData || {};
+    const newMonthData = monthlyData[value] || {
       income: 0,
       expenses: 0,
       balance: 0,
@@ -53,6 +62,7 @@ const FinanceHeader = ({
       transactions: []
     };
     
+    console.log(`Loading data for ${value}:`, newMonthData);
     setCurrentMonthData(newMonthData);
     
     toast({

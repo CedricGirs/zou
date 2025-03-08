@@ -25,7 +25,7 @@ export const useTransactions = (
     
     // Mettre à jour les transactions pour le mois sélectionné
     const currentTransactions = Array.isArray(currentMonthData.transactions) 
-      ? currentMonthData.transactions 
+      ? [...currentMonthData.transactions] 
       : [];
     
     const updatedTransactions = [...currentTransactions, completeTransaction];
@@ -58,14 +58,14 @@ export const useTransactions = (
     // Sauvegarder les données mises à jour
     await saveMonthlyData(updatedMonthData);
     
-    // Mettre à jour le solde global
+    // Mettre à jour le solde global et les transactions globales
     const currentBalance = userData?.financeModule?.balance || 0;
     const newBalance = transaction.type === 'income' 
       ? currentBalance + (transaction.amount || 0)
       : currentBalance - (transaction.amount || 0);
     
     const globalTransactions = Array.isArray(userData?.financeModule?.transactions) 
-      ? userData.financeModule.transactions 
+      ? [...userData.financeModule.transactions] 
       : [];
     
     await updateFinanceModule({ 
