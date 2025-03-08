@@ -36,7 +36,13 @@ const FinanceTabs = ({
   const transactions = currentMonthData?.transactions || [];
   
   const handleUpdateMonthData = async (data: Partial<MonthlyData>) => {
-    await updateCurrentMonthData(data);
+    const updatedData = await updateCurrentMonthData(data);
+    return updatedData;
+  };
+  
+  const handleDeleteTransaction = async (id: string) => {
+    const updatedData = await deleteTransaction(id);
+    return updatedData;
   };
   
   return (
@@ -69,7 +75,7 @@ const FinanceTabs = ({
                 transactions={transactions}
                 month={selectedMonth}
                 updateMonthData={handleUpdateMonthData}
-                deleteTransaction={deleteTransaction}
+                deleteTransaction={handleDeleteTransaction}
               />
             </div>
           </CardContent>
@@ -87,7 +93,7 @@ const FinanceTabs = ({
           updateMonthData={handleUpdateMonthData}
           completeQuestStep={completeQuestStep}
           addTransaction={addTransaction}
-          deleteTransaction={deleteTransaction}
+          deleteTransaction={handleDeleteTransaction}
         />
       </TabsContent>
       

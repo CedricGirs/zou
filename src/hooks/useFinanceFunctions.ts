@@ -4,6 +4,7 @@ import { useMonthlyData } from './finance/useMonthlyData';
 import { useTransactions } from './finance/useTransactions';
 import { useAchievementsAndQuests } from './finance/useAchievementsAndQuests';
 import { useEffect } from 'react';
+import { MonthlyData, Transaction } from '@/context/userData';
 
 export const useFinanceFunctions = () => {
   const { 
@@ -36,7 +37,7 @@ export const useFinanceFunctions = () => {
   }, [currentMonthData]);
 
   // Higher-level update function that maintains state consistency
-  const updateCurrentMonthData = async (updates: Partial<any>) => {
+  const updateCurrentMonthData = async (updates: Partial<MonthlyData>): Promise<MonthlyData> => {
     console.log("Updating current month data with:", updates);
     const updatedData = await updateMonthData(updates, currentMonthData);
     console.log("Setting updated data:", updatedData);

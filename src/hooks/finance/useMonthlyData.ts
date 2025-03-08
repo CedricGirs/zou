@@ -79,7 +79,7 @@ export const useMonthlyData = (selectedMonth: string) => {
     console.log("Final updated data:", updatedData);
     const savedData = await saveMonthlyData(updatedData);
     
-    return updatedData;
+    return savedData;
   }, [saveMonthlyData]);
 
   return {
