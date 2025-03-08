@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 
 interface AddIncomeDialogProps {
   newIncome: {
@@ -26,8 +26,19 @@ const AddIncomeDialog: React.FC<AddIncomeDialogProps> = ({
   addIncome,
   incomeCategories
 }) => {
+  const [open, setOpen] = React.useState(false);
+  
+  const handleSubmit = async () => {
+    if (!newIncome.description || newIncome.amount <= 0) {
+      return;
+    }
+    
+    await addIncome();
+    setOpen(false);
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="w-full mt-4">
           <Plus size={14} className="mr-2" />
@@ -81,9 +92,9 @@ const AddIncomeDialog: React.FC<AddIncomeDialogProps> = ({
             </div>
           </div>
         </div>
-        <div className="flex justify-end">
-          <Button onClick={addIncome}>Ajouter</Button>
-        </div>
+        <DialogFooter>
+          <Button onClick={handleSubmit}>Ajouter</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

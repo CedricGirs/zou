@@ -13,11 +13,16 @@ const TransactionList: React.FC<TransactionListProps> = ({
   transactions,
   handleDeleteTransaction
 }) => {
-  console.log("Transactions à afficher:", transactions);
+  console.log("TransactionList: Transactions à afficher:", transactions);
+  
+  // Trier les transactions par date (les plus récentes d'abord)
+  const sortedTransactions = [...transactions].sort((a, b) => {
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
   
   return (
     <div className="overflow-x-auto">
-      {transactions.length === 0 ? (
+      {!sortedTransactions || sortedTransactions.length === 0 ? (
         <div className="text-center p-4 text-muted-foreground">
           Aucune transaction à afficher pour le moment.
         </div>
@@ -34,12 +39,12 @@ const TransactionList: React.FC<TransactionListProps> = ({
             </tr>
           </thead>
           <tbody>
-            {transactions.map((transaction) => (
+            {sortedTransactions.map((transaction) => (
               <tr key={transaction.id} className="hover:bg-muted/50">
                 <td className="border p-2">{transaction.date}</td>
                 <td className="border p-2">{transaction.description}</td>
                 <td className="border p-2">{transaction.category}</td>
-                <td className="border p-2 text-right">{transaction.amount} €</td>
+                <td className="border p-2 text-right">{transaction.amount.toFixed(2)} €</td>
                 <td className="border p-2 text-center">
                   <span className={`inline-block px-2 py-1 rounded-full text-xs ${
                     transaction.type === 'income' 

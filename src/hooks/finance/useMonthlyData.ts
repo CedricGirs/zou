@@ -1,6 +1,7 @@
 
 import { useCallback } from 'react';
 import { useUserData, MonthlyData } from '@/context/userData';
+import { toast } from '@/hooks/use-toast';
 
 export const useMonthlyData = (selectedMonth: string) => {
   const { userData, updateFinanceModule } = useUserData();
@@ -8,6 +9,11 @@ export const useMonthlyData = (selectedMonth: string) => {
   const saveMonthlyData = useCallback(async (monthData: MonthlyData) => {
     if (!userData?.financeModule) {
       console.error("Finance module not initialized");
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Module finance non initialisé"
+      });
       return;
     }
     
@@ -31,6 +37,11 @@ export const useMonthlyData = (selectedMonth: string) => {
       console.log(`Data for month ${selectedMonth} saved successfully`);
     } catch (error) {
       console.error("Error saving monthly data:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Erreur lors de la sauvegarde des données"
+      });
     }
   }, [selectedMonth, userData, updateFinanceModule]);
 
@@ -41,7 +52,7 @@ export const useMonthlyData = (selectedMonth: string) => {
     const updatedData = {
       ...currentData,
       ...updates,
-      // Ensure transactions array exists
+      // Assurer que l'array de transactions existe
       transactions: Array.isArray(updates.transactions) 
         ? updates.transactions 
         : Array.isArray(currentData.transactions)

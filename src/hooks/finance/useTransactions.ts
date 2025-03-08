@@ -1,6 +1,6 @@
 
 import { useCallback } from 'react';
-import { useUserData, MonthlyData } from '@/context/userData';
+import { useUserData, MonthlyData, Transaction } from '@/context/userData';
 import { toast } from '@/hooks/use-toast';
 import { playSound } from '@/utils/audioUtils';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,7 +12,7 @@ export const useTransactions = (
 ) => {
   const { userData, updateFinanceModule } = useUserData();
 
-  const addTransaction = useCallback(async (transaction: any) => {
+  const addTransaction = useCallback(async (transaction: Partial<Transaction>) => {
     console.log("Adding transaction:", transaction);
     console.log("Current month data:", currentMonthData);
     
@@ -21,7 +21,7 @@ export const useTransactions = (
       ...transaction,
       id: transaction.id || uuidv4(),
       month: selectedMonth
-    };
+    } as Transaction;
     
     // Mettre à jour les transactions pour le mois sélectionné
     const currentTransactions = Array.isArray(currentMonthData.transactions) 
@@ -59,12 +59,12 @@ export const useTransactions = (
     await saveMonthlyData(updatedMonthData);
     
     // Mettre à jour le solde global
-    const currentBalance = userData.financeModule?.balance || 0;
+    const currentBalance = userData?.financeModule?.balance || 0;
     const newBalance = transaction.type === 'income' 
-      ? currentBalance + transaction.amount 
-      : currentBalance - transaction.amount;
+      ? currentBalance + (transaction.amount || 0)
+      : currentBalance - (transaction.amount || 0);
     
-    const globalTransactions = Array.isArray(userData.financeModule?.transactions) 
+    const globalTransactions = Array.isArray(userData?.financeModule?.transactions) 
       ? userData.financeModule.transactions 
       : [];
     
@@ -76,13 +76,13 @@ export const useTransactions = (
     playSound('transaction');
     toast({
       title: transaction.type === 'income' ? "Revenu ajouté" : "Dépense ajoutée",
-      description: `${transaction.description}: ${transaction.amount.toFixed(2)} €`
+      description: `${transaction.description}: ${transaction.amount?.toFixed(2)} €`
     });
     
     console.log("Transaction added successfully");
     
     return updatedMonthData;
-  }, [currentMonthData, userData.financeModule, saveMonthlyData, updateFinanceModule, selectedMonth]);
+  }, [currentMonthData, userData?.financeModule, saveMonthlyData, updateFinanceModule, selectedMonth]);
 
   return {
     addTransaction

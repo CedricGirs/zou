@@ -29,6 +29,10 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({
   const [open, setOpen] = React.useState(false);
   
   const handleSubmit = async () => {
+    if (!newExpense.description || newExpense.amount <= 0) {
+      return;
+    }
+    
     await addExpense();
     setOpen(false);
   };
