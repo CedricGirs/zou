@@ -1,4 +1,3 @@
-
 import { 
   ChartPie, 
   Wallet, 
@@ -34,6 +33,7 @@ const FinanceTabs = ({
   unlockAchievement,
   completeQuestStep
 }: FinanceTabsProps) => {
+  
   return (
     <Tabs defaultValue="dashboard" className="w-full">
       <TabsList className="mb-4 grid grid-cols-4 gap-2">

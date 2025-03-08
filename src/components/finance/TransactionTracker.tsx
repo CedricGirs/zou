@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Search, 
@@ -41,7 +40,8 @@ const TransactionTracker = ({
   selectedMonth, 
   transactions, 
   updateMonthData,
-  completeQuestStep 
+  completeQuestStep,
+  addTransaction 
 }: TransactionTrackerProps) => {
   const { userData, updateFinanceModule } = useUserData();
   
@@ -122,53 +122,28 @@ const TransactionTracker = ({
       isVerified: newTransaction.isVerified
     };
 
-    // Mise à jour des transactions
-    const updatedTransactions = [...transactions, transaction];
-    const updatedData = recalculateTotals(updatedTransactions);
-    
-    // Mettre à jour les données du mois actuel
-    updateMonthData(updatedData);
-    
-    toast({
-      title: "Transaction ajoutée",
-      description: "La transaction a été ajoutée avec succès."
-    });
-    
-    // Advance quest if applicable
-    if (completeQuestStep) {
-      const transactionCount = updatedTransactions.length;
-      const progress = Math.min((transactionCount / 5) * 100, 100);
-      completeQuestStep("track_transactions", progress);
+    // Use the provided addTransaction function
+    try {
+      const updatedMonthData = await addTransaction(transaction);
       
-      // If this is the first transaction, unlock achievement
-      if (transactionCount === 1 && userData?.financeModule?.achievements) {
-        const firstTransactionAchievement = userData.financeModule.achievements.find(a => a.id === "first_transaction");
-        if (firstTransactionAchievement && !firstTransactionAchievement.completed) {
-          const achievements = [...userData.financeModule.achievements];
-          const index = achievements.findIndex(a => a.id === "first_transaction");
-          if (index !== -1) {
-            achievements[index] = { ...achievements[index], completed: true };
-            await updateFinanceModule({ achievements });
-            
-            toast({
-              title: "Succès débloqué!",
-              description: `Vous avez débloqué: ${achievements[index].name}`,
-            });
-          }
-        }
-      }
+      // Reset form
+      setNewTransaction({
+        date: new Date().toISOString().split('T')[0],
+        description: '',
+        amount: 0,
+        category: 'Autre',
+        type: 'expense',
+        month: selectedMonth,
+        isVerified: false
+      });
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout de la transaction.",
+        variant: "destructive"
+      });
     }
-    
-    // Reset form
-    setNewTransaction({
-      date: new Date().toISOString().split('T')[0],
-      description: '',
-      amount: 0,
-      category: 'Autre',
-      type: 'expense',
-      month: selectedMonth,
-      isVerified: false
-    });
   };
 
   const handleDeleteTransaction = async (id: string) => {
