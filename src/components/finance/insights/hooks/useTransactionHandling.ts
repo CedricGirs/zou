@@ -105,6 +105,10 @@ export const useTransactionHandling = (
     const updatedTransactions = [...transactions, transaction];
     const updatedData = recalculateTotals(updatedTransactions);
     
+    // S'assurer que les transactions sont bien préservées
+    console.log("Ajout d'un revenu:", transaction);
+    console.log("Transactions mises à jour:", updatedTransactions);
+    
     updateMonthData(updatedData);
     
     toast({
@@ -142,6 +146,10 @@ export const useTransactionHandling = (
     
     const updatedTransactions = [...transactions, transaction];
     const updatedData = recalculateTotals(updatedTransactions);
+    
+    // S'assurer que les transactions sont bien préservées
+    console.log("Ajout d'une dépense:", transaction);
+    console.log("Transactions mises à jour:", updatedTransactions);
     
     updateMonthData(updatedData);
     

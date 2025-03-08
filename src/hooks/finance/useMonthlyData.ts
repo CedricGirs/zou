@@ -8,10 +8,15 @@ export const useMonthlyData = (selectedMonth: string) => {
   const saveMonthlyData = useCallback(async (monthData: MonthlyData) => {
     if (!userData?.financeModule) return;
     
+    // Initialiser avec les données existantes ou un objet vide
+    const currentMonthlyData = userData.financeModule.monthlyData || {};
+    
     const monthlyData = {
-      ...(userData.financeModule.monthlyData || {}),
+      ...currentMonthlyData,
       [selectedMonth]: monthData
     };
+    
+    console.log(`Sauvegarde des données du mois ${selectedMonth}:`, monthData);
     
     await updateFinanceModule({ monthlyData });
     console.log(`Données du mois ${selectedMonth} sauvegardées:`, monthData);
@@ -23,6 +28,7 @@ export const useMonthlyData = (selectedMonth: string) => {
       ...updates
     };
     
+    console.log("Mise à jour des données mensuelles:", updatedData);
     await saveMonthlyData(updatedData);
     
     return updatedData;
