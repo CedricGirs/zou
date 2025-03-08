@@ -1,9 +1,8 @@
-
 import React, { useCallback } from 'react';
 import { useUserData } from '@/context/userData';
 import { Transaction } from '@/context/userData';
 import IncomeCard from './insights/income/IncomeCard';
-import ExpenseCard from './insights/ExpenseCard';
+import ExpenseCard from './insights/expense/ExpenseCard';
 import TemplateCreationDialog from './insights/TemplateCreationDialog';
 import { useTransactionHandling } from './insights/hooks/useTransactionHandling';
 import { useTemplateManagement } from './insights/hooks/useTemplateManagement';
