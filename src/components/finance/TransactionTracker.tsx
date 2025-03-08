@@ -34,6 +34,7 @@ interface TransactionTrackerProps {
   updateMonthData: (data: any) => void;
   completeQuestStep?: (questId: string, progress: number) => Promise<void>;
   addTransaction: (transaction: any) => Promise<MonthlyData>;
+  deleteTransaction: (id: string) => Promise<any>;
 }
 
 const TransactionTracker = ({ 
@@ -41,7 +42,8 @@ const TransactionTracker = ({
   transactions, 
   updateMonthData,
   completeQuestStep,
-  addTransaction 
+  addTransaction,
+  deleteTransaction 
 }: TransactionTrackerProps) => {
   const { userData, updateFinanceModule } = useUserData();
   
@@ -146,18 +148,9 @@ const TransactionTracker = ({
     }
   };
 
+  // Wrapper for delete transaction to handle any return type
   const handleDeleteTransaction = async (id: string) => {
-    // Mettre à jour les transactions
-    const updatedTransactions = transactions.filter(t => t.id !== id);
-    const updatedData = recalculateTotals(updatedTransactions);
-    
-    // Mettre à jour les données du mois actuel
-    updateMonthData(updatedData);
-    
-    toast({
-      title: "Transaction supprimée",
-      description: "La transaction a été supprimée avec succès."
-    });
+    await deleteTransaction(id);
   };
 
   // Filter transactions

@@ -13,7 +13,7 @@ interface FinancialInsightsProps {
   transactions: Transaction[];
   month: string;
   updateMonthData: (data: any) => void;
-  deleteTransaction?: (id: string) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<any>;
 }
 
 const FinancialInsights = ({ 
@@ -46,13 +46,17 @@ const FinancialInsights = ({
     handleExpenseCategoryChange,
     addIncome,
     addExpense,
-    handleDeleteTransaction,
     startEditTransaction,
     handleEditAmountChange,
     saveEditedTransaction,
     toggleRecentIncomes,
     toggleRecentExpenses
-  } = useTransactionHandling(transactions, month, updateMonthData, deleteTransaction);
+  } = useTransactionHandling(transactions, month, updateMonthData);
+  
+  // Wrapper function for deleteTransaction to ensure compatibility
+  const handleDeleteTransaction = async (id: string) => {
+    await deleteTransaction(id);
+  };
   
   const {
     isCreateTemplateOpen,

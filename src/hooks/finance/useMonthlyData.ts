@@ -6,7 +6,7 @@ import { toast } from '@/hooks/use-toast';
 export const useMonthlyData = (selectedMonth: string) => {
   const { userData, updateFinanceModule } = useUserData();
   
-  const saveMonthlyData = useCallback(async (monthData: MonthlyData) => {
+  const saveMonthlyData = useCallback(async (monthData: MonthlyData): Promise<MonthlyData> => {
     if (!userData?.financeModule) {
       console.error("Finance module not initialized");
       toast({
@@ -14,7 +14,7 @@ export const useMonthlyData = (selectedMonth: string) => {
         title: "Erreur",
         description: "Module finance non initialisé"
       });
-      return;
+      return monthData; // Return original data if module not initialized
     }
     
     console.log(`Saving data for month ${selectedMonth}:`, monthData);
@@ -57,10 +57,11 @@ export const useMonthlyData = (selectedMonth: string) => {
         title: "Erreur",
         description: "Erreur lors de la sauvegarde des données"
       });
+      return monthData; // Return original data on error
     }
   }, [selectedMonth, userData, updateFinanceModule]);
 
-  const updateCurrentMonthData = useCallback(async (updates: Partial<MonthlyData>, currentData: MonthlyData) => {
+  const updateCurrentMonthData = useCallback(async (updates: Partial<MonthlyData>, currentData: MonthlyData): Promise<MonthlyData> => {
     console.log("Updating monthly data with:", updates);
     console.log("Current data:", currentData);
     

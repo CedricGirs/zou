@@ -8,11 +8,11 @@ import { v4 as uuidv4 } from 'uuid';
 export const useTransactions = (
   selectedMonth: string, 
   currentMonthData: MonthlyData, 
-  saveMonthlyData: (monthData: MonthlyData) => Promise<void>
+  saveMonthlyData: (monthData: MonthlyData) => Promise<MonthlyData>
 ) => {
   const { userData, updateFinanceModule } = useUserData();
 
-  const addTransaction = useCallback(async (transaction: Partial<Transaction>) => {
+  const addTransaction = useCallback(async (transaction: Partial<Transaction>): Promise<MonthlyData> => {
     console.log("Adding transaction:", transaction);
     console.log("Current month data:", currentMonthData);
     
@@ -57,7 +57,7 @@ export const useTransactions = (
     console.log("Updated month data to save:", updatedMonthData);
     
     // Save the updated data
-    await saveMonthlyData(updatedMonthData);
+    const savedData = await saveMonthlyData(updatedMonthData);
     
     // Update global balance and transactions
     const currentBalance = userData?.financeModule?.balance || 0;
@@ -82,10 +82,10 @@ export const useTransactions = (
     
     console.log("Transaction added successfully");
     
-    return updatedMonthData;
+    return savedData;
   }, [currentMonthData, userData?.financeModule, saveMonthlyData, updateFinanceModule, selectedMonth]);
 
-  const deleteTransaction = useCallback(async (id: string) => {
+  const deleteTransaction = useCallback(async (id: string): Promise<MonthlyData> => {
     console.log("Deleting transaction with ID:", id);
     
     // Find and remove the transaction
@@ -115,7 +115,7 @@ export const useTransactions = (
     };
     
     // Save the updated data
-    await saveMonthlyData(updatedMonthData);
+    const savedData = await saveMonthlyData(updatedMonthData);
     
     // Update global transactions
     const globalTransactions = userData?.financeModule?.transactions || [];
@@ -127,7 +127,7 @@ export const useTransactions = (
     
     console.log("Transaction deleted successfully");
     
-    return updatedMonthData;
+    return savedData;
   }, [currentMonthData, userData?.financeModule, saveMonthlyData, updateFinanceModule]);
 
   return {

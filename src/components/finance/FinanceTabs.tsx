@@ -87,6 +87,7 @@ const FinanceTabs = ({
           updateMonthData={handleUpdateMonthData}
           completeQuestStep={completeQuestStep}
           addTransaction={addTransaction}
+          deleteTransaction={deleteTransaction}
         />
       </TabsContent>
       

@@ -21,6 +21,7 @@ const Finances = () => {
     setCurrentMonthData,
     updateCurrentMonthData,
     addTransaction,
+    deleteTransaction,
     completeQuestStep,
     unlockAchievement,
     savingsGoal
@@ -114,6 +115,7 @@ const Finances = () => {
           setCurrentMonthData={setCurrentMonthData}
           updateCurrentMonthData={updateCurrentMonthData}
           addTransaction={addTransaction}
+          deleteTransaction={deleteTransaction}
           savingsGoal={savingsGoal}
           unlockAchievement={unlockAchievement}
           completeQuestStep={completeQuestStep}
