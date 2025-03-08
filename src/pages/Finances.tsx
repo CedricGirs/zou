@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUserData } from "@/context/UserDataContext";
@@ -10,7 +9,6 @@ import FinanceAchievements from "@/components/finance/FinanceAchievements";
 import { useFinanceFunctions } from "@/hooks/useFinanceFunctions";
 import { toast } from "@/hooks/use-toast";
 import { WifiOff } from "lucide-react";
-import { useSyncUserData } from "@/hooks/useSyncUserData";
 
 const Finances = () => {
   const { userData, loading } = useUserData();
@@ -26,7 +24,6 @@ const Finances = () => {
     savingsGoal
   } = useFinanceFunctions();
   
-  // Vérifier l'état de la connexion
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   
   useEffect(() => {
