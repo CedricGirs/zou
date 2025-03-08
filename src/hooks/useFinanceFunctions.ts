@@ -19,7 +19,7 @@ export const useFinanceFunctions = () => {
     savingsGoal 
   } = useMonthlyData(selectedMonth);
   
-  const { addTransaction } = useTransactions(
+  const { addTransaction, deleteTransaction } = useTransactions(
     selectedMonth,
     currentMonthData,
     saveMonthlyData
@@ -30,7 +30,7 @@ export const useFinanceFunctions = () => {
     unlockAchievement 
   } = useAchievementsAndQuests();
 
-  // S'assurer que les données sont cohérentes après chaque modification
+  // Ensure data consistency after each modification
   useEffect(() => {
     console.log("Current month data in useFinanceFunctions:", currentMonthData);
   }, [currentMonthData]);
@@ -51,6 +51,7 @@ export const useFinanceFunctions = () => {
     setCurrentMonthData,
     updateCurrentMonthData,
     addTransaction,
+    deleteTransaction,
     completeQuestStep,
     unlockAchievement,
     savingsGoal

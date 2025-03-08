@@ -1,3 +1,4 @@
+
 import React, { useCallback } from 'react';
 import { useUserData } from '@/context/userData';
 import { Transaction } from '@/context/userData';
@@ -12,9 +13,15 @@ interface FinancialInsightsProps {
   transactions: Transaction[];
   month: string;
   updateMonthData: (data: any) => void;
+  deleteTransaction?: (id: string) => Promise<void>;
 }
 
-const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialInsightsProps) => {
+const FinancialInsights = ({ 
+  transactions, 
+  month, 
+  updateMonthData,
+  deleteTransaction 
+}: FinancialInsightsProps) => {
   const { userData } = useUserData();
   
   // Category lists
@@ -39,13 +46,13 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     handleExpenseCategoryChange,
     addIncome,
     addExpense,
-    deleteTransaction,
+    handleDeleteTransaction,
     startEditTransaction,
     handleEditAmountChange,
     saveEditedTransaction,
     toggleRecentIncomes,
     toggleRecentExpenses
-  } = useTransactionHandling(transactions, month, updateMonthData);
+  } = useTransactionHandling(transactions, month, updateMonthData, deleteTransaction);
   
   const {
     isCreateTemplateOpen,
@@ -97,6 +104,8 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
     updateMonthData
   );
 
+  console.log("FinancialInsights - Current transactions:", transactions);
+
   return (
     <div className="space-y-6">      
       <div className="flex justify-end mb-4">
@@ -120,7 +129,7 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
           handleIncomeChange={handleIncomeChange}
           handleIncomeCategoryChange={handleIncomeCategoryChange}
           addIncome={addIncome}
-          deleteTransaction={deleteTransaction}
+          deleteTransaction={handleDeleteTransaction}
           incomeCategories={incomeCategories}
           editingTransaction={editingTransaction}
           handleEditAmountChange={handleEditAmountChange}
@@ -143,7 +152,7 @@ const FinancialInsights = ({ transactions, month, updateMonthData }: FinancialIn
           handleExpenseChange={handleExpenseChange}
           handleExpenseCategoryChange={handleExpenseCategoryChange}
           addExpense={addExpense}
-          deleteTransaction={deleteTransaction}
+          deleteTransaction={handleDeleteTransaction}
           expenseCategories={expenseCategories}
           editingTransaction={editingTransaction}
           handleEditAmountChange={handleEditAmountChange}

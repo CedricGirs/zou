@@ -1,7 +1,7 @@
 
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Select,
   SelectContent,
@@ -33,26 +33,34 @@ const FinanceHeader = ({
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
 
+  // Set default month to current month on initial load
+  useEffect(() => {
+    if (!selectedMonth) {
+      const currentMonth = months[new Date().getMonth()];
+      setSelectedMonth(currentMonth);
+    }
+  }, [selectedMonth, setSelectedMonth, months]);
+
   const handleMonthChange = async (value: string) => {
-    // Sauvegarder les données du mois actuel avant de changer
+    // Save current month data before changing
     if (userData?.financeModule) {
       const currentMonthlyData = userData.financeModule.monthlyData || {};
       
-      // Créer un nouvel objet avec les données mises à jour pour le mois actuel
+      // Create a new object with updated data for the current month
       const updatedMonthlyData = {
         ...currentMonthlyData,
         [selectedMonth]: currentMonthData
       };
       
-      // Mettre à jour le module finance avec les nouvelles données
+      // Update finance module with new data
       await updateFinanceModule({ monthlyData: updatedMonthlyData });
       console.log(`Saved data for ${selectedMonth} before switching month`);
     }
     
-    // Changer le mois sélectionné
+    // Change selected month
     setSelectedMonth(value);
     
-    // Charger les données du nouveau mois sélectionné
+    // Load data for newly selected month
     const monthlyData = userData?.financeModule?.monthlyData || {};
     const newMonthData = monthlyData[value] || {
       income: 0,

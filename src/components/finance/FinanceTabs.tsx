@@ -1,106 +1,112 @@
 
-import { 
-  ChartPie, 
-  Wallet, 
-  ArrowUpDown, 
-  PiggyBank 
-} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AnnualBudget from "@/components/finance/AnnualBudget";
-import TransactionTracker from "@/components/finance/TransactionTracker";
-import SavingsTracker from "@/components/finance/SavingsTracker";
-import FinancialOverview from "@/components/finance/FinancialOverview";
-import FinancialInsights from "@/components/finance/FinancialInsights";
-import { MonthlyData } from "@/context/userData";
+import { Card, CardContent } from "@/components/ui/card";
+import { MonthlyData, Transaction } from "@/context/userData";
+import FinancialOverview from "./FinancialOverview";
+import FinancialInsights from "./FinancialInsights";
+import TransactionTracker from "./TransactionTracker";
+import SavingsTracker from "./SavingsTracker";
+import AnnualBudget from "./AnnualBudget";
+import FinanceQuests from "./FinanceQuests";
 
 interface FinanceTabsProps {
   selectedMonth: string;
   currentMonthData: MonthlyData;
   setCurrentMonthData: React.Dispatch<React.SetStateAction<MonthlyData>>;
   updateCurrentMonthData: (updates: Partial<MonthlyData>) => Promise<MonthlyData>;
-  addTransaction: (transaction: any) => Promise<MonthlyData>;
+  addTransaction: (transaction: Partial<Transaction>) => Promise<MonthlyData>;
+  deleteTransaction: (id: string) => Promise<MonthlyData>;
   savingsGoal: number;
   unlockAchievement: (achievementId: string) => Promise<void>;
   completeQuestStep: (questId: string, progress: number) => Promise<void>;
 }
 
-const FinanceTabs = ({
+const FinanceTabs = ({ 
   selectedMonth,
   currentMonthData,
   setCurrentMonthData,
   updateCurrentMonthData,
   addTransaction,
+  deleteTransaction,
   savingsGoal,
   unlockAchievement,
   completeQuestStep
 }: FinanceTabsProps) => {
+  console.log("FinanceTabs - Current month data:", currentMonthData);
+  const transactions = currentMonthData?.transactions || [];
+  
+  const handleUpdateMonthData = async (data: Partial<MonthlyData>) => {
+    await updateCurrentMonthData(data);
+  };
   
   return (
     <Tabs defaultValue="dashboard" className="w-full">
-      <TabsList className="mb-4 grid grid-cols-4 gap-2">
-        <TabsTrigger value="dashboard" className="flex items-center gap-2">
-          <ChartPie size={16} />
-          <span className="hidden md:inline">Dashboard</span>
-        </TabsTrigger>
-        <TabsTrigger value="budget" className="flex items-center gap-2">
-          <Wallet size={16} />
-          <span className="hidden md:inline">Budget</span>
-        </TabsTrigger>
-        <TabsTrigger value="transactions" className="flex items-center gap-2">
-          <ArrowUpDown size={16} />
-          <span className="hidden md:inline">Transactions</span>
-        </TabsTrigger>
-        <TabsTrigger value="savings" className="flex items-center gap-2">
-          <PiggyBank size={16} />
-          <span className="hidden md:inline">Épargne</span>
-        </TabsTrigger>
+      <TabsList className="grid grid-cols-3 md:grid-cols-6 mb-4">
+        <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
+        <TabsTrigger value="budget">Budget</TabsTrigger>
+        <TabsTrigger value="transactions">Transactions</TabsTrigger>
+        <TabsTrigger value="savings">Épargne</TabsTrigger>
+        <TabsTrigger value="reports">Rapports</TabsTrigger>
+        <TabsTrigger value="quests">Quêtes</TabsTrigger>
       </TabsList>
       
       <TabsContent value="dashboard">
-        <div className="grid grid-cols-1 gap-6">
-          <FinancialOverview 
-            income={currentMonthData.income}
-            expenses={currentMonthData.expenses}
-            balance={currentMonthData.balance}
-            savingsGoal={savingsGoal}
-            savingsRate={currentMonthData.savingsRate}
-            unlockAchievement={unlockAchievement}
-            completeQuestStep={completeQuestStep}
-            selectedMonth={selectedMonth}
-          />
-          
-          <FinancialInsights 
-            transactions={currentMonthData.transactions || []}
-            month={selectedMonth}
-            updateMonthData={(newData) => {
-              setCurrentMonthData(prev => ({
-                ...prev,
-                ...newData
-              }));
-            }}
-          />
-        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-8">
+              <FinancialOverview 
+                income={currentMonthData?.income || 0}
+                expenses={currentMonthData?.expenses || 0}
+                balance={(currentMonthData?.income || 0) - (currentMonthData?.expenses || 0)}
+                savingsGoal={savingsGoal}
+                savingsRate={currentMonthData?.savingsRate || 0}
+                selectedMonth={selectedMonth}
+                unlockAchievement={unlockAchievement}
+                completeQuestStep={completeQuestStep}
+              />
+              
+              <FinancialInsights 
+                transactions={transactions}
+                month={selectedMonth}
+                updateMonthData={handleUpdateMonthData}
+                deleteTransaction={deleteTransaction}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </TabsContent>
-
+      
       <TabsContent value="budget">
         <AnnualBudget />
       </TabsContent>
       
       <TabsContent value="transactions">
         <TransactionTracker 
-          selectedMonth={selectedMonth} 
+          selectedMonth={selectedMonth}
+          transactions={transactions}
+          updateMonthData={handleUpdateMonthData}
           completeQuestStep={completeQuestStep}
-          transactions={currentMonthData.transactions || []}
-          updateMonthData={updateCurrentMonthData}
           addTransaction={addTransaction}
         />
       </TabsContent>
       
       <TabsContent value="savings">
-        <SavingsTracker 
-          unlockAchievement={unlockAchievement}
-          completeQuestStep={completeQuestStep}
-        />
+        <SavingsTracker />
+      </TabsContent>
+      
+      <TabsContent value="reports">
+        <Card>
+          <CardContent className="pt-6">
+            <h3 className="text-lg font-medium mb-4">Rapports financiers</h3>
+            <p className="text-muted-foreground">
+              Cette section sera disponible prochainement...
+            </p>
+          </CardContent>
+        </Card>
+      </TabsContent>
+      
+      <TabsContent value="quests">
+        <FinanceQuests completeQuestStep={completeQuestStep} />
       </TabsContent>
     </Tabs>
   );

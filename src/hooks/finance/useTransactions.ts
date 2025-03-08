@@ -16,14 +16,15 @@ export const useTransactions = (
     console.log("Adding transaction:", transaction);
     console.log("Current month data:", currentMonthData);
     
-    // Assurer que la transaction a un ID unique
+    // Ensure the transaction has a unique ID
     const completeTransaction = {
       ...transaction,
       id: transaction.id || uuidv4(),
+      date: transaction.date || new Date().toISOString().split('T')[0],
       month: selectedMonth
     } as Transaction;
     
-    // Mettre à jour les transactions pour le mois sélectionné
+    // Update transactions for the selected month
     const currentTransactions = Array.isArray(currentMonthData.transactions) 
       ? [...currentMonthData.transactions] 
       : [];
@@ -32,7 +33,7 @@ export const useTransactions = (
     
     console.log("Updated transactions array:", updatedTransactions);
     
-    // Recalculer les totaux du mois
+    // Recalculate monthly totals
     let totalIncome = 0;
     let totalExpenses = 0;
     
@@ -55,10 +56,10 @@ export const useTransactions = (
     
     console.log("Updated month data to save:", updatedMonthData);
     
-    // Sauvegarder les données mises à jour
+    // Save the updated data
     await saveMonthlyData(updatedMonthData);
     
-    // Mettre à jour le solde global et les transactions globales
+    // Update global balance and transactions
     const currentBalance = userData?.financeModule?.balance || 0;
     const newBalance = transaction.type === 'income' 
       ? currentBalance + (transaction.amount || 0)
@@ -84,7 +85,53 @@ export const useTransactions = (
     return updatedMonthData;
   }, [currentMonthData, userData?.financeModule, saveMonthlyData, updateFinanceModule, selectedMonth]);
 
+  const deleteTransaction = useCallback(async (id: string) => {
+    console.log("Deleting transaction with ID:", id);
+    
+    // Find and remove the transaction
+    const updatedTransactions = currentMonthData.transactions
+      ? currentMonthData.transactions.filter(t => t.id !== id)
+      : [];
+    
+    // Recalculate totals
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    
+    updatedTransactions.forEach(t => {
+      if (t.type === 'income') totalIncome += t.amount;
+      if (t.type === 'expense') totalExpenses += t.amount;
+    });
+    
+    const balance = totalIncome - totalExpenses;
+    const savingsRate = totalIncome > 0 ? (balance / totalIncome) * 100 : 0;
+    
+    const updatedMonthData = {
+      ...currentMonthData,
+      income: totalIncome,
+      expenses: totalExpenses,
+      balance,
+      savingsRate,
+      transactions: updatedTransactions
+    };
+    
+    // Save the updated data
+    await saveMonthlyData(updatedMonthData);
+    
+    // Update global transactions
+    const globalTransactions = userData?.financeModule?.transactions || [];
+    const updatedGlobalTransactions = globalTransactions.filter(t => t.id !== id);
+    
+    await updateFinanceModule({ 
+      transactions: updatedGlobalTransactions
+    });
+    
+    console.log("Transaction deleted successfully");
+    
+    return updatedMonthData;
+  }, [currentMonthData, userData?.financeModule, saveMonthlyData, updateFinanceModule]);
+
   return {
-    addTransaction
+    addTransaction,
+    deleteTransaction
   };
 };

@@ -19,14 +19,18 @@ export const useMonthlyData = (selectedMonth: string) => {
     
     console.log(`Saving data for month ${selectedMonth}:`, monthData);
     
-    // S'assurer que l'objet monthlyData existe
+    // Ensure monthlyData object exists
     const currentMonthlyData = userData.financeModule.monthlyData || {};
     
-    // Créer un nouvel objet avec les données mises à jour pour ce mois
+    // Create a new object with updated data for this month
     const monthlyData = {
       ...currentMonthlyData,
       [selectedMonth]: {
         ...monthData,
+        income: typeof monthData.income === 'number' ? monthData.income : 0,
+        expenses: typeof monthData.expenses === 'number' ? monthData.expenses : 0,
+        balance: typeof monthData.balance === 'number' ? monthData.balance : 0,
+        savingsRate: typeof monthData.savingsRate === 'number' ? monthData.savingsRate : 0,
         transactions: Array.isArray(monthData.transactions) ? [...monthData.transactions] : []
       }
     };
@@ -34,10 +38,10 @@ export const useMonthlyData = (selectedMonth: string) => {
     console.log("Full monthly data to save:", monthlyData);
     
     try {
-      // Mettre à jour le module finance avec les nouvelles données mensuelles
+      // Update finance module with new monthly data
       await updateFinanceModule({ 
         monthlyData,
-        // Mettre à jour également les totaux globaux
+        // Also update global totals
         balance: userData.financeModule.balance,
         monthlyIncome: monthData.income,
         monthlyExpenses: monthData.expenses,
@@ -45,6 +49,7 @@ export const useMonthlyData = (selectedMonth: string) => {
       });
       
       console.log(`Data for month ${selectedMonth} saved successfully`);
+      return monthlyData[selectedMonth];
     } catch (error) {
       console.error("Error saving monthly data:", error);
       toast({
@@ -62,7 +67,7 @@ export const useMonthlyData = (selectedMonth: string) => {
     const updatedData = {
       ...currentData,
       ...updates,
-      // Assurer que l'array de transactions existe et est bien copié
+      // Ensure transactions array exists and is properly copied
       transactions: Array.isArray(updates.transactions) 
         ? [...updates.transactions] 
         : Array.isArray(currentData.transactions)
@@ -71,7 +76,7 @@ export const useMonthlyData = (selectedMonth: string) => {
     };
     
     console.log("Final updated data:", updatedData);
-    await saveMonthlyData(updatedData);
+    const savedData = await saveMonthlyData(updatedData);
     
     return updatedData;
   }, [saveMonthlyData]);

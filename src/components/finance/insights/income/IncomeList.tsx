@@ -32,9 +32,13 @@ const IncomeList: React.FC<IncomeListProps> = ({
   showRecentIncomes,
   toggleRecentIncomes
 }) => {
+  // Filter only income transactions
   const incomeTransactions = transactions.filter(t => t.type === 'income');
+  
+  console.log("IncomeList - Received transactions:", transactions);
+  console.log("IncomeList - Filtered income transactions:", incomeTransactions);
 
-  if (incomeTransactions.length === 0) {
+  if (!incomeTransactions || incomeTransactions.length === 0) {
     return (
       <Alert>
         <AlertCircle className="h-4 w-4" />
