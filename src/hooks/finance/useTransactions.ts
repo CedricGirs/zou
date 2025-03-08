@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { useUserData, MonthlyData } from '@/context/userData';
 import { toast } from '@/hooks/use-toast';
 import { playSound } from '@/utils/audioUtils';
-import { v4 as uuidv4 } from 'uuid'; // Ajout de l'import uuidv4
+import { v4 as uuidv4 } from 'uuid';
 
 export const useTransactions = (
   selectedMonth: string, 
@@ -13,6 +13,9 @@ export const useTransactions = (
   const { userData, updateFinanceModule } = useUserData();
 
   const addTransaction = useCallback(async (transaction: any) => {
+    console.log("Adding transaction:", transaction);
+    console.log("Current month data:", currentMonthData);
+    
     // Assurer que la transaction a un ID unique
     const completeTransaction = {
       ...transaction,
@@ -21,7 +24,13 @@ export const useTransactions = (
     };
     
     // Mettre à jour les transactions pour le mois sélectionné
-    const updatedTransactions = [...(currentMonthData.transactions || []), completeTransaction];
+    const currentTransactions = Array.isArray(currentMonthData.transactions) 
+      ? currentMonthData.transactions 
+      : [];
+    
+    const updatedTransactions = [...currentTransactions, completeTransaction];
+    
+    console.log("Updated transactions array:", updatedTransactions);
     
     // Recalculer les totaux du mois
     let totalIncome = 0;
@@ -44,6 +53,8 @@ export const useTransactions = (
       transactions: updatedTransactions
     };
     
+    console.log("Updated month data to save:", updatedMonthData);
+    
     // Sauvegarder les données mises à jour
     await saveMonthlyData(updatedMonthData);
     
@@ -53,9 +64,13 @@ export const useTransactions = (
       ? currentBalance + transaction.amount 
       : currentBalance - transaction.amount;
     
+    const globalTransactions = Array.isArray(userData.financeModule?.transactions) 
+      ? userData.financeModule.transactions 
+      : [];
+    
     await updateFinanceModule({ 
       balance: newBalance,
-      transactions: [...(userData.financeModule?.transactions || []), completeTransaction]
+      transactions: [...globalTransactions, completeTransaction]
     });
     
     playSound('transaction');
@@ -64,11 +79,10 @@ export const useTransactions = (
       description: `${transaction.description}: ${transaction.amount.toFixed(2)} €`
     });
     
-    console.log("Transaction ajoutée:", completeTransaction);
-    console.log("Données du mois mises à jour:", updatedMonthData);
+    console.log("Transaction added successfully");
     
     return updatedMonthData;
-  }, [currentMonthData, userData, saveMonthlyData, updateFinanceModule, selectedMonth]);
+  }, [currentMonthData, userData.financeModule, saveMonthlyData, updateFinanceModule, selectedMonth]);
 
   return {
     addTransaction

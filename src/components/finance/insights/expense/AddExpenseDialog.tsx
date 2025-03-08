@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 
 interface AddExpenseDialogProps {
   newExpense: {
@@ -26,10 +26,17 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({
   addExpense,
   expenseCategories
 }) => {
+  const [open, setOpen] = React.useState(false);
+  
+  const handleSubmit = async () => {
+    await addExpense();
+    setOpen(false);
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full mt-4">
+        <Button variant="outline" size="sm" className="w-full">
           <Plus size={14} className="mr-2" />
           Ajouter une dépense
         </Button>
@@ -81,9 +88,9 @@ const AddExpenseDialog: React.FC<AddExpenseDialogProps> = ({
             </div>
           </div>
         </div>
-        <div className="flex justify-end">
-          <Button onClick={addExpense}>Ajouter</Button>
-        </div>
+        <DialogFooter>
+          <Button onClick={handleSubmit}>Ajouter</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

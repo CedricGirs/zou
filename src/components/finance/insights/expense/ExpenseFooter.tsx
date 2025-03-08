@@ -9,8 +9,14 @@ interface ExpenseFooterProps {
 }
 
 const ExpenseFooter: React.FC<ExpenseFooterProps> = ({ transactions }) => {
+  // Only filter expense transactions
   const expenseTransactions = transactions.filter(t => t.type === 'expense');
+  
+  // Calculate total expenses
   const totalExpenses = expenseTransactions.reduce((sum, t) => sum + t.amount, 0) || 0;
+
+  console.log("Expense transactions:", expenseTransactions);
+  console.log("Total expenses:", totalExpenses);
 
   return (
     <CardFooter className="bg-gray-50 flex justify-between">
