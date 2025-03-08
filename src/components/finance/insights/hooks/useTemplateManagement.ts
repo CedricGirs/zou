@@ -1,9 +1,9 @@
 
 import { useState } from 'react';
-import { useUserData, BudgetTemplate } from '@/context/userData';
+import { useUserData } from '@/context/userData';
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
-import { Transaction } from '@/context/userData';
+import { Transaction, BudgetTemplate } from '@/types/FinanceTypes';
 
 export const useTemplateManagement = (transactions: Transaction[]) => {
   const { userData, updateFinanceModule } = useUserData();
@@ -52,19 +52,28 @@ export const useTemplateManagement = (transactions: Transaction[]) => {
       }))
     };
 
-    const currentTemplates = userData?.financeModule?.budgetTemplates || [];
-    await updateFinanceModule({
-      budgetTemplates: [...currentTemplates, newTemplate]
-    });
+    try {
+      const currentTemplates = userData?.financeModule?.budgetTemplates || [];
+      await updateFinanceModule({
+        budgetTemplates: [...currentTemplates, newTemplate]
+      });
 
-    toast({
-      title: "Template créé",
-      description: `Le template "${templateName}" a été créé avec succès.`,
-    });
+      toast({
+        title: "Template créé",
+        description: `Le template "${templateName}" a été créé avec succès.`,
+      });
 
-    setTemplateName('');
-    setTemplateDescription('');
-    setIsCreateTemplateOpen(false);
+      setTemplateName('');
+      setTemplateDescription('');
+      setIsCreateTemplateOpen(false);
+    } catch (error) {
+      console.error("Erreur lors de la création du template:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur s'est produite lors de la création du template.",
+        variant: "destructive"
+      });
+    }
   };
 
   return {
