@@ -1,6 +1,6 @@
 
 import { useCallback } from 'react';
-import { useUserData, MonthlyData } from '@/context/UserDataContext';
+import { useUserData, MonthlyData } from '@/context/userData';
 
 export const useMonthlyData = (selectedMonth: string) => {
   const { userData, updateFinanceModule } = useUserData();

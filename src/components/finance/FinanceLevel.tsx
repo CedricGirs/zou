@@ -1,7 +1,7 @@
 
 import { Card } from "@/components/ui/card";
 import XPBar from "@/components/dashboard/XPBar";
-import { useUserData } from "@/context/UserDataContext";
+import { useUserData } from "@/context/userData";
 
 const FinanceLevel = () => {
   const { userData } = useUserData();

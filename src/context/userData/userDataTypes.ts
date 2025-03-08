@@ -1,11 +1,6 @@
 
-// This file now re-exports from the userData folder to maintain backward compatibility
-export { 
-  UserDataProvider, 
-  useUserData 
-} from './userData';
-
-export type {
+// Re-export all types for backward compatibility
+export type { 
   HeroProfile,
   StatusModule,
   LookModule,
@@ -22,6 +17,8 @@ export type {
   LanguageItem,
   SkillItem,
   StatusItem,
-  UserData,
-  UserDataContextType
-} from './userData';
+  UserData
+} from '@/types';
+
+// Re-export UserDataContextType
+export type { UserDataContextType } from '@/types/UserDataTypes';

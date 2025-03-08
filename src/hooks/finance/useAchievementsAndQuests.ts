@@ -1,6 +1,6 @@
 
 import { useCallback } from 'react';
-import { useUserData } from '@/context/UserDataContext';
+import { useUserData } from '@/context/userData';
 import { useFinanceXP } from '@/hooks/useFinanceXP';
 import { toast } from '@/hooks/use-toast';
 import { playSound } from '@/utils/audioUtils';

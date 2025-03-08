@@ -1,3 +1,4 @@
+
 import { 
   ChartPie, 
   Wallet, 
@@ -10,7 +11,7 @@ import TransactionTracker from "@/components/finance/TransactionTracker";
 import SavingsTracker from "@/components/finance/SavingsTracker";
 import FinancialOverview from "@/components/finance/FinancialOverview";
 import FinancialInsights from "@/components/finance/FinancialInsights";
-import { MonthlyData } from "@/context/UserDataContext";
+import { MonthlyData } from "@/context/userData";
 
 interface FinanceTabsProps {
   selectedMonth: string;
