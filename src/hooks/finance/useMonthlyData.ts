@@ -18,6 +18,7 @@ export const useMonthlyData = (selectedMonth: string) => {
     }
     
     console.log(`Saving data for month ${selectedMonth}:`, monthData);
+    console.log("Transactions to save:", monthData.transactions);
     
     // Ensure monthlyData object exists
     const currentMonthlyData = userData.financeModule.monthlyData || {};
@@ -36,6 +37,7 @@ export const useMonthlyData = (selectedMonth: string) => {
     };
     
     console.log("Full monthly data to save:", monthlyData);
+    console.log("Transactions for current month:", monthlyData[selectedMonth].transactions);
     
     try {
       // Update finance module with new monthly data
@@ -64,19 +66,27 @@ export const useMonthlyData = (selectedMonth: string) => {
   const updateCurrentMonthData = useCallback(async (updates: Partial<MonthlyData>, currentData: MonthlyData): Promise<MonthlyData> => {
     console.log("Updating monthly data with:", updates);
     console.log("Current data:", currentData);
+    console.log("Transactions in updates:", updates.transactions);
+    console.log("Transactions in current data:", currentData.transactions);
+    
+    // Fusionner correctement les transactions
+    let mergedTransactions = [];
+    if (Array.isArray(updates.transactions)) {
+      mergedTransactions = [...updates.transactions];
+    } else if (Array.isArray(currentData.transactions)) {
+      mergedTransactions = [...currentData.transactions];
+    }
     
     const updatedData = {
       ...currentData,
       ...updates,
       // Ensure transactions array exists and is properly copied
-      transactions: Array.isArray(updates.transactions) 
-        ? [...updates.transactions] 
-        : Array.isArray(currentData.transactions)
-          ? [...currentData.transactions]
-          : []
+      transactions: mergedTransactions
     };
     
     console.log("Final updated data:", updatedData);
+    console.log("Final transactions:", updatedData.transactions);
+    
     const savedData = await saveMonthlyData(updatedData);
     
     return savedData;

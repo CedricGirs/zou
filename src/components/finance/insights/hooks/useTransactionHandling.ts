@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const useTransactionHandling = (
   transactions: Transaction[],
   month: string,
-  updateMonthData: (data: any) => void
+  updateMonthData: (data: any) => Promise<any>
 ) => {
   const [newIncome, setNewIncome] = useState({
     description: '',
@@ -102,25 +102,40 @@ export const useTransactionHandling = (
       isVerified: false
     };
     
-    const updatedTransactions = [...transactions, transaction];
+    // S'assurer que transactions est bien un tableau
+    const currentTransactions = Array.isArray(transactions) ? [...transactions] : [];
+    const updatedTransactions = [...currentTransactions, transaction];
+    
+    console.log("Ajout d'un revenu:", transaction);
+    console.log("Transactions avant mise à jour:", currentTransactions);
+    console.log("Transactions après mise à jour:", updatedTransactions);
+    
     const updatedData = recalculateTotals(updatedTransactions);
     
-    // S'assurer que les transactions sont bien préservées
-    console.log("Ajout d'un revenu:", transaction);
-    console.log("Transactions mises à jour:", updatedTransactions);
-    
-    updateMonthData(updatedData);
-    
-    toast({
-      title: "Revenu ajouté",
-      description: `${newIncome.description} : ${newIncome.amount}€ a été ajouté avec succès.`
-    });
-    
-    setNewIncome({
-      description: '',
-      amount: 0,
-      category: 'Salaire'
-    });
+    try {
+      const result = await updateMonthData(updatedData);
+      console.log("Résultat de la mise à jour:", result);
+      
+      toast({
+        title: "Revenu ajouté",
+        description: `${newIncome.description} : ${newIncome.amount}€ a été ajouté avec succès.`
+      });
+      
+      setNewIncome({
+        description: '',
+        amount: 0,
+        category: 'Salaire'
+      });
+      
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de l'ajout du revenu:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout du revenu.",
+        variant: "destructive"
+      });
+    }
   };
   
   const addExpense = async () => {
@@ -144,37 +159,64 @@ export const useTransactionHandling = (
       isVerified: false
     };
     
-    const updatedTransactions = [...transactions, transaction];
+    // S'assurer que transactions est bien un tableau
+    const currentTransactions = Array.isArray(transactions) ? [...transactions] : [];
+    const updatedTransactions = [...currentTransactions, transaction];
+    
+    console.log("Ajout d'une dépense:", transaction);
+    console.log("Transactions avant mise à jour:", currentTransactions);
+    console.log("Transactions après mise à jour:", updatedTransactions);
+    
     const updatedData = recalculateTotals(updatedTransactions);
     
-    // S'assurer que les transactions sont bien préservées
-    console.log("Ajout d'une dépense:", transaction);
-    console.log("Transactions mises à jour:", updatedTransactions);
-    
-    updateMonthData(updatedData);
-    
-    toast({
-      title: "Dépense ajoutée",
-      description: `${newExpense.description} : ${newExpense.amount}€ a été ajoutée avec succès.`
-    });
-    
-    setNewExpense({
-      description: '',
-      amount: 0,
-      category: 'Logement'
-    });
+    try {
+      const result = await updateMonthData(updatedData);
+      console.log("Résultat de la mise à jour:", result);
+      
+      toast({
+        title: "Dépense ajoutée",
+        description: `${newExpense.description} : ${newExpense.amount}€ a été ajoutée avec succès.`
+      });
+      
+      setNewExpense({
+        description: '',
+        amount: 0,
+        category: 'Logement'
+      });
+      
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de l'ajout de la dépense:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout de la dépense.",
+        variant: "destructive"
+      });
+    }
   };
 
   const deleteTransaction = async (transactionId: string) => {
     const updatedTransactions = transactions.filter(t => t.id !== transactionId);
     const updatedData = recalculateTotals(updatedTransactions);
     
-    updateMonthData(updatedData);
-    
-    toast({
-      title: "Transaction supprimée",
-      description: "La transaction a été supprimée avec succès."
-    });
+    try {
+      const result = await updateMonthData(updatedData);
+      console.log("Résultat de la suppression:", result);
+      
+      toast({
+        title: "Transaction supprimée",
+        description: "La transaction a été supprimée avec succès."
+      });
+      
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la transaction:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression de la transaction.",
+        variant: "destructive"
+      });
+    }
   };
 
   const startEditTransaction = (transaction: Transaction) => {
@@ -209,14 +251,25 @@ export const useTransactionHandling = (
 
     const updatedData = recalculateTotals(updatedTransactions);
     
-    updateMonthData(updatedData);
-    
-    toast({
-      title: "Transaction modifiée",
-      description: `Le montant a été mis à jour avec succès.`
-    });
-    
-    setEditingTransaction(null);
+    try {
+      const result = await updateMonthData(updatedData);
+      console.log("Résultat de la modification:", result);
+      
+      toast({
+        title: "Transaction modifiée",
+        description: `Le montant a été mis à jour avec succès.`
+      });
+      
+      setEditingTransaction(null);
+      return result;
+    } catch (error) {
+      console.error("Erreur lors de la modification de la transaction:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la modification de la transaction.",
+        variant: "destructive"
+      });
+    }
   };
 
   const toggleRecentIncomes = () => {
@@ -225,6 +278,11 @@ export const useTransactionHandling = (
 
   const toggleRecentExpenses = () => {
     setShowRecentExpenses(!showRecentExpenses);
+  };
+
+  // Ajouter une fonction pour manipuler directement les transactions
+  const handleDeleteTransaction = async (id: string) => {
+    return await deleteTransaction(id);
   };
 
   return {
@@ -240,6 +298,7 @@ export const useTransactionHandling = (
     addIncome,
     addExpense,
     deleteTransaction,
+    handleDeleteTransaction,
     startEditTransaction,
     handleEditAmountChange,
     saveEditedTransaction,

@@ -31,6 +31,7 @@ export const useTransactions = (
     
     const updatedTransactions = [...currentTransactions, completeTransaction];
     
+    console.log("Current transactions:", currentTransactions);
     console.log("Updated transactions array:", updatedTransactions);
     
     // Recalculate monthly totals
@@ -58,6 +59,7 @@ export const useTransactions = (
     
     // Save the updated data
     const savedData = await saveMonthlyData(updatedMonthData);
+    console.log("Saved month data:", savedData);
     
     // Update global balance and transactions
     const currentBalance = userData?.financeModule?.balance || 0;
@@ -114,8 +116,11 @@ export const useTransactions = (
       transactions: updatedTransactions
     };
     
+    console.log("Updated month data after deletion:", updatedMonthData);
+    
     // Save the updated data
     const savedData = await saveMonthlyData(updatedMonthData);
+    console.log("Saved month data after deletion:", savedData);
     
     // Update global transactions
     const globalTransactions = userData?.financeModule?.transactions || [];

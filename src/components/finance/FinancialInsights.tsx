@@ -12,7 +12,7 @@ import { useTemplateApplication } from './insights/hooks/useTemplateApplication'
 interface FinancialInsightsProps {
   transactions: Transaction[];
   month: string;
-  updateMonthData: (data: any) => void;
+  updateMonthData: (data: any) => Promise<any>;
   deleteTransaction: (id: string) => Promise<any>;
 }
 
@@ -46,33 +46,13 @@ const FinancialInsights = ({
     handleExpenseCategoryChange,
     addIncome,
     addExpense,
+    handleDeleteTransaction,
     startEditTransaction,
     handleEditAmountChange,
     saveEditedTransaction,
     toggleRecentIncomes,
     toggleRecentExpenses
   } = useTransactionHandling(transactions, month, updateMonthData);
-  
-  // Wrapper function for deleteTransaction to ensure compatibility
-  const handleDeleteTransaction = async (id: string) => {
-    await deleteTransaction(id);
-  };
-  
-  const {
-    isCreateTemplateOpen,
-    setIsCreateTemplateOpen,
-    templateName,
-    setTemplateName,
-    templateDescription,
-    setTemplateDescription,
-    handleCreateTemplate,
-    isApplyIncomeTemplateOpen,
-    setIsApplyIncomeTemplateOpen,
-    isApplyExpenseTemplateOpen,
-    setIsApplyExpenseTemplateOpen,
-    selectedTemplateId,
-    setSelectedTemplateId
-  } = useTemplateManagement(transactions);
   
   // Function to recalculate totals
   const recalculateTotals = useCallback((updatedTransactions: Transaction[]) => {
@@ -95,6 +75,22 @@ const FinancialInsights = ({
       transactions: updatedTransactions
     };
   }, []);
+  
+  const {
+    isCreateTemplateOpen,
+    setIsCreateTemplateOpen,
+    templateName,
+    setTemplateName,
+    templateDescription,
+    setTemplateDescription,
+    handleCreateTemplate,
+    isApplyIncomeTemplateOpen,
+    setIsApplyIncomeTemplateOpen,
+    isApplyExpenseTemplateOpen,
+    setIsApplyExpenseTemplateOpen,
+    selectedTemplateId,
+    setSelectedTemplateId
+  } = useTemplateManagement(transactions);
   
   // Hook for applying templates
   const {
