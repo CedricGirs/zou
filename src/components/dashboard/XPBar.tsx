@@ -1,17 +1,19 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "../../context/LanguageContext";
+import { Progress } from "@/components/ui/progress";
 
 interface XPBarProps {
   currentXP: number;
   maxXP: number;
   animated?: boolean;
+  variant?: "default" | "success" | "warning" | "danger" | "purple" | "gradient" | "minimal";
 }
 
-const XPBar = ({ currentXP, maxXP, animated = true }: XPBarProps) => {
+const XPBar = ({ currentXP, maxXP, animated = true, variant = "purple" }: XPBarProps) => {
   const { t } = useLanguage();
   const [animatedXP, setAnimatedXP] = useState(0);
-  const percentage = (currentXP / maxXP) * 100;
+  const percentage = Math.min(100, (currentXP / maxXP) * 100);
   
   useEffect(() => {
     if (animated) {
@@ -25,7 +27,7 @@ const XPBar = ({ currentXP, maxXP, animated = true }: XPBarProps) => {
     }
   }, [currentXP, animated]);
   
-  const animatedPercentage = (animatedXP / maxXP) * 100;
+  const animatedPercentage = Math.min(100, (animatedXP / maxXP) * 100);
   
   return (
     <div className="w-full">
@@ -33,12 +35,11 @@ const XPBar = ({ currentXP, maxXP, animated = true }: XPBarProps) => {
         <span className="font-pixel">{t("xp")}</span>
         <span className="font-mono">{currentXP} / {maxXP}</span>
       </div>
-      <div className="progress-bar h-3">
-        <div 
-          className="progress-bar-fill bg-zou-purple transition-all duration-1000 ease-out"
-          style={{ width: `${animatedPercentage}%` }}
-        ></div>
-      </div>
+      <Progress 
+        value={animatedPercentage} 
+        className="h-3" 
+        variant={variant}
+      />
     </div>
   );
 };

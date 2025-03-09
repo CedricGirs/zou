@@ -25,7 +25,7 @@ const FinanceLevel = () => {
           </div>
         </div>
         <div className="w-full md:w-1/2">
-          <XPBar currentXP={currentXP} maxXP={maxXP} />
+          <XPBar currentXP={currentXP} maxXP={maxXP} variant="purple" />
           <p className="text-xs text-right text-muted-foreground mt-1">Prochain niveau: Planificateur</p>
         </div>
       </div>

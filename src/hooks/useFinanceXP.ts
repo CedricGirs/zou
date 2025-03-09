@@ -30,20 +30,24 @@ export const useFinanceXP = () => {
    * Calcule l'XP basé sur les accomplissements débloqués
    */
   const calculateXPFromAchievements = useCallback(() => {
-    const completedAchievements = userData.financeModule?.achievements.filter(a => a.completed) || [];
+    const completedAchievements = userData?.financeModule?.achievements?.filter(a => a.completed) || [];
     return completedAchievements.length * XP_PER_ACHIEVEMENT;
-  }, [userData.financeModule?.achievements]);
+  }, [userData?.financeModule?.achievements]);
 
   /**
    * Met à jour l'XP et le niveau financier de l'utilisateur
    */
   const updateXPAndLevel = useCallback(async () => {
-    if (!userData.financeModule) return;
+    if (!userData?.financeModule) return;
 
+    console.log("Updating XP and level");
+    
     const savingsXP = calculateXPFromSavings(userData.financeModule.balance || 0);
     const achievementsXP = calculateXPFromAchievements();
     const totalXP = savingsXP + achievementsXP;
 
+    console.log("XP calculation:", { savingsXP, achievementsXP, totalXP });
+    
     let newLevel = 1;
     let threshold = calculateLevelThreshold(newLevel + 1);
 
@@ -52,7 +56,8 @@ export const useFinanceXP = () => {
       threshold = calculateLevelThreshold(newLevel + 1);
     }
 
-    const hasLeveledUp = newLevel > userData.financeModule.financeLevel;
+    const hasLeveledUp = newLevel > (userData.financeModule.financeLevel || 1);
+    console.log("Level calculation:", { newLevel, currentLevel: userData.financeModule.financeLevel, hasLeveledUp });
 
     if (hasLeveledUp) {
       toast({
@@ -76,7 +81,7 @@ export const useFinanceXP = () => {
       hasLeveledUp
     };
   }, [
-    userData.financeModule, 
+    userData?.financeModule, 
     calculateXPFromSavings, 
     calculateXPFromAchievements, 
     calculateLevelThreshold, 
