@@ -3,15 +3,13 @@ import { useCallback } from 'react';
 import { Transaction } from '@/context/userData';
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
-import { useTransactionCalculations } from './useTransactionCalculations';
+import { recalculateTotals } from './useTransactionCalculations';
 
 export const useTransactionOperations = (
   transactions: Transaction[],
   month: string,
   updateMonthData: (data: any) => Promise<any>
 ) => {
-  const { recalculateTotals } = useTransactionCalculations();
-
   const createTransaction = useCallback((
     description: string,
     amount: number,
@@ -47,7 +45,7 @@ export const useTransactionOperations = (
     
     const transaction = createTransaction(description, amount, category, type);
     
-    // S'assurer que transactions est bien un tableau
+    // Ensure transactions is an array
     const currentTransactions = Array.isArray(transactions) ? [...transactions] : [];
     const updatedTransactions = [...currentTransactions, transaction];
     
@@ -76,7 +74,7 @@ export const useTransactionOperations = (
       });
       return null;
     }
-  }, [transactions, recalculateTotals, updateMonthData, createTransaction]);
+  }, [transactions, updateMonthData, createTransaction]);
 
   const deleteTransaction = useCallback(async (transactionId: string) => {
     const updatedTransactions = transactions.filter(t => t.id !== transactionId);
@@ -101,7 +99,7 @@ export const useTransactionOperations = (
       });
       return null;
     }
-  }, [transactions, recalculateTotals, updateMonthData]);
+  }, [transactions, updateMonthData]);
 
   const editTransaction = useCallback(async (
     transactionId: string,
@@ -138,7 +136,7 @@ export const useTransactionOperations = (
       });
       return null;
     }
-  }, [transactions, recalculateTotals, updateMonthData]);
+  }, [transactions, updateMonthData]);
 
   return {
     addTransaction,

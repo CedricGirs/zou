@@ -1,26 +1,7 @@
-
 import { Transaction } from "@/context/UserDataContext";
+import { recalculateTotals } from "@/components/finance/insights/hooks/useTransactionCalculations";
 
-export const recalculateTotals = (transactions: Transaction[]) => {
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
-    
-  const totalExpenses = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
-    
-  const balance = totalIncome - totalExpenses;
-  const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
-  
-  return {
-    income: totalIncome,
-    expenses: totalExpenses,
-    balance,
-    savingsRate,
-    transactions
-  };
-};
+export { recalculateTotals };
 
 export const filterTransactions = (
   transactions: Transaction[],

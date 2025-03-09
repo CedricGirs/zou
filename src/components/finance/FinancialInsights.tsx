@@ -1,4 +1,3 @@
-
 import React, { useCallback } from 'react';
 import { useUserData } from '@/context/userData';
 import { Transaction } from '@/context/userData';
@@ -8,6 +7,7 @@ import TemplateCreationDialog from './insights/TemplateCreationDialog';
 import { useTransactionHandling } from './insights/hooks/useTransactionHandling';
 import { useTemplateManagement } from './insights/hooks/useTemplateManagement';
 import { useTemplateApplication } from './insights/hooks/useTemplateApplication';
+import { recalculateTotals } from './insights/hooks/useTransactionCalculations';
 
 interface FinancialInsightsProps {
   transactions: Transaction[];
@@ -53,28 +53,6 @@ const FinancialInsights = ({
     toggleRecentIncomes,
     toggleRecentExpenses
   } = useTransactionHandling(transactions, month, updateMonthData);
-  
-  // Function to recalculate totals
-  const recalculateTotals = useCallback((updatedTransactions: Transaction[]) => {
-    const totalIncome = updatedTransactions
-      .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0);
-      
-    const totalExpenses = updatedTransactions
-      .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0);
-      
-    const balance = totalIncome - totalExpenses;
-    const savingsRate = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
-    
-    return {
-      income: totalIncome,
-      expenses: totalExpenses,
-      balance,
-      savingsRate,
-      transactions: updatedTransactions
-    };
-  }, []);
   
   const {
     isCreateTemplateOpen,

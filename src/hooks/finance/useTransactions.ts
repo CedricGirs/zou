@@ -4,6 +4,7 @@ import { useUserData, MonthlyData, Transaction } from '@/context/userData';
 import { toast } from '@/hooks/use-toast';
 import { playSound } from '@/utils/audioUtils';
 import { v4 as uuidv4 } from 'uuid';
+import { recalculateTotals } from '@/components/finance/insights/hooks/useTransactionCalculations';
 
 export const useTransactions = (
   selectedMonth: string, 
@@ -34,25 +35,12 @@ export const useTransactions = (
     console.log("Current transactions:", currentTransactions);
     console.log("Updated transactions array:", updatedTransactions);
     
-    // Recalculate monthly totals
-    let totalIncome = 0;
-    let totalExpenses = 0;
-    
-    updatedTransactions.forEach(t => {
-      if (t.type === 'income') totalIncome += t.amount;
-      if (t.type === 'expense') totalExpenses += t.amount;
-    });
-    
-    const balance = totalIncome - totalExpenses;
-    const savingsRate = totalIncome > 0 ? (balance / totalIncome) * 100 : 0;
+    // Use the centralized recalculateTotals function
+    const updatedTotals = recalculateTotals(updatedTransactions);
     
     const updatedMonthData = {
       ...currentMonthData,
-      income: totalIncome,
-      expenses: totalExpenses,
-      balance,
-      savingsRate,
-      transactions: updatedTransactions
+      ...updatedTotals
     };
     
     console.log("Updated month data to save:", updatedMonthData);
@@ -95,25 +83,12 @@ export const useTransactions = (
       ? currentMonthData.transactions.filter(t => t.id !== id)
       : [];
     
-    // Recalculate totals
-    let totalIncome = 0;
-    let totalExpenses = 0;
-    
-    updatedTransactions.forEach(t => {
-      if (t.type === 'income') totalIncome += t.amount;
-      if (t.type === 'expense') totalExpenses += t.amount;
-    });
-    
-    const balance = totalIncome - totalExpenses;
-    const savingsRate = totalIncome > 0 ? (balance / totalIncome) * 100 : 0;
+    // Use the centralized recalculateTotals function
+    const updatedTotals = recalculateTotals(updatedTransactions);
     
     const updatedMonthData = {
       ...currentMonthData,
-      income: totalIncome,
-      expenses: totalExpenses,
-      balance,
-      savingsRate,
-      transactions: updatedTransactions
+      ...updatedTotals
     };
     
     console.log("Updated month data after deletion:", updatedMonthData);

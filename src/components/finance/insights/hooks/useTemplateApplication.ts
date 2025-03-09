@@ -3,12 +3,13 @@ import { useCallback } from 'react';
 import { Transaction, useUserData } from '@/context/userData';
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
+import { recalculateTotals } from './useTransactionCalculations';
 
 export const useTemplateApplication = (
   transactions: Transaction[],
   month: string,
   selectedTemplateId: string,
-  recalculateTotals: (updatedTransactions: Transaction[]) => any,
+  recalculateTotalsParam: typeof recalculateTotals, // Keep the parameter for backward compatibility
   updateMonthData: (data: any) => void
 ) => {
   const { userData } = useUserData();
@@ -62,7 +63,7 @@ export const useTemplateApplication = (
         variant: "destructive"
       });
     }
-  }, [selectedTemplateId, userData?.financeModule?.budgetTemplates, month, transactions, recalculateTotals, updateMonthData]);
+  }, [selectedTemplateId, userData?.financeModule?.budgetTemplates, month, transactions, updateMonthData]);
 
   const applyExpenseTemplate = useCallback(() => {
     if (!selectedTemplateId) {
@@ -113,7 +114,7 @@ export const useTemplateApplication = (
         variant: "destructive"
       });
     }
-  }, [selectedTemplateId, userData?.financeModule?.budgetTemplates, month, transactions, recalculateTotals, updateMonthData]);
+  }, [selectedTemplateId, userData?.financeModule?.budgetTemplates, month, transactions, updateMonthData]);
 
   return {
     applyIncomeTemplate,
