@@ -1,13 +1,13 @@
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { MonthlyData, Transaction } from "@/context/userData";
-import FinancialOverview from "./FinancialOverview";
-import FinancialInsights from "./FinancialInsights";
-import TransactionTracker from "./TransactionTracker";
-import SavingsTracker from "./SavingsTracker";
-import AnnualBudget from "./AnnualBudget";
-import FinanceQuests from "./FinanceQuests";
+import { Tabs } from "@/components/ui/tabs";
+import { MonthlyData, Transaction } from '@/context/userData';
+import TabsList from './tabs/TabsList';
+import DashboardTabContent from './tabs/DashboardTabContent';
+import BudgetTabContent from './tabs/BudgetTabContent';
+import TransactionsTabContent from './tabs/TransactionsTabContent';
+import SavingsTabContent from './tabs/SavingsTabContent';
+import ReportsTabContent from './tabs/ReportsTabContent';
+import QuestsTabContent from './tabs/QuestsTabContent';
 
 interface FinanceTabsProps {
   selectedMonth: string;
@@ -35,86 +35,41 @@ const FinanceTabs = ({
   console.log("FinanceTabs - Current month data:", currentMonthData);
   const transactions = currentMonthData?.transactions || [];
   
-  const handleUpdateMonthData = async (data: Partial<MonthlyData>) => {
-    const updatedData = await updateCurrentMonthData(data);
-    return updatedData;
-  };
-  
-  const handleDeleteTransaction = async (id: string) => {
-    const updatedData = await deleteTransaction(id);
-    return updatedData;
-  };
-  
   return (
     <Tabs defaultValue="dashboard" className="w-full">
-      <TabsList className="grid grid-cols-3 md:grid-cols-6 mb-4">
-        <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
-        <TabsTrigger value="budget">Budget</TabsTrigger>
-        <TabsTrigger value="transactions">Transactions</TabsTrigger>
-        <TabsTrigger value="savings">Épargne</TabsTrigger>
-        <TabsTrigger value="reports">Rapports</TabsTrigger>
-        <TabsTrigger value="quests">Quêtes</TabsTrigger>
-      </TabsList>
+      <TabsList />
       
-      <TabsContent value="dashboard">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-8">
-              <FinancialOverview 
-                income={currentMonthData?.income || 0}
-                expenses={currentMonthData?.expenses || 0}
-                balance={(currentMonthData?.income || 0) - (currentMonthData?.expenses || 0)}
-                savingsGoal={savingsGoal}
-                savingsRate={currentMonthData?.savingsRate || 0}
-                selectedMonth={selectedMonth}
-                unlockAchievement={unlockAchievement}
-                completeQuestStep={completeQuestStep}
-              />
-              
-              <FinancialInsights 
-                transactions={transactions}
-                month={selectedMonth}
-                updateMonthData={handleUpdateMonthData}
-                deleteTransaction={handleDeleteTransaction}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
+      <DashboardTabContent 
+        currentMonthData={currentMonthData}
+        selectedMonth={selectedMonth}
+        savingsGoal={savingsGoal}
+        updateMonthData={updateCurrentMonthData}
+        deleteTransaction={deleteTransaction}
+        unlockAchievement={unlockAchievement}
+        completeQuestStep={completeQuestStep}
+      />
       
-      <TabsContent value="budget">
-        <AnnualBudget />
-      </TabsContent>
+      <BudgetTabContent />
       
-      <TabsContent value="transactions">
-        <TransactionTracker 
-          selectedMonth={selectedMonth}
-          transactions={transactions}
-          updateMonthData={handleUpdateMonthData}
-          completeQuestStep={completeQuestStep}
-          addTransaction={addTransaction}
-          deleteTransaction={handleDeleteTransaction}
-        />
-      </TabsContent>
+      <TransactionsTabContent 
+        selectedMonth={selectedMonth}
+        transactions={transactions}
+        updateMonthData={updateCurrentMonthData}
+        completeQuestStep={completeQuestStep}
+        addTransaction={addTransaction}
+        deleteTransaction={deleteTransaction}
+      />
       
-      <TabsContent value="savings">
-        <SavingsTracker />
-      </TabsContent>
+      <SavingsTabContent 
+        unlockAchievement={unlockAchievement}
+        completeQuestStep={completeQuestStep}
+      />
       
-      <TabsContent value="reports">
-        <Card>
-          <CardContent className="pt-6">
-            <h3 className="text-lg font-medium mb-4">Rapports financiers</h3>
-            <p className="text-muted-foreground">
-              Cette section sera disponible prochainement...
-            </p>
-          </CardContent>
-        </Card>
-      </TabsContent>
+      <ReportsTabContent />
       
-      <TabsContent value="quests">
-        <FinanceQuests completeQuestStep={completeQuestStep} />
-      </TabsContent>
+      <QuestsTabContent 
+        completeQuestStep={completeQuestStep}
+      />
     </Tabs>
   );
 };
