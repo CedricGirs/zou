@@ -137,7 +137,7 @@ const StyleAdviceDialog: React.FC<StyleAdviceProps> = ({ selectedClothing }) => 
       toast({
         title: "XP gagnés!",
         description: "+15 XP pour avoir créé une tenue complète!",
-        variant: "success",
+        variant: "default",
       });
     }
 

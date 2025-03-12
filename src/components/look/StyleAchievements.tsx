@@ -102,13 +102,13 @@ const StyleAchievements = () => {
       toast({
         title: "Niveau supérieur!",
         description: `Vous avez atteint le niveau ${newLevel} en style!`,
-        variant: "success",
+        variant: "default",
       });
     } else {
       toast({
         title: "Succès débloqué!",
         description: `${achievement.name}: +${achievement.xpReward} XP`,
-        variant: "success",
+        variant: "default",
       });
     }
     

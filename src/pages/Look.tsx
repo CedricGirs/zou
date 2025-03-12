@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { useLanguage } from "../context/LanguageContext";
@@ -86,7 +85,7 @@ const Look = () => {
     { id: "boots-brown", name: "Boots marron", category: "shoes", color: "brown", icon: <Tally3 size={18} /> },
     { id: "loafers-brown", name: "Mocassins bruns", category: "shoes", color: "brown", icon: <Tally4 size={18} /> },
     
-    // Accessories (categorizados como "shoes" para mantener compatibilidad)
+    // Accessories (categorizados como "shoes" pour maintenir la compatibilité)
     { id: "sunglasses", name: "Lunettes de soleil", category: "shoes", color: "black", icon: <Glasses size={18} /> },
     { id: "watch-silver", name: "Montre argentée", category: "shoes", color: "silver", icon: <Watch size={18} /> },
     { id: "watch-gold", name: "Montre dorée", category: "shoes", color: "gold", icon: <Watch size={18} /> },
@@ -139,7 +138,7 @@ const Look = () => {
         toast({
           title: "Niveau supérieur!",
           description: `Vous avez atteint le niveau ${newLevel} en style! Continuez votre progression.`,
-          variant: "success",
+          variant: "default",
         });
       } else {
         toast({
