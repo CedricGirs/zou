@@ -6,6 +6,19 @@ export interface StatusModule {
     level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
   }>;
   softSkills: string[];
+  statusXP: number;
+  statusLevel: number;
+  maxXP: number;
+  achievements: StatusAchievement[];
+}
+
+export interface StatusAchievement {
+  id: string;
+  name: string;
+  description: string;
+  completed: boolean;
+  xpReward: number;
+  icon?: JSX.Element;
 }
 
 export interface CourseItem {
@@ -38,3 +51,10 @@ export interface SkillItem {
 }
 
 export type StatusItem = CourseItem | LanguageItem | SkillItem;
+
+export interface StatusAdvice {
+  title: string;
+  advice: string;
+  resources?: string[];
+  nextSteps?: string[];
+}
