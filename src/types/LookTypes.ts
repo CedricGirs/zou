@@ -22,4 +22,5 @@ export interface StyleAdvice {
   description: string;
   occasion: string;
   weatherTips: string;
+  personalizedTips?: string;
 }
