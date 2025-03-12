@@ -10,7 +10,7 @@ import { Clothing } from "../types/clothing";
 import { useUserData } from "@/context/UserDataContext";
 import { 
   Shirt, ShoppingBag, Tally1, Tally2, Tally3, Tally4, 
-  Glasses, Watch, Ring, Umbrella 
+  Glasses, Watch, Bookmark, Umbrella 
 } from "lucide-react";
 
 const Look = () => {
@@ -67,10 +67,10 @@ const Look = () => {
     { id: "loafers-brown", name: "Mocassins bruns", category: "shoes", color: "brown", icon: <Tally4 size={18} /> },
     { id: "sneakers-black", name: "Sneakers noires", category: "shoes", color: "black", icon: <Tally3 size={18} /> },
     
-    { id: "sunglasses", name: "Lunettes de soleil", category: "accessories", color: "black", icon: <Glasses size={18} /> },
-    { id: "watch-silver", name: "Montre argentée", category: "accessories", color: "silver", icon: <Watch size={18} /> },
-    { id: "ring-gold", name: "Bague en or", category: "accessories", color: "gold", icon: <Ring size={18} /> },
-    { id: "umbrella-black", name: "Parapluie noir", category: "accessories", color: "black", icon: <Umbrella size={18} /> },
+    { id: "sunglasses", name: "Lunettes de soleil", category: "shoes", color: "black", icon: <Glasses size={18} /> },
+    { id: "watch-silver", name: "Montre argentée", category: "shoes", color: "silver", icon: <Watch size={18} /> },
+    { id: "ring-gold", name: "Bague en or", category: "shoes", color: "gold", icon: <Bookmark size={18} /> },
+    { id: "umbrella-black", name: "Parapluie noir", category: "shoes", color: "black", icon: <Umbrella size={18} /> },
   ];
 
   const handleSelectionChange = (selected: string[]) => {

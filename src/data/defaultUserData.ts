@@ -1,4 +1,3 @@
-
 import { HeroProfile } from '../types/HeroTypes';
 import { StatusModule } from '../types/StatusTypes';
 import { LookModule } from '../types/LookTypes';
@@ -27,6 +26,10 @@ export const defaultLookModule: LookModule = {
   wardrobe: [],
   sportsFrequency: '',
   style: 'classic',
+  styleXP: 0,
+  styleLevel: 1,
+  maxXP: 100,
+  achievements: [],
 };
 
 export const defaultFinanceModule: FinanceModule = {
