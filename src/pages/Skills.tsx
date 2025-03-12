@@ -9,6 +9,8 @@ import { Badge } from "../types/badge";
 import { useToast } from "@/hooks/use-toast";
 import { playSound } from "@/utils/audioUtils";
 import { useUserData } from "../context/UserDataContext";
+import StatusLevel from "@/components/status/StatusLevel";
+import { Skill } from "@/types/StatusTypes";
 
 const Skills = () => {
   const { t } = useLanguage();
@@ -50,6 +52,38 @@ const Skills = () => {
       <div className="mb-6">
         <h1 className="font-pixel text-2xl mb-2">{t("skillsTitle")}</h1>
         <p className="text-muted-foreground">{t("skillsSubtitle")}</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="col-span-1">
+          <StatusLevel />
+        </div>
+        <div className="col-span-1 md:col-span-2 glass-card p-4">
+          <h2 className="font-pixel text-lg mb-2">{t("skillsOverview")}</h2>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-red-100 dark:bg-red-900/20 rounded-lg p-3 flex flex-col items-center">
+              <span className="text-red-600 dark:text-red-400 font-pixel text-sm">{t("weapons")}</span>
+              <span className="text-2xl font-bold mt-1">
+                {userData.skills?.filter((s: Skill) => s.branch === "weapons" && s.unlocked).length || 0}/
+                {userData.skills?.filter((s: Skill) => s.branch === "weapons").length || 10}
+              </span>
+            </div>
+            <div className="bg-blue-100 dark:bg-blue-900/20 rounded-lg p-3 flex flex-col items-center">
+              <span className="text-blue-600 dark:text-blue-400 font-pixel text-sm">{t("defense")}</span>
+              <span className="text-2xl font-bold mt-1">
+                {userData.skills?.filter((s: Skill) => s.branch === "defense" && s.unlocked).length || 0}/
+                {userData.skills?.filter((s: Skill) => s.branch === "defense").length || 10}
+              </span>
+            </div>
+            <div className="bg-purple-100 dark:bg-purple-900/20 rounded-lg p-3 flex flex-col items-center">
+              <span className="text-purple-600 dark:text-purple-400 font-pixel text-sm">{t("magic")}</span>
+              <span className="text-2xl font-bold mt-1">
+                {userData.skills?.filter((s: Skill) => s.branch === "magic" && s.unlocked).length || 0}/
+                {userData.skills?.filter((s: Skill) => s.branch === "magic").length || 10}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
       
       <div className="glass-card p-4 mb-6">

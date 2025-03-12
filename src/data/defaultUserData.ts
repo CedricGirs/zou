@@ -1,4 +1,3 @@
-
 import { HeroProfile } from '../types/HeroTypes';
 import { StatusModule } from '../types/StatusTypes';
 import { LookModule } from '../types/LookTypes';
@@ -111,6 +110,141 @@ export const defaultFinanceModule: FinanceModule = {
   ]
 };
 
+// Default skills for the skill tree
+export const defaultSkills = [
+  // Weapons branch - first 3 skills (the rest will be loaded in SkillTree)
+  {
+    id: "pomodoro",
+    name: "Pomodoro Master",
+    description: "Complete 5 daily focused sessions for 7 days",
+    branch: "weapons",
+    tier: 1,
+    level: 0,
+    maxLevel: 3,
+    unlocked: true,
+    xpReward: 15,
+    icon: "sword",
+    position: { x: 50, y: 50 },
+    connections: ["deep-work", "flow-state"]
+  },
+  {
+    id: "deep-work",
+    name: "Deep Work",
+    description: "Complete 2 hours of uninterrupted work for 5 days",
+    branch: "weapons",
+    tier: 2,
+    level: 0,
+    maxLevel: 3,
+    unlocked: false,
+    xpReward: 20,
+    icon: "target",
+    position: { x: 45, y: 35 },
+    connections: ["flow-state", "time-blocking"]
+  },
+  {
+    id: "flow-state",
+    name: "Flow State",
+    description: "Enter flow state 10 times",
+    branch: "weapons",
+    tier: 2,
+    level: 0,
+    maxLevel: 3,
+    unlocked: false,
+    xpReward: 20,
+    icon: "zap",
+    position: { x: 55, y: 35 },
+    connections: ["rapid-learning"]
+  },
+  
+  // Defense branch - first 3 skills
+  {
+    id: "meditation",
+    name: "Mind Clarity",
+    description: "Meditate for 10 minutes daily for 10 days",
+    branch: "defense",
+    tier: 1,
+    level: 0,
+    maxLevel: 3,
+    unlocked: true,
+    xpReward: 15,
+    icon: "shield",
+    position: { x: 20, y: 50 },
+    connections: ["exercise", "sleep-hygiene"]
+  },
+  {
+    id: "exercise",
+    name: "Physical Strength",
+    description: "Exercise 3 times per week for 4 weeks",
+    branch: "defense",
+    tier: 2,
+    level: 0,
+    maxLevel: 3,
+    unlocked: false,
+    xpReward: 20,
+    icon: "shield",
+    position: { x: 15, y: 35 },
+    connections: ["nutrition"]
+  },
+  {
+    id: "sleep-hygiene",
+    name: "Sleep Hygiene",
+    description: "Maintain a consistent sleep schedule for 21 days",
+    branch: "defense",
+    tier: 2,
+    level: 0,
+    maxLevel: 3,
+    unlocked: false,
+    xpReward: 20,
+    icon: "circle",
+    position: { x: 25, y: 35 },
+    connections: ["stress-management"]
+  },
+  
+  // Magic branch - first 3 skills
+  {
+    id: "reading",
+    name: "Book Worm",
+    description: "Read 20 pages daily for 14 days",
+    branch: "magic",
+    tier: 1,
+    level: 0,
+    maxLevel: 3,
+    unlocked: true,
+    xpReward: 15,
+    icon: "wand",
+    position: { x: 80, y: 50 },
+    connections: ["language-learning", "active-learning"]
+  },
+  {
+    id: "language-learning",
+    name: "Language Learner",
+    description: "Practice a language for 15 minutes daily for 30 days",
+    branch: "magic",
+    tier: 2,
+    level: 0,
+    maxLevel: 3,
+    unlocked: false,
+    xpReward: 20,
+    icon: "book",
+    position: { x: 75, y: 35 },
+    connections: ["teaching-others"]
+  },
+  {
+    id: "active-learning",
+    name: "Active Learning",
+    description: "Take structured notes on 10 topics",
+    branch: "magic",
+    tier: 2,
+    level: 0,
+    maxLevel: 3,
+    unlocked: false,
+    xpReward: 20,
+    icon: "book",
+    position: { x: 85, y: 35 },
+    connections: ["course-completion"]
+  }
+];
+
 // Default user state
 export const defaultUserData: UserData = {
   uid: 'guest',
@@ -119,5 +253,6 @@ export const defaultUserData: UserData = {
   lookModule: defaultLookModule,
   financeModule: defaultFinanceModule,
   statusItems: [],
-  skills: [],
+  skills: defaultSkills,
 };
+

@@ -1,4 +1,3 @@
-
 export interface StatusModule {
   status: 'student' | 'employee' | 'career-change';
   languages: Array<{
@@ -57,4 +56,23 @@ export interface StatusAdvice {
   advice: string;
   resources?: string[];
   nextSteps?: string[];
+}
+
+export interface Skill {
+  id: string;
+  name: string;
+  description: string;
+  branch: "weapons" | "defense" | "magic";
+  tier: number;
+  level: number;
+  maxLevel: number;
+  unlocked: boolean;
+  xpReward: number;
+  icon: string;
+  position: { x: number; y: number };
+  connections: string[];
+  requirements?: {
+    skillId?: string;
+    level?: number;
+  }[];
 }
