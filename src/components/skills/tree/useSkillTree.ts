@@ -19,18 +19,54 @@ export const useSkillTree = (skills: Skill[], onSkillsUpdate: (skills: Skill[]) 
     }
   }, [skills]);
   
+  // Calculate skill branch statistics
+  const getSkillStats = () => {
+    const stats = {
+      weapons: { total: 0, unlocked: 0, maxed: 0 },
+      defense: { total: 0, unlocked: 0, maxed: 0 },
+      magic: { total: 0, unlocked: 0, maxed: 0 }
+    };
+    
+    localSkills.forEach(skill => {
+      const branch = skill.branch as keyof typeof stats;
+      stats[branch].total++;
+      
+      if (skill.unlocked) {
+        stats[branch].unlocked++;
+        if (skill.level >= skill.maxLevel) {
+          stats[branch].maxed++;
+        }
+      }
+    });
+    
+    return stats;
+  };
+  
   const getBranchColor = (branch: string, unlocked: boolean, level: number) => {
     if (!unlocked) return "bg-gray-400 dark:bg-gray-600 opacity-60";
     
-    const intensity = Math.min(100, 50 + level * 15);
+    // Intensity based on level - more vivid colors for higher levels
+    const intensity = Math.min(level, 3);
     
     switch (branch) {
       case "weapons":
-        return `bg-red-${intensity} shadow-lg shadow-red-${intensity}/50`;
+        return intensity === 3 
+          ? "bg-gradient-to-br from-red-500 to-orange-500 shadow-lg shadow-red-500/50" 
+          : intensity === 2 
+            ? "bg-red-500 shadow-md shadow-red-500/40" 
+            : "bg-red-400 shadow-sm shadow-red-400/30";
       case "defense":
-        return `bg-blue-${intensity} shadow-lg shadow-blue-${intensity}/50`;
+        return intensity === 3 
+          ? "bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/50" 
+          : intensity === 2 
+            ? "bg-blue-500 shadow-md shadow-blue-500/40" 
+            : "bg-blue-400 shadow-sm shadow-blue-400/30";
       case "magic":
-        return `bg-purple-${intensity} shadow-lg shadow-purple-${intensity}/50`;
+        return intensity === 3 
+          ? "bg-gradient-to-br from-purple-500 to-violet-500 shadow-lg shadow-purple-500/50" 
+          : intensity === 2 
+            ? "bg-purple-500 shadow-md shadow-purple-500/40" 
+            : "bg-purple-400 shadow-sm shadow-purple-400/30";
       default:
         return "bg-gray-400";
     }
@@ -209,6 +245,7 @@ export const useSkillTree = (skills: Skill[], onSkillsUpdate: (skills: Skill[]) 
     canLevelUp,
     canUnlock,
     unlockSkill,
-    levelUpSkill
+    levelUpSkill,
+    getSkillStats
   };
 };

@@ -11,6 +11,7 @@ import { playSound } from "@/utils/audioUtils";
 import { useUserData } from "../context/UserDataContext";
 import StatusLevel from "@/components/status/StatusLevel";
 import { Skill } from "@/types/StatusTypes";
+import XPBar from "@/components/dashboard/XPBar";
 
 const Skills = () => {
   const { t } = useLanguage();
@@ -19,6 +20,19 @@ const Skills = () => {
   
   // État local pour les badges
   const [skillBadges, setSkillBadges] = useState<Badge[]>([]);
+  
+  // Calculate overall skill mastery
+  const calculateOverallMastery = () => {
+    if (!userData.skills || userData.skills.length === 0) return 0;
+    
+    const unlockedSkills = userData.skills.filter(s => s.unlocked);
+    if (unlockedSkills.length === 0) return 0;
+    
+    const totalLevels = unlockedSkills.reduce((sum, skill) => sum + skill.level, 0);
+    const maxPossibleLevels = unlockedSkills.reduce((sum, skill) => sum + skill.maxLevel, 0);
+    
+    return Math.floor((totalLevels / maxPossibleLevels) * 100);
+  };
   
   // Charger les badges au démarrage
   useEffect(() => {
@@ -60,6 +74,20 @@ const Skills = () => {
         </div>
         <div className="col-span-1 md:col-span-2 glass-card p-4">
           <h2 className="font-pixel text-lg mb-2">{t("skillsOverview")}</h2>
+          
+          <div className="mb-4">
+            <div className="flex justify-between mb-1">
+              <span className="text-sm font-medium">{t("overallMastery")}</span>
+              <span className="text-sm font-medium">{calculateOverallMastery()}%</span>
+            </div>
+            <XPBar 
+              currentXP={calculateOverallMastery()} 
+              maxXP={100} 
+              animated={true}
+              variant="gradient"
+            />
+          </div>
+          
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-red-100 dark:bg-red-900/20 rounded-lg p-3 flex flex-col items-center">
               <span className="text-red-600 dark:text-red-400 font-pixel text-sm">{t("weapons")}</span>
