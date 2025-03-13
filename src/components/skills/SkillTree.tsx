@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Sword, Shield, Wand, Star, Target, Flame, Zap, Book, Award, Diamond, Circle } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
@@ -26,7 +25,6 @@ interface SkillTreeProps {
   onSkillsUpdate: (skills: Skill[]) => Promise<void>;
 }
 
-// Enhanced set of default skills, 10+ per category
 const defaultSkills: Skill[] = [
   // Weapons branch - 10 skills
   {
@@ -526,7 +524,6 @@ const SkillTree = ({ skills = [], onSkillsUpdate }: SkillTreeProps) => {
     const skillToUnlock = localSkills.find(s => s.id === skillId);
     if (!skillToUnlock || skillToUnlock.unlocked) return false;
     
-    // Check if any prerequisites are defined
     if (skillToUnlock.requirements) {
       return skillToUnlock.requirements.every(req => {
         const prereqSkill = localSkills.find(s => s.id === req.skillId);
@@ -535,7 +532,6 @@ const SkillTree = ({ skills = [], onSkillsUpdate }: SkillTreeProps) => {
       });
     }
     
-    // If no specific requirements, check if any connecting skills are unlocked
     const connectedSkills = localSkills.filter(s => 
       s.connections.includes(skillId)
     );
@@ -566,13 +562,11 @@ const SkillTree = ({ skills = [], onSkillsUpdate }: SkillTreeProps) => {
     try {
       await onSkillsUpdate(updatedSkills);
       
-      // Add XP for unlocking the skill
       const xpReward = skillToUnlock.xpReward;
       const newXP = userData.statusModule.statusXP + xpReward;
       let newLevel = userData.statusModule.statusLevel;
       let newMaxXP = userData.statusModule.maxXP;
       
-      // Level up if needed
       if (newXP >= newMaxXP) {
         newLevel += 1;
         newMaxXP = Math.floor(newMaxXP * 1.5);
@@ -614,13 +608,11 @@ const SkillTree = ({ skills = [], onSkillsUpdate }: SkillTreeProps) => {
     try {
       await onSkillsUpdate(updatedSkills);
       
-      // Add XP for leveling up the skill
       const xpReward = Math.floor(skillToLevel.xpReward * 0.5);
       const newXP = userData.statusModule.statusXP + xpReward;
       let newLevel = userData.statusModule.statusLevel;
       let newMaxXP = userData.statusModule.maxXP;
       
-      // Level up if needed
       if (newXP >= newMaxXP) {
         newLevel += 1;
         newMaxXP = Math.floor(newMaxXP * 1.5);
@@ -632,7 +624,7 @@ const SkillTree = ({ skills = [], onSkillsUpdate }: SkillTreeProps) => {
         maxXP: newMaxXP
       });
       
-      playSound('levelup');
+      playSound('levelUp');
       toast({
         title: t("skillLevelUp"),
         description: `${skillToLevel.name} (${t("level")} ${newLevel}) (+${xpReward} XP)`,
@@ -689,7 +681,6 @@ const SkillTree = ({ skills = [], onSkillsUpdate }: SkillTreeProps) => {
              backgroundSize: 'cover',
              backgroundPosition: 'center'
            }}>
-        {/* Background circular pattern */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] rounded-full border border-gray-700 opacity-40"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] rounded-full border border-gray-700 opacity-40"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40%] h-[40%] rounded-full border border-gray-700 opacity-40"></div>
