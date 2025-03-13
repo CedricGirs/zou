@@ -12,6 +12,7 @@ import { useUserData } from "../context/UserDataContext";
 import StatusLevel from "@/components/status/StatusLevel";
 import { Skill } from "@/types/StatusTypes";
 import XPBar from "@/components/dashboard/XPBar";
+import SkillCategoryStats from "@/components/skills/SkillCategoryStats";
 
 const Skills = () => {
   const { t } = useLanguage();
@@ -32,6 +33,47 @@ const Skills = () => {
     const maxPossibleLevels = unlockedSkills.reduce((sum, skill) => sum + skill.maxLevel, 0);
     
     return Math.floor((totalLevels / maxPossibleLevels) * 100);
+  };
+  
+  // Calculate stats for each skill category
+  const getSkillStats = () => {
+    const stats = {
+      weapons: { total: 0, unlocked: 0, maxed: 0 },
+      defense: { total: 0, unlocked: 0, maxed: 0 },
+      magic: { total: 0, unlocked: 0, maxed: 0 }
+    };
+    
+    if (userData.skills) {
+      userData.skills.forEach(skill => {
+        if (skill.branch === 'weapons') {
+          stats.weapons.total++;
+          if (skill.unlocked) {
+            stats.weapons.unlocked++;
+            if (skill.level >= skill.maxLevel) {
+              stats.weapons.maxed++;
+            }
+          }
+        } else if (skill.branch === 'defense') {
+          stats.defense.total++;
+          if (skill.unlocked) {
+            stats.defense.unlocked++;
+            if (skill.level >= skill.maxLevel) {
+              stats.defense.maxed++;
+            }
+          }
+        } else if (skill.branch === 'magic') {
+          stats.magic.total++;
+          if (skill.unlocked) {
+            stats.magic.unlocked++;
+            if (skill.level >= skill.maxLevel) {
+              stats.magic.maxed++;
+            }
+          }
+        }
+      });
+    }
+    
+    return stats;
   };
   
   // Charger les badges au démarrage
@@ -68,50 +110,8 @@ const Skills = () => {
         <p className="text-muted-foreground">{t("skillsSubtitle")}</p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="col-span-1">
-          <StatusLevel />
-        </div>
-        <div className="col-span-1 md:col-span-2 glass-card p-4">
-          <h2 className="font-pixel text-lg mb-2">{t("skillsOverview")}</h2>
-          
-          <div className="mb-4">
-            <div className="flex justify-between mb-1">
-              <span className="text-sm font-medium">{t("overallMastery")}</span>
-              <span className="text-sm font-medium">{calculateOverallMastery()}%</span>
-            </div>
-            <XPBar 
-              currentXP={calculateOverallMastery()} 
-              maxXP={100} 
-              animated={true}
-              variant="gradient"
-            />
-          </div>
-          
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-red-100 dark:bg-red-900/20 rounded-lg p-3 flex flex-col items-center">
-              <span className="text-red-600 dark:text-red-400 font-pixel text-sm">{t("weapons")}</span>
-              <span className="text-2xl font-bold mt-1">
-                {userData.skills?.filter((s: Skill) => s.branch === "weapons" && s.unlocked).length || 0}/
-                {userData.skills?.filter((s: Skill) => s.branch === "weapons").length || 10}
-              </span>
-            </div>
-            <div className="bg-blue-100 dark:bg-blue-900/20 rounded-lg p-3 flex flex-col items-center">
-              <span className="text-blue-600 dark:text-blue-400 font-pixel text-sm">{t("defense")}</span>
-              <span className="text-2xl font-bold mt-1">
-                {userData.skills?.filter((s: Skill) => s.branch === "defense" && s.unlocked).length || 0}/
-                {userData.skills?.filter((s: Skill) => s.branch === "defense").length || 10}
-              </span>
-            </div>
-            <div className="bg-purple-100 dark:bg-purple-900/20 rounded-lg p-3 flex flex-col items-center">
-              <span className="text-purple-600 dark:text-purple-400 font-pixel text-sm">{t("magic")}</span>
-              <span className="text-2xl font-bold mt-1">
-                {userData.skills?.filter((s: Skill) => s.branch === "magic" && s.unlocked).length || 0}/
-                {userData.skills?.filter((s: Skill) => s.branch === "magic").length || 10}
-              </span>
-            </div>
-          </div>
-        </div>
+      <div className="mb-6">
+        <SkillCategoryStats stats={getSkillStats()} />
       </div>
       
       <div className="glass-card p-4 mb-6">

@@ -1,10 +1,8 @@
 
 import { useUserData } from "@/context/userData";
 import { Progress } from "@/components/ui/progress";
-import { Award, Trophy, Flame } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Award, Trophy } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import XPBar from "../dashboard/XPBar";
 
 const StatusLevel = () => {
   const { userData } = useUserData();
@@ -13,49 +11,41 @@ const StatusLevel = () => {
   const { statusXP = 0, statusLevel = 1, maxXP = 100 } = userData.statusModule;
   
   return (
-    <Card className="glass-card">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-lg font-pixel">
-          <Award className="text-zou-purple" size={20} />
-          {t("progressTitle")}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div className="flex items-center gap-2 bg-primary/10 rounded-full px-4 py-2">
-            <Trophy size={18} className="text-zou-purple" />
-            <span className="font-pixel text-sm mr-1">{t("level")}</span>
-            <span className="bg-zou-purple text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
-              {statusLevel}
+    <div className="glass-card p-4">
+      <h3 className="font-pixel text-lg mb-3">{t("progressTitle")}</h3>
+      
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-12 h-12 bg-zou-purple/20 rounded-full flex items-center justify-center">
+          <span className="text-zou-purple font-pixel text-lg">{statusLevel}</span>
+        </div>
+        <div className="flex-1">
+          <div className="flex justify-between mb-1 text-xs font-medium">
+            <span className="flex items-center gap-1">
+              <span className="text-zou-purple">NIV</span>
+            </span>
+            <span>
+              XP<span className="text-muted-foreground">₀</span> / {maxXP}
             </span>
           </div>
-          
-          <div className="flex-1">
-            <XPBar 
-              currentXP={statusXP} 
-              maxXP={maxXP} 
-              animated={true}
-              variant="purple"
-            />
-          </div>
+          <Progress value={(statusXP / maxXP) * 100} className="h-2" variant="purple" />
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
-          <div className="flex flex-col items-center bg-amber-100 dark:bg-amber-950/40 rounded-lg p-3">
-            <Flame size={16} className="text-amber-500 mb-1" />
-            <span className="text-xs font-medium text-center">{t("progressMotivation")}</span>
-          </div>
-          <div className="flex flex-col items-center bg-emerald-100 dark:bg-emerald-950/40 rounded-lg p-3">
-            <Award size={16} className="text-emerald-500 mb-1" />
-            <span className="text-xs font-medium text-center">{t("progressXPTip")}</span>
-          </div>
-          <div className="flex flex-col items-center bg-violet-100 dark:bg-violet-950/40 rounded-lg p-3">
-            <Trophy size={16} className="text-violet-500 mb-1" />
-            <span className="text-xs font-medium text-center">{t("progressNextLevel")}</span>
-          </div>
+      </div>
+      
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-amber-100 dark:bg-amber-900/20 rounded-lg p-2 flex flex-col items-center">
+          <span className="text-amber-500 mb-1">🔥</span>
+          <span className="text-[10px] text-center">{t("progressMotivation")}</span>
         </div>
-      </CardContent>
-    </Card>
+        <div className="bg-emerald-100 dark:bg-emerald-900/20 rounded-lg p-2 flex flex-col items-center">
+          <span className="text-emerald-500 mb-1">🎯</span>
+          <span className="text-[10px] text-center">{t("progressXPTip")}</span>
+        </div>
+        <div className="bg-purple-100 dark:bg-purple-900/20 rounded-lg p-2 flex flex-col items-center">
+          <span className="text-purple-500 mb-1">🏆</span>
+          <span className="text-[10px] text-center">{t("progressNextLevel")}</span>
+        </div>
+      </div>
+    </div>
   );
 };
 
