@@ -4,7 +4,7 @@ import { defaultHeroProfile } from './defaultHeroProfile';
 import { defaultStatusModule } from './defaultStatusModule';
 import { defaultLookModule } from './defaultLookModule';
 import { defaultFinanceModule } from './defaultFinanceModule';
-import { defaultSkills } from './defaultSkills'; // This file was already created during the previous refactoring
+import { defaultSkills } from './defaultSkills';
 
 // Default user state
 export const defaultUserData: UserData = {
