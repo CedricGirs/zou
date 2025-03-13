@@ -11,7 +11,6 @@ import SkillBackground from "./tree/SkillBackground";
 import SkillConnections from "./tree/SkillConnections";
 import SkillNode from "./tree/SkillNode";
 import SkillDetails from "./tree/SkillDetails";
-import SkillCategoryStats from "./SkillCategoryStats";
 
 interface SkillTreeProps {
   skills: Skill[];
@@ -40,14 +39,8 @@ const SkillTree = ({ skills = [], onSkillsUpdate }: SkillTreeProps) => {
     onSkillsUpdate
   );
   
-  const skillStats = getSkillStats();
-  
   return (
     <div className="relative w-full overflow-hidden">
-      <div className="mb-6">
-        <SkillCategoryStats stats={skillStats} />
-      </div>
-      
       <BranchSelector 
         activeBranch={activeBranch} 
         setActiveBranch={setActiveBranch} 

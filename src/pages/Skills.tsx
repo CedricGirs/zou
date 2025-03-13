@@ -11,7 +11,6 @@ import { playSound } from "@/utils/audioUtils";
 import { useUserData } from "../context/UserDataContext";
 import StatusLevel from "@/components/status/StatusLevel";
 import { Skill } from "@/types/StatusTypes";
-import XPBar from "@/components/dashboard/XPBar";
 import SkillCategoryStats from "@/components/skills/SkillCategoryStats";
 
 const Skills = () => {
@@ -110,8 +109,17 @@ const Skills = () => {
         <p className="text-muted-foreground">{t("skillsSubtitle")}</p>
       </div>
       
-      <div className="mb-6">
-        <SkillCategoryStats stats={getSkillStats()} />
+      {/* Stats grid with both level progress and category stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Left side: StatusLevel */}
+        <div className="col-span-1">
+          <StatusLevel />
+        </div>
+        
+        {/* Right side: Skills Overview */}
+        <div className="col-span-1 md:col-span-2">
+          <SkillCategoryStats stats={getSkillStats()} />
+        </div>
       </div>
       
       <div className="glass-card p-4 mb-6">
