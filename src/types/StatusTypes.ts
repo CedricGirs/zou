@@ -1,3 +1,4 @@
+
 export interface StatusModule {
   status: 'student' | 'employee' | 'career-change';
   languages: Array<{
