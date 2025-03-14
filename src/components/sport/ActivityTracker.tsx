@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Running, Plus } from "lucide-react";
+import { Dumbbell, Activity, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserData } from "@/context/userData";
 import { Slider } from "@/components/ui/slider";
@@ -248,7 +247,7 @@ const ActivityTracker = () => {
               Musculation
             </TabsTrigger>
             <TabsTrigger value="running">
-              <Running className="mr-2" size={16} />
+              <Activity className="mr-2" size={16} />
               Course
             </TabsTrigger>
           </TabsList>
@@ -272,7 +271,7 @@ const ActivityTracker = () => {
           <TabsContent value="running" className="space-y-4">
             <div className="bg-blue-50 p-4 rounded-md">
               <h3 className="font-medium mb-2 flex items-center">
-                <Running className="mr-2 text-blue-500" size={20} />
+                <Activity className="mr-2 text-blue-500" size={20} />
                 Séance de course
               </h3>
               <div className="mb-6">

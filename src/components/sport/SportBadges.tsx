@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserData } from "@/context/userData";
 import CustomBadge from "@/components/ui/CustomBadge";
-import { Trophy, Dumbbell, Running, Medal, Flame, Timer, Award, Target } from "lucide-react";
+import { Trophy, Dumbbell, Activity, Medal, Flame, Timer, Award, Target } from "lucide-react";  // Changed Running to Activity
 
 const SportBadges = () => {
   const { userData } = useUserData();
@@ -13,7 +13,7 @@ const SportBadges = () => {
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case "dumbbell": return <Dumbbell size={18} />;
-      case "running": return <Running size={18} />;
+      case "running": return <Activity size={18} />;  // Changed to Activity
       case "trophy": return <Trophy size={18} />;
       case "medal": return <Medal size={18} />;
       case "flame": return <Flame size={18} />;

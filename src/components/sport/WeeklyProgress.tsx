@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Dumbbell, Running } from "lucide-react";
+import { Dumbbell, Activity } from "lucide-react";  // Changed Running to Activity
 import { useUserData } from "@/context/userData";
 
 const WeeklyProgress = () => {
@@ -44,7 +44,7 @@ const WeeklyProgress = () => {
           <div>
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center">
-                <Running className="mr-2 text-blue-500" size={18} />
+                <Activity className="mr-2 text-blue-500" size={18} />  {/* Changed to Activity */}
                 <span className="font-medium">Course</span>
               </div>
               <span className="text-sm font-mono">
