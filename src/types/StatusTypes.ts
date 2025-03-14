@@ -7,7 +7,7 @@ export interface StatusModule {
   maxXP: number;
   softSkills: SoftSkill[];
   languages: LanguageEntry[];
-  achievements?: Achievement[];
+  achievements: Achievement[];
 }
 
 export interface SoftSkill {
