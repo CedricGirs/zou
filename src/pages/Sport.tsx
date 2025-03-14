@@ -1,7 +1,7 @@
 
 import MainLayout from "@/components/layout/MainLayout";
 import SportHeader from "@/components/sport/SportHeader";
-import ActivityTracker from "@/components/sport/ActivityTracker";
+import { ActivityTracker } from "@/components/sport/activity";
 import WeeklyProgress from "@/components/sport/WeeklyProgress";
 import SportBadges from "@/components/sport/SportBadges";
 
