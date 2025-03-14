@@ -8,39 +8,29 @@ interface SkillConnectionsProps {
   getConnectionColor: (branch: string, sourceUnlocked: boolean, targetUnlocked: boolean) => string;
 }
 
-const SkillConnections = ({ 
-  filteredSkills, 
-  localSkills, 
-  activeBranch, 
-  getConnectionColor 
+const SkillConnections = ({
+  filteredSkills,
+  localSkills,
+  activeBranch,
+  getConnectionColor
 }: SkillConnectionsProps) => {
   return (
-    <svg className="absolute inset-0 w-full h-full z-0">
+    <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
       {filteredSkills.map(skill => 
-        skill.connections.map(connId => {
-          const connectedSkill = localSkills.find(s => s.id === connId);
-          
-          // Skip if connected skill doesn't exist or isn't in view (filtered)
-          if (!connectedSkill || 
-              (activeBranch !== "all" && connectedSkill.branch !== activeBranch)) {
-            return null;
-          }
+        skill.connections.map(targetId => {
+          const target = localSkills.find(s => s.id === targetId);
+          if (!target || (activeBranch !== "all" && target.branch !== activeBranch)) return null;
           
           return (
-            <line
-              key={`${skill.id}-${connId}`}
+            <line 
+              key={`${skill.id}-${targetId}`}
               x1={`${skill.position.x}%`}
               y1={`${skill.position.y}%`}
-              x2={`${connectedSkill.position.x}%`}
-              y2={`${connectedSkill.position.y}%`}
-              stroke={getConnectionColor(
-                skill.branch, 
-                skill.unlocked, 
-                connectedSkill.unlocked
-              )}
-              strokeWidth="3"
-              strokeDasharray={connectedSkill.unlocked ? "none" : "5,5"}
-              strokeLinecap="round"
+              x2={`${target.position.x}%`}
+              y2={`${target.position.y}%`}
+              stroke={getConnectionColor(skill.branch, skill.unlocked, target.unlocked)}
+              strokeWidth="2"
+              strokeDasharray={!target.unlocked ? "5,5" : ""}
             />
           );
         })

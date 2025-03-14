@@ -5,84 +5,75 @@ import { useUserData } from "@/context/userData";
 import { Trophy, Sparkles, Award, Book, Languages, Brain, GraduationCap, Palette } from "lucide-react";
 import CustomBadge from "@/components/ui/CustomBadge";
 import { useToast } from "@/hooks/use-toast";
-import { Achievement } from "@/types/StatusTypes";
 
 const StatusAchievements = () => {
   const { userData, updateStatusModule } = useUserData();
   const { toast } = useToast();
   
-  const achievements: Achievement[] = [
+  const achievements = [
     {
       id: "first_course",
       icon: <Book size={18} />,
       name: "Première Formation",
       description: "Ajouter votre première formation",
-      rarity: "common",
-      xpReward: 25,
-      completed: false
+      rarity: "common" as const,
+      xpReward: 25
     },
     {
       id: "first_language",
       icon: <Languages size={18} />,
       name: "Polyglotte",
       description: "Ajouter votre première langue",
-      rarity: "common",
-      xpReward: 20,
-      completed: false
+      rarity: "common" as const,
+      xpReward: 20
     },
     {
       id: "first_skill",
       icon: <Brain size={18} />,
       name: "Compétent",
       description: "Ajouter votre première compétence",
-      rarity: "common",
-      xpReward: 15,
-      completed: false
+      rarity: "common" as const,
+      xpReward: 15
     },
     {
       id: "language_master",
       icon: <Sparkles size={18} />,
       name: "Maître Linguiste",
       description: "Atteindre le niveau C2 dans une langue",
-      rarity: "epic",
-      xpReward: 50,
-      completed: false
+      rarity: "epic" as const,
+      xpReward: 50
     },
     {
       id: "course_complete",
       icon: <GraduationCap size={18} />,
       name: "Diplômé",
       description: "Terminer une formation à 100%",
-      rarity: "uncommon",
-      xpReward: 30,
-      completed: false
+      rarity: "uncommon" as const,
+      xpReward: 30
     },
     {
       id: "certificate_collector",
       icon: <Award size={18} />,
       name: "Collectionneur",
       description: "Obtenir 3 certificats",
-      rarity: "rare",
-      xpReward: 40,
-      completed: false
+      rarity: "rare" as const,
+      xpReward: 40
     },
     {
       id: "skill_expert",
       icon: <Palette size={18} />,
       name: "Expert",
       description: "Atteindre 100% dans 3 compétences",
-      rarity: "rare",
-      xpReward: 35,
-      completed: false
+      rarity: "rare" as const,
+      xpReward: 35
     },
     {
       id: "jack_of_all_trades",
       icon: <Trophy size={18} />,
       name: "Touche-à-tout",
       description: "Avoir au moins une entrée dans chaque catégorie",
-      rarity: "legendary",
-      xpReward: 45,
-      completed: false
+      rarity: "legendary" as const,
+      xpReward: 45
     }
   ];
   
@@ -163,7 +154,7 @@ const StatusAchievements = () => {
       }
       
       // Language Master achievement
-      const hasC2Language = statusItems.some(item => item.type === "language" && item.level === "C2");
+      const hasC2Language = statusItems.some(item => item.type === "language" && (item as any).level === "C2");
       const hasLanguageMasterAchievement = achievements.some(a => a.id === "language_master" && a.completed);
       if (hasC2Language && !hasLanguageMasterAchievement) {
         await unlockAchievement("language_master");

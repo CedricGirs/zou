@@ -1,64 +1,62 @@
 
-// Status module types
 export interface StatusModule {
-  status: string;
-  statusLevel: number;
+  status: 'student' | 'employee' | 'career-change';
+  languages: Array<{
+    name: string;
+    level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+  }>;
+  softSkills: string[];
   statusXP: number;
+  statusLevel: number;
   maxXP: number;
-  softSkills: SoftSkill[];
-  languages: LanguageEntry[];
-  achievements: Achievement[];
+  achievements: StatusAchievement[];
 }
 
-export interface SoftSkill {
-  id: string;
-  name: string;
-  level: number;
-}
-
-export interface LanguageEntry {
-  id: string;
-  language: string;
-  level: string;
-}
-
-// Status items and skills
-export interface StatusItem {
-  id: string;
-  type: "course" | "language" | "skill";
-  title: string;
-  deadline?: string;
-  completed?: boolean;
-  progress?: number;
-  certificate?: string;
-  level?: string;
-}
-
-export interface Achievement {
+export interface StatusAchievement {
   id: string;
   name: string;
   description: string;
   completed: boolean;
   xpReward: number;
-  icon?: React.ReactNode;
-  rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary";
+  icon?: JSX.Element;
 }
+
+export interface CourseItem {
+  id: string;
+  title: string;
+  type: "course";
+  progress: number;
+  deadline?: string;
+  completed: boolean;
+  certificate?: string;
+}
+
+export interface LanguageItem {
+  id: string;
+  title: string;
+  type: "language";
+  level: string;
+  progress: number;
+  completed: boolean;
+  certificate?: string;
+}
+
+export interface SkillItem {
+  id: string;
+  title: string;
+  type: "skill";
+  progress: number;
+  completed: boolean;
+  certificate?: string;
+}
+
+export type StatusItem = CourseItem | LanguageItem | SkillItem;
 
 export interface StatusAdvice {
   title: string;
   advice: string;
-  resources: string[];
-  nextSteps: string[];
-}
-
-export interface SkillRequirement {
-  skillId: string;
-  level?: number;
-}
-
-export interface SkillPosition {
-  x: number;
-  y: number;
+  resources?: string[];
+  nextSteps?: string[];
 }
 
 export interface Skill {
@@ -66,12 +64,16 @@ export interface Skill {
   name: string;
   description: string;
   branch: "weapons" | "defense" | "magic";
-  position: SkillPosition;
-  icon: string;
-  unlocked: boolean;
+  tier: number;
   level: number;
   maxLevel: number;
-  connections: string[];
+  unlocked: boolean;
   xpReward: number;
-  requirements?: SkillRequirement[];
+  icon: string;
+  position: { x: number; y: number };
+  connections: string[];
+  requirements?: {
+    skillId?: string;
+    level?: number;
+  }[];
 }

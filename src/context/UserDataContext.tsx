@@ -18,6 +18,9 @@ export type {
   FinanceAchievement,
   FinanceQuest,
   MonthlyData,
+  CourseItem,
+  LanguageItem,
+  SkillItem,
   StatusItem,
   UserData,
   UserDataContextType
