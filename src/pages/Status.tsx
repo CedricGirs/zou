@@ -10,7 +10,7 @@ import { GraduationCap, Globe, Brain, Plus, Award } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { useUserData } from "@/context/UserDataContext";
-import { StatusItem } from "@/context/UserDataContext";
+import { StatusItem } from "@/types/StatusTypes";
 
 const Status = () => {
   const { t } = useLanguage();

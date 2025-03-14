@@ -1,25 +1,14 @@
-
 import { useState } from "react";
 import { CheckCircle, X, Upload, Clock, Trash2, ArrowUp } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-
-interface CourseItem {
-  id: string;
-  title: string;
-  type: "course" | "language" | "skill";
-  progress: number;
-  level?: string;
-  deadline?: string;
-  completed: boolean;
-  certificate?: string;
-}
+import { StatusItem } from "@/types/StatusTypes";
 
 interface StatusCardProps {
-  item: CourseItem;
-  onUpdate: (id: string, updates: Partial<CourseItem>) => void;
+  item: StatusItem;
+  onUpdate: (id: string, updates: Partial<StatusItem>) => void;
   onDelete: (id: string) => void;
 }
 

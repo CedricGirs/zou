@@ -7,6 +7,7 @@ export interface StatusModule {
   maxXP: number;
   softSkills: SoftSkill[];
   languages: LanguageEntry[];
+  achievements?: Achievement[];
 }
 
 export interface SoftSkill {
@@ -24,11 +25,30 @@ export interface LanguageEntry {
 // Status items and skills
 export interface StatusItem {
   id: string;
-  type: "course" | "book" | "project" | "goal";
+  type: "course" | "language" | "skill";
   title: string;
   deadline?: string;
   completed?: boolean;
   progress?: number;
+  certificate?: string;
+  level?: string;
+}
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  completed: boolean;
+  xpReward: number;
+  icon?: React.ReactNode;
+  rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary";
+}
+
+export interface StatusAdvice {
+  title: string;
+  advice: string;
+  resources: string[];
+  nextSteps: string[];
 }
 
 export interface SkillRequirement {

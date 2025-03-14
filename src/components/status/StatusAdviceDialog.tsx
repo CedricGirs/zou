@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Dialog, 
@@ -12,9 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, MessageCircle, Lightbulb, BookMarked, GraduationCap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { StatusItem } from "@/types/StatusTypes";
+import { StatusItem, StatusAdvice } from "@/types/StatusTypes";
 import { useUserData } from "@/context/userData";
-import { StatusAdvice } from "@/types/StatusTypes";
 
 interface StatusAdviceDialogProps {
   statusItems: StatusItem[];
