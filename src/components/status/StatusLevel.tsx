@@ -1,7 +1,7 @@
 
 import { useUserData } from "@/context/userData";
 import { Progress } from "@/components/ui/progress";
-import { Award, Trophy } from "lucide-react";
+import { Trophy } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 const StatusLevel = () => {
@@ -9,6 +9,7 @@ const StatusLevel = () => {
   const { t } = useLanguage();
   
   const { statusXP = 0, statusLevel = 1, maxXP = 100 } = userData.statusModule;
+  const percentProgress = (statusXP / maxXP) * 100;
   
   return (
     <div className="glass-card p-4">
@@ -24,10 +25,10 @@ const StatusLevel = () => {
               <span className="text-zou-purple">NIV</span>
             </span>
             <span>
-              XP<span className="text-muted-foreground">₀</span> / {maxXP}
+              {statusXP}<span className="text-muted-foreground">ₓₚ</span> / {maxXP}
             </span>
           </div>
-          <Progress value={(statusXP / maxXP) * 100} className="h-2" variant="purple" />
+          <Progress value={percentProgress} className="h-2" variant="purple" />
         </div>
       </div>
       

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { playSound } from "@/utils/audioUtils";
@@ -19,7 +18,7 @@ export const useSkillTree = (skills: Skill[], onSkillsUpdate: (skills: Skill[]) 
     }
   }, [skills]);
   
-  // Calculate skill branch statistics
+  // Calculate skill branch statistics - made public now
   const getSkillStats = () => {
     const stats = {
       weapons: { total: 0, unlocked: 0, maxed: 0 },

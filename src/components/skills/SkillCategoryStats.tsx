@@ -21,6 +21,20 @@ const SkillCategoryStats = ({ stats }: SkillCategoryStatsProps) => {
   const calculateMastery = (branch: 'weapons' | 'defense' | 'magic') => {
     return stats[branch].unlocked === 0 ? 0 : (stats[branch].maxed / stats[branch].unlocked) * 100;
   };
+
+  // Calculate overall mastery across all skill branches
+  const calculateOverallMastery = () => {
+    const totalUnlocked = stats.weapons.unlocked + stats.defense.unlocked + stats.magic.unlocked;
+    const totalMaxed = stats.weapons.maxed + stats.defense.maxed + stats.magic.maxed;
+    return totalUnlocked === 0 ? 0 : Math.floor((totalMaxed / totalUnlocked) * 100);
+  };
+
+  // Calculate overall progress/XP for progress bar
+  const calculateOverallProgress = () => {
+    const totalSkills = stats.weapons.total + stats.defense.total + stats.magic.total;
+    const totalUnlocked = stats.weapons.unlocked + stats.defense.unlocked + stats.magic.unlocked;
+    return totalSkills === 0 ? 0 : Math.floor((totalUnlocked / totalSkills) * 100);
+  };
   
   // Map French names to categories as shown in the image
   const categoryMappings = {
@@ -29,6 +43,9 @@ const SkillCategoryStats = ({ stats }: SkillCategoryStatsProps) => {
     magic: { name: "Magie", equalsTo: "Connaissance" }
   };
   
+  const overallMastery = calculateOverallMastery();
+  const overallProgress = calculateOverallProgress();
+  
   return (
     <div className="glass-card p-4">
       <h3 className="font-pixel text-lg mb-3">{t("skillsOverview")}</h3>
@@ -36,13 +53,13 @@ const SkillCategoryStats = ({ stats }: SkillCategoryStatsProps) => {
       <div className="mb-4">
         <div className="flex justify-between mb-1 text-sm">
           <span className="font-pixel text-sm">{t("overallMastery")}</span>
-          <span className="font-pixel text-sm">0%</span>
+          <span className="font-pixel text-sm">{overallMastery}%</span>
         </div>
         <div className="flex justify-between mb-1 text-xs">
           <span className="text-muted-foreground">XP</span>
-          <span className="text-muted-foreground">0 / 100</span>
+          <span className="text-muted-foreground">{overallProgress} / 100</span>
         </div>
-        <Progress value={0} className="h-2" variant="gradient" />
+        <Progress value={overallProgress} className="h-2" variant="gradient" />
       </div>
       
       <div className="grid grid-cols-3 gap-4">

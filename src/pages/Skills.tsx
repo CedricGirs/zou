@@ -21,19 +21,6 @@ const Skills = () => {
   // État local pour les badges
   const [skillBadges, setSkillBadges] = useState<Badge[]>([]);
   
-  // Calculate overall skill mastery
-  const calculateOverallMastery = () => {
-    if (!userData.skills || userData.skills.length === 0) return 0;
-    
-    const unlockedSkills = userData.skills.filter(s => s.unlocked);
-    if (unlockedSkills.length === 0) return 0;
-    
-    const totalLevels = unlockedSkills.reduce((sum, skill) => sum + skill.level, 0);
-    const maxPossibleLevels = unlockedSkills.reduce((sum, skill) => sum + skill.maxLevel, 0);
-    
-    return Math.floor((totalLevels / maxPossibleLevels) * 100);
-  };
-  
   // Calculate stats for each skill category
   const getSkillStats = () => {
     const stats = {

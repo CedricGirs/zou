@@ -1,62 +1,44 @@
 
+// Status module types
 export interface StatusModule {
-  status: 'student' | 'employee' | 'career-change';
-  languages: Array<{
-    name: string;
-    level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
-  }>;
-  softSkills: string[];
-  statusXP: number;
+  status: string;
   statusLevel: number;
+  statusXP: number;
   maxXP: number;
-  achievements: StatusAchievement[];
+  softSkills: SoftSkill[];
+  languages: LanguageEntry[];
 }
 
-export interface StatusAchievement {
+export interface SoftSkill {
   id: string;
   name: string;
-  description: string;
-  completed: boolean;
-  xpReward: number;
-  icon?: JSX.Element;
+  level: number;
 }
 
-export interface CourseItem {
+export interface LanguageEntry {
   id: string;
-  title: string;
-  type: "course";
-  progress: number;
-  deadline?: string;
-  completed: boolean;
-  certificate?: string;
-}
-
-export interface LanguageItem {
-  id: string;
-  title: string;
-  type: "language";
+  language: string;
   level: string;
-  progress: number;
-  completed: boolean;
-  certificate?: string;
 }
 
-export interface SkillItem {
+// Status items and skills
+export interface StatusItem {
   id: string;
+  type: "course" | "book" | "project" | "goal";
   title: string;
-  type: "skill";
-  progress: number;
-  completed: boolean;
-  certificate?: string;
+  deadline?: string;
+  completed?: boolean;
+  progress?: number;
 }
 
-export type StatusItem = CourseItem | LanguageItem | SkillItem;
+export interface SkillRequirement {
+  skillId: string;
+  level?: number;
+}
 
-export interface StatusAdvice {
-  title: string;
-  advice: string;
-  resources?: string[];
-  nextSteps?: string[];
+export interface SkillPosition {
+  x: number;
+  y: number;
 }
 
 export interface Skill {
@@ -64,16 +46,12 @@ export interface Skill {
   name: string;
   description: string;
   branch: "weapons" | "defense" | "magic";
-  tier: number;
+  position: SkillPosition;
+  icon: string;
+  unlocked: boolean;
   level: number;
   maxLevel: number;
-  unlocked: boolean;
-  xpReward: number;
-  icon: string;
-  position: { x: number; y: number };
   connections: string[];
-  requirements?: {
-    skillId?: string;
-    level?: number;
-  }[];
+  xpReward: number;
+  requirements?: SkillRequirement[];
 }
