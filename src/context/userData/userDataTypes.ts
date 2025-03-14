@@ -5,6 +5,7 @@ export type {
   StatusModule,
   LookModule,
   FinanceModule,
+  SportModule,
   Transaction,
   SavingsGoal,
   MonthlyBudget,

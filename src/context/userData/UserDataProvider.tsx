@@ -1,4 +1,3 @@
-
 import { useState, ReactNode, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -8,6 +7,7 @@ import { HeroProfile } from '@/types/HeroTypes';
 import { StatusModule, StatusItem } from '@/types/StatusTypes';
 import { LookModule } from '@/types/LookTypes';
 import { FinanceModule } from '@/types/FinanceTypes';
+import { SportModule } from '@/types/SportTypes';
 import { UserData } from '@/types/UserDataTypes';
 
 // Import default data and utilities
@@ -135,6 +135,16 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     await synchronizeData();
   };
 
+  const updateSportModule = async (updates: Partial<SportModule>) => {
+    const newData = {
+      ...userData,
+      sportModule: { ...userData.sportModule, ...updates },
+    };
+    setUserData(newData);
+    await synchronizeData();
+    playUpdateSound();
+  };
+
   const updateStatusItems = async (items: StatusItem[]) => {
     const newData = {
       ...userData,
@@ -170,6 +180,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         updateStatusModule,
         updateLookModule,
         updateFinanceModule,
+        updateSportModule,
         updateStatusItems,
         updateSkills,
         forceRefreshData,

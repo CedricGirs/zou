@@ -3,6 +3,7 @@ import { HeroProfile } from './HeroTypes';
 import { StatusModule, StatusItem } from './StatusTypes';
 import { LookModule } from './LookTypes';
 import { FinanceModule } from './FinanceTypes';
+import { SportModule } from './SportTypes';
 
 export interface UserData {
   uid: string;
@@ -10,6 +11,7 @@ export interface UserData {
   statusModule: StatusModule;
   lookModule: LookModule;
   financeModule: FinanceModule;
+  sportModule: SportModule;
   statusItems: StatusItem[];
   skills: any[]; // You can define a more precise type if necessary
   lastSyncTimestamp?: string; // Timestamp de la dernière synchronisation
@@ -22,6 +24,7 @@ export interface UserDataContextType {
   updateStatusModule: (updates: Partial<StatusModule>) => Promise<void>;
   updateLookModule: (updates: Partial<LookModule>) => Promise<void>;
   updateFinanceModule: (updates: Partial<FinanceModule>) => Promise<void>;
+  updateSportModule: (updates: Partial<SportModule>) => Promise<void>;
   updateStatusItems: (items: StatusItem[]) => Promise<void>;
   updateSkills: (skills: any[]) => Promise<void>;
   forceRefreshData: () => Promise<boolean>; // Nouvelle fonction pour rafraîchir les données

@@ -1,27 +1,19 @@
 
-import { UserData } from '../types/UserDataTypes';
+import { UserData } from '@/types/UserDataTypes';
 import { defaultHeroProfile } from './defaultHeroProfile';
 import { defaultStatusModule } from './defaultStatusModule';
 import { defaultLookModule } from './defaultLookModule';
 import { defaultFinanceModule } from './defaultFinanceModule';
-import { defaultSkills } from './defaultSkills';
+import { defaultSportModule } from './defaultSportModule';
 
-// Default user state
 export const defaultUserData: UserData = {
   uid: 'guest',
   heroProfile: defaultHeroProfile,
   statusModule: defaultStatusModule,
   lookModule: defaultLookModule,
   financeModule: defaultFinanceModule,
+  sportModule: defaultSportModule,
   statusItems: [],
-  skills: defaultSkills,
-};
-
-// Re-export the individual defaults for convenience
-export {
-  defaultHeroProfile,
-  defaultStatusModule,
-  defaultLookModule,
-  defaultFinanceModule,
-  defaultSkills
+  skills: [],
+  lastSyncTimestamp: new Date().toISOString()
 };

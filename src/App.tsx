@@ -13,6 +13,7 @@ import Finances from "./pages/Finances";
 import Skills from "./pages/Skills";
 import DailyQuests from "./pages/DailyQuests";
 import Badges from "./pages/Badges";
+import Sport from "./pages/Sport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const AppRoutes = () => {
       <Route path="/look" element={<Look />} />
       <Route path="/finances" element={<Finances />} />
       <Route path="/skills" element={<Skills />} />
+      <Route path="/sport" element={<Sport />} />
       <Route path="/daily-quests" element={<DailyQuests />} />
       <Route path="/badges" element={<Badges />} />
       <Route path="*" element={<NotFound />} />

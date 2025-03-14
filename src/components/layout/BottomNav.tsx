@@ -1,6 +1,6 @@
 
 import { NavLink } from "react-router-dom";
-import { Home, GraduationCap, ShoppingBag, DollarSign, Zap } from "lucide-react";
+import { Home, GraduationCap, ShoppingBag, DollarSign, Zap, Dumbbell } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
 const BottomNav = ({ isVisible = true }) => {
@@ -11,7 +11,8 @@ const BottomNav = ({ isVisible = true }) => {
     { to: "/look", icon: ShoppingBag, label: t("look") },
     { to: "/", icon: Home, label: t("home") },
     { to: "/finances", icon: DollarSign, label: t("finances") },
-    { to: "/skills", icon: Zap, label: t("skills") }
+    { to: "/skills", icon: Zap, label: t("skills") },
+    { to: "/sport", icon: Dumbbell, label: t("sport") }
   ];
 
   if (!isVisible) return null;
