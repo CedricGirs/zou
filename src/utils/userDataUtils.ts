@@ -3,6 +3,7 @@ import { db } from '../lib/firebase';
 import { toast } from '@/hooks/use-toast';
 import { UserData } from '@/types/UserDataTypes';
 import { playSound } from '@/utils/audioUtils';
+import { defaultUserData } from '@/data/defaultUserData';
 
 // Sauvegarder les données utilisateur dans le stockage local et Firebase
 export const saveUserData = async (userData: UserData) => {
@@ -20,6 +21,7 @@ export const saveUserData = async (userData: UserData) => {
       statusModule: userData.statusModule,
       lookModule: userData.lookModule,
       financeModule: userData.financeModule,
+      sportModule: userData.sportModule, // Ajouté sportModule ici
       statusItems: userData.statusItems,
       skills: userData.skills,
       lastSyncTimestamp: new Date().toISOString(), // Ajouter un timestamp de synchro
@@ -61,6 +63,19 @@ export const loadUserData = async (uid: string = 'guest'): Promise<{ userData: U
       console.log("Données chargées depuis Firebase");
       const firebaseData = userDoc.data() as UserData;
       
+      // Vérifier que sportModule existe, sinon l'ajouter
+      if (!firebaseData.sportModule) {
+        firebaseData.sportModule = defaultUserData.sportModule;
+        console.log("SportModule ajouté aux données Firebase:", firebaseData);
+        
+        // Mettre à jour les données dans Firebase
+        try {
+          await updateDoc(userDocRef, { sportModule: defaultUserData.sportModule });
+        } catch (updateError) {
+          console.error("Erreur lors de l'ajout du sportModule:", updateError);
+        }
+      }
+      
       // Mettre à jour le stockage local avec les données les plus récentes
       localStorage.setItem('zouUserData', JSON.stringify(firebaseData));
       
@@ -72,6 +87,13 @@ export const loadUserData = async (uid: string = 'guest'): Promise<{ userData: U
         // Si nous avons des données locales, les utiliser et les synchroniser
         const localData = JSON.parse(savedData) as UserData;
         console.log("Données chargées depuis le stockage local");
+        
+        // Vérifier que sportModule existe, sinon l'ajouter
+        if (!localData.sportModule) {
+          localData.sportModule = defaultUserData.sportModule;
+          console.log("SportModule ajouté aux données locales:", localData);
+          localStorage.setItem('zouUserData', JSON.stringify(localData));
+        }
         
         // Essayer de créer le document utilisateur dans Firebase
         try {
@@ -88,8 +110,9 @@ export const loadUserData = async (uid: string = 'guest'): Promise<{ userData: U
         return { userData: localData, error: false };
       }
       
-      console.log("Aucune donnée trouvée, renvoie null");
-      return { userData: null, error: false };
+      // Aucune donnée trouvée, créer des données par défaut
+      console.log("Aucune donnée trouvée, utilisation des données par défaut");
+      return { userData: defaultUserData, error: false };
     }
   } catch (error) {
     console.error("Erreur lors du chargement des données:", error);
@@ -102,9 +125,15 @@ export const loadUserData = async (uid: string = 'guest'): Promise<{ userData: U
     // Utiliser les données par défaut ou du localStorage en cas d'erreur
     const savedData = localStorage.getItem('zouUserData');
     if (savedData) {
-      return { userData: JSON.parse(savedData), error: true };
+      const localData = JSON.parse(savedData) as UserData;
+      // Vérifier que sportModule existe, sinon l'ajouter
+      if (!localData.sportModule) {
+        localData.sportModule = defaultUserData.sportModule;
+        localStorage.setItem('zouUserData', JSON.stringify(localData));
+      }
+      return { userData: localData, error: true };
     }
-    return { userData: null, error: true };
+    return { userData: defaultUserData, error: true };
   }
 };
 

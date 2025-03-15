@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import SportHeader from "@/components/sport/SportHeader";
-import { ActivityTracker } from "@/components/sport/activity";
+import ActivityTracker from "@/components/sport/activity/ActivityTracker";
 import WeeklyProgress from "@/components/sport/WeeklyProgress";
 import SportBadges from "@/components/sport/SportBadges";
 import { useUserData } from "@/context/userData";

@@ -1,5 +1,5 @@
 
-import { Trophy, Dumbbell, Timer } from "lucide-react";
+import { Trophy, Dumbbell, Activity } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import XPBar from "@/components/dashboard/XPBar";
 import { useUserData } from "@/context/userData";
@@ -46,7 +46,7 @@ const SportHeader = () => {
             </div>
             
             <div className="p-2 bg-white rounded-md shadow-sm">
-              <Timer className="mx-auto mb-1 text-blue-500" size={24} />
+              <Activity className="mx-auto mb-1 text-blue-500" size={24} />
               <div className="text-2xl font-bold">{sportModule.weeklyRunningKm} km</div>
               <div className="text-xs text-muted-foreground">Course cette semaine</div>
             </div>

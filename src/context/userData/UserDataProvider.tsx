@@ -1,5 +1,6 @@
+
 import { useState, ReactNode, useEffect } from 'react';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 // Import types
@@ -40,8 +41,13 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
       const { userData: loadedData, error } = await loadUserData('guest');
       
       if (loadedData) {
-        setUserData(loadedData);
         console.log("Données utilisateur chargées:", loadedData);
+        // Vérifier si le sportModule existe, sinon l'ajouter
+        if (!loadedData.sportModule) {
+          loadedData.sportModule = defaultUserData.sportModule;
+          console.log("SportModule ajouté aux données utilisateur:", loadedData);
+        }
+        setUserData(loadedData);
       } else {
         // If no data found, create new document with default data
         try {
