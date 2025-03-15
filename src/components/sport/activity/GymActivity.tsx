@@ -9,6 +9,15 @@ export const GymActivity = () => {
   const { userData, updateSportModule } = useUserData();
   const { toast } = useToast();
 
+  // Make sure sportModule exists
+  if (!userData.sportModule) {
+    return (
+      <div className="text-center p-4">
+        <p>Module Sport non disponible</p>
+      </div>
+    );
+  }
+
   const logGymVisit = async () => {
     const now = new Date();
     const newTotalVisits = userData.sportModule.totalGymVisits + 1;

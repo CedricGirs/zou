@@ -4,8 +4,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dumbbell, Activity } from "lucide-react";
 import { GymActivity } from "./GymActivity";
 import { RunningActivity } from "./RunningActivity";
+import { useUserData } from "@/context/userData";
 
 const ActivityTracker = () => {
+  const { userData } = useUserData();
+  
+  if (!userData.sportModule) {
+    return null;
+  }
+  
   return (
     <Card>
       <CardHeader>

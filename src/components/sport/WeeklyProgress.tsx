@@ -1,12 +1,16 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Dumbbell, Activity } from "lucide-react";  // Changed Running to Activity
+import { Dumbbell, Activity } from "lucide-react";
 import { useUserData } from "@/context/userData";
 
 const WeeklyProgress = () => {
   const { userData } = useUserData();
   const { sportModule } = userData;
+  
+  if (!sportModule) {
+    return null;
+  }
   
   // Définition des objectifs hebdomadaires
   const weeklyGymTarget = 4; // 4 visites par semaine
@@ -44,7 +48,7 @@ const WeeklyProgress = () => {
           <div>
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center">
-                <Activity className="mr-2 text-blue-500" size={18} />  {/* Changed to Activity */}
+                <Activity className="mr-2 text-blue-500" size={18} />
                 <span className="font-medium">Course</span>
               </div>
               <span className="text-sm font-mono">

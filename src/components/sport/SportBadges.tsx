@@ -1,19 +1,22 @@
 
-import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserData } from "@/context/userData";
 import CustomBadge from "@/components/ui/CustomBadge";
-import { Trophy, Dumbbell, Activity, Medal, Flame, Timer, Award, Target } from "lucide-react";  // Changed Running to Activity
+import { Trophy, Dumbbell, Activity, Medal, Flame, Timer, Award, Target } from "lucide-react";
 
 const SportBadges = () => {
   const { userData } = useUserData();
   const { sportModule } = userData;
   
+  if (!sportModule) {
+    return null;
+  }
+  
   // Mapping des icônes pour les badges
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case "dumbbell": return <Dumbbell size={18} />;
-      case "running": return <Activity size={18} />;  // Changed to Activity
+      case "running": return <Activity size={18} />;
       case "trophy": return <Trophy size={18} />;
       case "medal": return <Medal size={18} />;
       case "flame": return <Flame size={18} />;

@@ -8,6 +8,10 @@ const SportHeader = () => {
   const { userData } = useUserData();
   const { sportModule } = userData;
 
+  if (!sportModule) {
+    return null;
+  }
+
   return (
     <div className="mb-6">
       <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">

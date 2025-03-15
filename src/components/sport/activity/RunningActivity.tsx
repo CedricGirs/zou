@@ -12,6 +12,15 @@ export const RunningActivity = () => {
   const { toast } = useToast();
   const [runningKm, setRunningKm] = useState(1);
 
+  // Make sure sportModule exists
+  if (!userData.sportModule) {
+    return (
+      <div className="text-center p-4">
+        <p>Module Sport non disponible</p>
+      </div>
+    );
+  }
+
   const logRunning = async () => {
     const now = new Date();
     const newTotalRunning = userData.sportModule.totalRunningKm + runningKm;
