@@ -37,7 +37,7 @@ const ClothingItem = ({
     <div 
       className={`
         glass-card p-3 cursor-pointer transition-all duration-200
-        ${selected ? "ring-2 ring-zou-purple" : "hover:shadow-md"}
+        ${selected ? "ring-2 ring-zou-purple shadow-md" : "hover:shadow-md"}
       `}
       onClick={() => onToggle(id)}
     >

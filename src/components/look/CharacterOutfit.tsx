@@ -1,13 +1,16 @@
 
 import React from "react";
 import { Clothing } from "../../types/clothing";
+import { ArrowRight } from "lucide-react";
 
 interface CharacterOutfitProps {
   items: Clothing[];
   day?: string;
+  editable?: boolean;
+  onChangeItem?: (category: string, currentId: string) => void;
 }
 
-const CharacterOutfit = ({ items, day }: CharacterOutfitProps) => {
+const CharacterOutfit = ({ items, day, editable = false, onChangeItem }: CharacterOutfitProps) => {
   // Trouver les items par catégorie
   const getItemByCategory = (category: string) => {
     return items.find(item => item.category === category);
@@ -36,6 +39,12 @@ const CharacterOutfit = ({ items, day }: CharacterOutfitProps) => {
     };
 
     return colorMap[colorName] || colorName;
+  };
+
+  const handleChange = (category: string, id: string) => {
+    if (editable && onChangeItem) {
+      onChangeItem(category, id);
+    }
   };
 
   return (
@@ -79,14 +88,30 @@ const CharacterOutfit = ({ items, day }: CharacterOutfitProps) => {
         ></div>
       </div>
       
-      <div className="mt-4 text-xs text-center space-y-1">
-        {items.map((item, index) => (
-          <div key={index} className="text-muted-foreground">
-            {item.name}
+      <div className="mt-4 text-xs space-y-1 w-full">
+        {items.map((item) => (
+          <div 
+            key={item.id} 
+            className={`
+              flex items-center justify-between p-1.5 rounded
+              ${editable ? "hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer" : ""}
+            `}
+            onClick={() => handleChange(item.category, item.id)}
+          >
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: getColor(item.color) }}
+              ></div>
+              <span>{item.name}</span>
+            </div>
+            {editable && (
+              <ArrowRight size={12} className="text-muted-foreground" />
+            )}
           </div>
         ))}
         {items.length === 0 && (
-          <div className="text-muted-foreground">Aucun vêtement sélectionné</div>
+          <div className="text-muted-foreground text-center">Aucun vêtement sélectionné</div>
         )}
       </div>
     </div>

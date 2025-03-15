@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { Clothing, Outfit } from "../../types/clothing";
-import OutfitComponent from "./Outfit";
 import CharacterOutfit from "./CharacterOutfit";
 import { useToast } from "@/hooks/use-toast";
 import { RefreshCw, Wand2 } from "lucide-react";
@@ -117,13 +116,12 @@ const OutfitGenerator = ({ selectedClothing }: OutfitGeneratorProps) => {
           Veuillez sélectionner des vêtements et cliquer sur "Valider ma sélection" pour générer des tenues.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {outfits.map((outfit) => (
             <div key={outfit.day} className="flex flex-col space-y-4">
-              <CharacterOutfit items={outfit.items} day={outfit.day} />
-              <OutfitComponent
-                day=""
-                items={outfit.items}
+              <CharacterOutfit 
+                items={outfit.items} 
+                day={outfit.day} 
                 editable={isEditing}
                 onChangeItem={(category, currentId) => 
                   handleChangeItem(outfit.day, category, currentId)
