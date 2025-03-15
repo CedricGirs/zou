@@ -11,6 +11,8 @@ export const defaultSportModule: SportModule = {
   maxXP: 100,
   streakDays: 0,
   lastActivityDate: null,
+  weeklyGymTarget: 4, // Objectif par défaut: 4 visites
+  weeklyRunningTarget: 15, // Objectif par défaut: 15 km
   badges: [
     {
       id: "first_gym_visit",

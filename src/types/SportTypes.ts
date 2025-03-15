@@ -10,6 +10,8 @@ export interface SportModule {
   streakDays: number;
   lastActivityDate: string | null;
   badges: SportBadge[];
+  weeklyGymTarget: number; // Objectif personnalisé pour les visites en salle
+  weeklyRunningTarget: number; // Objectif personnalisé pour les km de course
 }
 
 export interface SportBadge {
@@ -32,8 +34,6 @@ export interface ActivityLog {
 }
 
 export interface SportStats {
-  weeklyGymTarget: number;
-  weeklyRunningTarget: number;
   gymStreak: number;
   runningStreak: number;
   personalBests: {

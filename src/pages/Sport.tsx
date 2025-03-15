@@ -7,6 +7,9 @@ import WeeklyProgress from "@/components/sport/WeeklyProgress";
 import SportBadges from "@/components/sport/SportBadges";
 import { useUserData } from "@/context/userData";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dumbbell, Activity, Trophy, Calendar, History } from "lucide-react";
+import { SportHistory } from "@/components/sport/SportHistory";
 
 const Sport = () => {
   const { userData, loading } = useUserData();
@@ -54,14 +57,48 @@ const Sport = () => {
       <div className="container mx-auto py-6">
         <SportHeader />
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <ActivityTracker />
-          <WeeklyProgress />
-        </div>
-        
-        <div className="mb-6">
-          <SportBadges />
-        </div>
+        <Tabs defaultValue="activity" className="mb-6">
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="activity" className="flex items-center gap-2">
+              <Calendar size={16} />
+              <span className="hidden sm:inline">Aujourd'hui</span>
+            </TabsTrigger>
+            <TabsTrigger value="progress" className="flex items-center gap-2">
+              <Activity size={16} />
+              <span className="hidden sm:inline">Progression</span>
+            </TabsTrigger>
+            <TabsTrigger value="achievements" className="flex items-center gap-2">
+              <Trophy size={16} />
+              <span className="hidden sm:inline">Succès</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="activity" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ActivityTracker />
+              <WeeklyProgress />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="progress">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <WeeklyProgress />
+              <div className="bg-white rounded-lg shadow p-4">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <History size={20} />
+                  Historique
+                </h3>
+                <SportHistory />
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="achievements">
+            <div className="mb-6">
+              <SportBadges />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </MainLayout>
   );

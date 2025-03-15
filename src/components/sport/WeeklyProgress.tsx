@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Dumbbell, Activity } from "lucide-react";
 import { useUserData } from "@/context/userData";
+import { SetTargetsDialog } from "./SetTargetsDialog";
 
 const WeeklyProgress = () => {
   const { userData } = useUserData();
@@ -12,9 +13,9 @@ const WeeklyProgress = () => {
     return null;
   }
   
-  // Définition des objectifs hebdomadaires
-  const weeklyGymTarget = 4; // 4 visites par semaine
-  const weeklyRunningTarget = 15; // 15 km par semaine
+  // Utiliser les objectifs personnalisés
+  const weeklyGymTarget = sportModule.weeklyGymTarget; 
+  const weeklyRunningTarget = sportModule.weeklyRunningTarget;
   
   // Calcul des pourcentages
   const gymPercentage = Math.min(100, (sportModule.weeklyGymVisits / weeklyGymTarget) * 100);
@@ -22,8 +23,9 @@ const WeeklyProgress = () => {
   
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Progression Hebdomadaire</CardTitle>
+        <SetTargetsDialog />
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
