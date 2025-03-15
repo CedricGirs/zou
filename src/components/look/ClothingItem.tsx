@@ -27,7 +27,10 @@ const ClothingItem = ({
     gray: "bg-gray-400 border-gray-400",
     navy: "bg-indigo-900 border-indigo-900",
     beige: "bg-amber-100 border-amber-100",
-    brown: "bg-amber-800 border-amber-800"
+    brown: "bg-amber-800 border-amber-800",
+    red: "bg-red-500 border-red-500",
+    blue: "bg-blue-500 border-blue-500",
+    green: "bg-green-500 border-green-500"
   };
 
   return (

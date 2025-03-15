@@ -2,8 +2,9 @@
 import { useState, useEffect } from "react";
 import { Clothing, Outfit } from "../../types/clothing";
 import OutfitComponent from "./Outfit";
+import CharacterOutfit from "./CharacterOutfit";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Wand2 } from "lucide-react";
 
 interface OutfitGeneratorProps {
   selectedClothing: Clothing[];
@@ -105,8 +106,8 @@ const OutfitGenerator = ({ selectedClothing }: OutfitGeneratorProps) => {
             className="flex items-center text-xs bg-zou-purple text-white px-3 py-1 rounded"
             onClick={generateOutfits}
           >
-            <RefreshCw size={14} className="mr-1" />
-            Régénérer
+            <Wand2 size={14} className="mr-1" />
+            Générer
           </button>
         </div>
       </div>
@@ -118,18 +119,30 @@ const OutfitGenerator = ({ selectedClothing }: OutfitGeneratorProps) => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {outfits.map((outfit) => (
-            <OutfitComponent
-              key={outfit.day}
-              day={outfit.day}
-              items={outfit.items}
-              editable={isEditing}
-              onChangeItem={(category, currentId) => 
-                handleChangeItem(outfit.day, category, currentId)
-              }
-            />
+            <div key={outfit.day} className="flex flex-col space-y-4">
+              <CharacterOutfit items={outfit.items} day={outfit.day} />
+              <OutfitComponent
+                day=""
+                items={outfit.items}
+                editable={isEditing}
+                onChangeItem={(category, currentId) => 
+                  handleChangeItem(outfit.day, category, currentId)
+                }
+              />
+            </div>
           ))}
         </div>
       )}
+      
+      <div className="flex justify-center mt-6">
+        <button 
+          className="flex items-center text-sm bg-zou-purple/80 text-white px-4 py-2 rounded-lg hover:bg-zou-purple transition-colors"
+          onClick={generateOutfits}
+        >
+          <RefreshCw size={14} className="mr-2" />
+          Régénérer toutes les tenues
+        </button>
+      </div>
     </div>
   );
 };
