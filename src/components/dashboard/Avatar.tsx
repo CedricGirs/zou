@@ -27,8 +27,8 @@ const Avatar = ({
     xl: "w-40 h-40"
   };
   
-  // Generate random avatar if seed not provided
-  const avatarUrl = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${seed}&backgroundColor=b6e3f4`;
+  // Generate avatar with improved artistic style
+  const avatarUrl = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${seed}&backgroundColor=b6e3f4&scale=90&radius=50`;
   
   // Animation when level up (just for demo purposes)
   useEffect(() => {
@@ -44,13 +44,17 @@ const Avatar = ({
       <div 
         className={`
           ${sizeMap[size]} 
-          relative overflow-hidden rounded-lg pixel-border
+          relative overflow-hidden rounded-xl pixel-border
           ${isHovering ? 'animate-pulse' : ''}
           ${isLoaded ? '' : 'bg-muted animate-pulse'}
+          transition-all duration-300
         `}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
+        {/* Inner glow effect */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-black/20 z-10 pointer-events-none" />
+        
         <img 
           src={avatarUrl} 
           alt="Avatar" 
@@ -60,10 +64,17 @@ const Avatar = ({
           `}
           onLoad={() => setIsLoaded(true)}
         />
+        
+        {/* Overlay effect on hover */}
+        <div className={`
+          absolute inset-0 bg-gradient-to-t from-zou-purple/30 to-transparent opacity-0 group-hover:opacity-100 
+          transition-opacity duration-300 pointer-events-none
+        `} />
       </div>
       
       {showLevel && (
-        <div className="absolute -bottom-2 -right-2 bg-zou-purple text-white font-pixel text-xs px-2 py-1 rounded-md pixel-border">
+        <div className="absolute -bottom-2 -right-2 bg-zou-purple text-white font-pixel text-xs px-2 py-1 rounded-md pixel-border
+                      shadow-lg transform transition-transform group-hover:scale-110">
           LVL {level}
         </div>
       )}
