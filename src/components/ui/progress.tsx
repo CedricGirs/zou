@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & {
-    variant?: "default" | "success" | "warning" | "danger" | "purple" | "gradient" | "minimal" | "income" | "expense" | "savings"
+    variant?: "default" | "success" | "warning" | "danger" | "purple" | "gradient" | "minimal" | "income" | "expense" | "savings" | "emerald" | "blue" | "red" | "green"
   }
 >(({ className, value, variant = "default", ...props }, ref) => {
   const getIndicatorClass = () => {
@@ -19,6 +19,14 @@ const Progress = React.forwardRef<
         return "bg-red-500"
       case "purple":
         return "bg-purple-500"
+      case "emerald":
+        return "bg-emerald-500"
+      case "blue":
+        return "bg-blue-500"
+      case "red":
+        return "bg-red-500"
+      case "green":
+        return "bg-green-500"
       case "gradient":
         return "bg-gradient-to-r from-violet-500 to-purple-500"
       case "minimal":

@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode } from "react";
 
 type Language = "en" | "fr";
@@ -158,6 +157,13 @@ const translations = {
     special: "Special",
     noBadgesFound: "No badges found",
     pleaseEnterQuestTitle: "Please enter a quest title",
+    
+    // New translations
+    modulesProgress: "Modules Progress",
+    statusModule: "Status",
+    lookModule: "Style",
+    financeModule: "Finance",
+    sportModule: "Sport",
   },
   fr: {
     // Dashboard/Home
@@ -307,6 +313,13 @@ const translations = {
     special: "Spécial",
     noBadgesFound: "Aucun badge trouvé",
     pleaseEnterQuestTitle: "Veuillez entrer un titre de quête",
+    
+    // New translations
+    modulesProgress: "Progression des Modules",
+    statusModule: "Statut",
+    lookModule: "Style",
+    financeModule: "Finance",
+    sportModule: "Sport",
   }
 };
 

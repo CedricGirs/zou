@@ -5,6 +5,7 @@ import MainLayout from "../components/layout/MainLayout";
 import Avatar from "../components/dashboard/Avatar";
 import LifeGauges from "../components/dashboard/LifeGauges";
 import XPBar from "../components/dashboard/XPBar";
+import ModulesXPOverview from "../components/dashboard/ModulesXPOverview";
 import CustomBadge from "../components/ui/CustomBadge";
 import { Award, ArrowRight, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -166,6 +167,11 @@ const Index = () => {
               <h3 className="font-pixel text-sm mb-3">{t("lifeGauges")}</h3>
               <LifeGauges />
             </div>
+          </div>
+          
+          {/* Add modules XP overview component */}
+          <div className="mt-6">
+            <ModulesXPOverview />
           </div>
         </div>
         
