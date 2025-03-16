@@ -14,6 +14,7 @@ interface ModuleProgress {
   color: string;
   bgColor: string;
   path: string;
+  variant: "default" | "success" | "warning" | "danger" | "purple" | "gradient" | "minimal" | "income" | "expense" | "savings" | "emerald" | "blue" | "red" | "green";
 }
 
 const ModulesXPOverview = () => {
@@ -30,7 +31,8 @@ const ModulesXPOverview = () => {
       icon: <Brain className="h-5 w-5" />,
       color: "bg-emerald-500",
       bgColor: "bg-emerald-100 dark:bg-emerald-900/20",
-      path: "/status"
+      path: "/status",
+      variant: "emerald"
     },
     {
       name: t("lookModule"),
@@ -40,7 +42,8 @@ const ModulesXPOverview = () => {
       icon: <ShirtIcon className="h-5 w-5" />,
       color: "bg-blue-500",
       bgColor: "bg-blue-100 dark:bg-blue-900/20",
-      path: "/look"
+      path: "/look",
+      variant: "blue"
     },
     {
       name: t("financeModule"),
@@ -50,7 +53,8 @@ const ModulesXPOverview = () => {
       icon: <DollarSign className="h-5 w-5" />,
       color: "bg-purple-500",
       bgColor: "bg-purple-100 dark:bg-purple-900/20",
-      path: "/finances"
+      path: "/finances",
+      variant: "purple"
     },
     {
       name: t("sportModule"),
@@ -60,7 +64,8 @@ const ModulesXPOverview = () => {
       icon: <Dumbbell className="h-5 w-5" />,
       color: "bg-red-500",
       bgColor: "bg-red-100 dark:bg-red-900/20",
-      path: "/sport"
+      path: "/sport",
+      variant: "red"
     }
   ];
   
@@ -101,7 +106,7 @@ const ModulesXPOverview = () => {
                     <Progress 
                       value={progressPercentage} 
                       className="h-2 flex-1" 
-                      variant={module.color.replace('bg-', '')}
+                      variant={module.variant}
                     />
                     <span className="text-xs tabular-nums">
                       {module.currentXP}/{module.maxXP}

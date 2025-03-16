@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode } from "react";
 
 type Language = "en" | "fr";
@@ -125,11 +126,11 @@ const translations = {
     gradeDescription: 'Complete quests and gain XP to evolve your hero grade',
     
     // Module steps
-    statusModule: 'Status Module Setup',
+    moduleStatus: 'Status Module Setup',
     statusModuleDesc: 'Configure your educational and skill development tracking',
-    lookModule: 'Look Module Setup',
+    moduleLook: 'Look Module Setup',
     lookModuleDesc: 'Set up your wardrobe and style preferences',
-    financeModule: 'Finance Module Setup',
+    moduleFinance: 'Finance Module Setup',
     financeModuleDesc: 'Configure your budget and financial goals',
     tutorial: 'Interactive Tutorial',
     tutorialDesc: 'Learn how to use Zou for maximum benefits',
@@ -158,7 +159,7 @@ const translations = {
     noBadgesFound: "No badges found",
     pleaseEnterQuestTitle: "Please enter a quest title",
     
-    // New translations
+    // Modules Progress
     modulesProgress: "Modules Progress",
     statusModule: "Status",
     lookModule: "Style",
@@ -281,11 +282,11 @@ const translations = {
     gradeDescription: 'Complétez des quêtes et gagnez de l\'XP pour faire évoluer votre grade de héros',
     
     // Module steps
-    statusModule: 'Configuration du Module Statut',
+    moduleStatus: 'Configuration du Module Statut',
     statusModuleDesc: 'Configurez le suivi de votre développement éducatif et de compétences',
-    lookModule: 'Configuration du Module Style',
+    moduleLook: 'Configuration du Module Style',
     lookModuleDesc: 'Configurez votre garde-robe et vos préférences de style',
-    financeModule: 'Configuration du Module Finances',
+    moduleFinance: 'Configuration du Module Finances',
     financeModuleDesc: 'Configurez votre budget et vos objectifs financiers',
     tutorial: 'Tutoriel Interactif',
     tutorialDesc: 'Apprenez à utiliser Zou pour en tirer le maximum d\'avantages',
@@ -314,7 +315,7 @@ const translations = {
     noBadgesFound: "Aucun badge trouvé",
     pleaseEnterQuestTitle: "Veuillez entrer un titre de quête",
     
-    // New translations
+    // Modules Progress
     modulesProgress: "Progression des Modules",
     statusModule: "Statut",
     lookModule: "Style",
