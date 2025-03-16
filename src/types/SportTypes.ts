@@ -12,6 +12,7 @@ export interface SportModule {
   badges: SportBadge[];
   weeklyGymTarget: number; // Objectif personnalisé pour les visites en salle
   weeklyRunningTarget: number; // Objectif personnalisé pour les km de course
+  dailyActivities: Record<string, { gymVisits: number; runningKm: number; date?: string }>; // Activités par jour
 }
 
 export interface SportBadge {
