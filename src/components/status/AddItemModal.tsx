@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -7,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useLanguage } from "../../context/LanguageContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface AddItemModalProps {
   isOpen: boolean;
@@ -25,7 +24,6 @@ const languageLevelDescriptions = {
   "C2": "Proficient (100%)"
 };
 
-// Helper to convert language level to progress percentage
 const levelToProgress = {
   "A1": 17,
   "A2": 33,
@@ -43,7 +41,6 @@ const AddItemModal = ({ isOpen, onClose, onSave, type }: AddItemModalProps) => {
   const [level, setLevel] = useState("A1");
   const [deadline, setDeadline] = useState("");
 
-  // Update progress when language level changes
   useEffect(() => {
     if (type === "language" && level) {
       setProgress(levelToProgress[level as keyof typeof levelToProgress]);
@@ -75,7 +72,6 @@ const AddItemModal = ({ isOpen, onClose, onSave, type }: AddItemModalProps) => {
       completed: progress === 100,
     };
 
-    // Ajouter des propriétés spécifiques au type
     if (type === "language") {
       Object.assign(newItem, { level });
     } else if (type === "course") {
@@ -159,7 +155,7 @@ const AddItemModal = ({ isOpen, onClose, onSave, type }: AddItemModalProps) => {
               max={100}
               step={5}
               onValueChange={(value) => setProgress(value[0])}
-              disabled={type === "language"} // Disable manual slider adjustment for languages
+              disabled={type === "language"}
             />
           </div>
         </div>
