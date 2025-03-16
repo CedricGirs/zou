@@ -1,9 +1,11 @@
 
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Plus } from "lucide-react";
+import { Dumbbell, Plus, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserData } from "@/context/userData";
 import { SportBadge } from "@/types/SportTypes";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 export const GymActivity = () => {
   const { userData, updateSportModule } = useUserData();
@@ -61,6 +63,18 @@ export const GymActivity = () => {
     // Check for badges
     const updatedBadges = [...userData.sportModule.badges];
     
+    // Record daily activity data
+    const currentDate = format(now, 'yyyy-MM-dd');
+    const dailyActivities = userData.sportModule.dailyActivities || {};
+    const dayEntry = dailyActivities[currentDate] || { gymVisits: 0, runningKm: 0 };
+    
+    // Update today's entry
+    dailyActivities[currentDate] = {
+      ...dayEntry,
+      gymVisits: dayEntry.gymVisits + 1,
+      date: now.toISOString()
+    };
+    
     checkAndUnlockBadges(updatedBadges, newTotalVisits, newWeeklyVisits, newStreakDays, now, newXP);
     
     await updateSportModule({
@@ -71,7 +85,8 @@ export const GymActivity = () => {
       maxXP: newMaxXP,
       streakDays: newStreakDays,
       lastActivityDate: now.toISOString(),
-      badges: updatedBadges
+      badges: updatedBadges,
+      dailyActivities
     });
     
     toast({
@@ -138,16 +153,22 @@ export const GymActivity = () => {
     }
   };
 
+  // Get today's formatted date
+  const today = format(new Date(), 'EEEE d MMMM', { locale: fr });
+
   return (
-    <div className="bg-purple-50 p-4 rounded-md">
-      <h3 className="font-medium mb-2 flex items-center">
+    <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-md">
+      <h3 className="font-medium mb-1 flex items-center">
         <Dumbbell className="mr-2 text-purple-500" size={20} />
         Séance de musculation
       </h3>
-      <p className="text-sm text-muted-foreground mb-4">
-        Enregistrez votre visite à la salle de musculation pour aujourd'hui
-      </p>
-      <Button onClick={logGymVisit} className="w-full">
+      
+      <div className="text-xs text-muted-foreground mb-4 flex items-center">
+        <Calendar size={12} className="mr-1" />
+        <span>Aujourd'hui - {today}</span>
+      </div>
+      
+      <Button onClick={logGymVisit} className="w-full bg-purple-600 hover:bg-purple-700">
         <Plus className="mr-2" size={16} />
         Enregistrer une visite
       </Button>

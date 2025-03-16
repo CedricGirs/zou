@@ -8,8 +8,9 @@ import SportBadges from "@/components/sport/SportBadges";
 import { useUserData } from "@/context/userData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dumbbell, Activity, Trophy, Calendar, History } from "lucide-react";
+import { Dumbbell, Activity, Trophy, Calendar, History, ChartLine } from "lucide-react";
 import { SportHistory } from "@/components/sport/SportHistory";
+import PreviousWeeksStats from "@/components/sport/PreviousWeeksStats";
 
 const Sport = () => {
   const { userData, loading } = useUserData();
@@ -64,7 +65,7 @@ const Sport = () => {
               <span className="hidden sm:inline">Aujourd'hui</span>
             </TabsTrigger>
             <TabsTrigger value="progress" className="flex items-center gap-2">
-              <Activity size={16} />
+              <ChartLine size={16} />
               <span className="hidden sm:inline">Progression</span>
             </TabsTrigger>
             <TabsTrigger value="achievements" className="flex items-center gap-2">
@@ -74,21 +75,21 @@ const Sport = () => {
           </TabsList>
           
           <TabsContent value="activity" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <ActivityTracker />
-              <WeeklyProgress />
             </div>
           </TabsContent>
           
           <TabsContent value="progress">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <WeeklyProgress />
-              <div className="bg-white rounded-lg shadow p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <History size={20} />
                   Historique
                 </h3>
                 <SportHistory />
+                <PreviousWeeksStats />
               </div>
             </div>
           </TabsContent>

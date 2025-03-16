@@ -13,6 +13,7 @@ export const defaultSportModule: SportModule = {
   lastActivityDate: null,
   weeklyGymTarget: 4, // Objectif par défaut: 4 visites
   weeklyRunningTarget: 15, // Objectif par défaut: 15 km
+  dailyActivities: {}, // Record daily activities by date
   badges: [
     {
       id: "first_gym_visit",

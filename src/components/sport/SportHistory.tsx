@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useUserData } from "@/context/userData";
 import { Dumbbell, Activity } from "lucide-react";
-import { format, parseISO, startOfWeek, endOfWeek } from "date-fns";
+import { format, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 
 interface ActivityEntry {
@@ -15,52 +15,51 @@ export function SportHistory() {
   const { userData } = useUserData();
   const [weeklyData, setWeeklyData] = useState<ActivityEntry[]>([]);
   
-  // Simulation de données d'historique basée sur les totaux
-  // Dans une vraie application, ces données proviendraient d'une base de données
+  // Use actual daily activities data if available or generate sample data
   useEffect(() => {
     if (!userData.sportModule) return;
     
     const today = new Date();
     const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1 });
+    const endOfCurrentWeek = endOfWeek(today, { weekStartsOn: 1 });
     
-    // Créer des entrées pour les 7 derniers jours
-    const entries: ActivityEntry[] = [];
+    // Create entries for each day of current week
+    const daysInWeek = eachDayOfInterval({
+      start: startOfCurrentWeek,
+      end: endOfCurrentWeek
+    });
     
-    // Si nous avons une date de dernière activité, utilisons-la pour la simulation
-    if (userData.sportModule.lastActivityDate) {
-      const lastActivity = parseISO(userData.sportModule.lastActivityDate);
-      
-      // Répartir les activités sur plusieurs jours pour simuler un historique
-      // Diviser le total par un nombre aléatoire pour chaque jour
-      const totalGymVisits = userData.sportModule.totalGymVisits;
-      const totalRunningKm = userData.sportModule.totalRunningKm;
-      
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
+    const entries: ActivityEntry[] = daysInWeek.map(day => {
+      // Check if we have actual data for this day in dailyActivities
+      if (userData.sportModule.dailyActivities) {
+        const dateKey = format(day, 'yyyy-MM-dd');
+        const dayActivity = userData.sportModule.dailyActivities[dateKey];
         
-        // Répartir aléatoirement les activités
-        const gymWeight = Math.random() * 0.5;
-        const runningWeight = Math.random() * 0.5;
-        
-        entries.push({
-          date,
-          gymVisits: i === 0 ? userData.sportModule.weeklyGymVisits : Math.floor(totalGymVisits * gymWeight / 7),
-          runningKm: i === 0 ? userData.sportModule.weeklyRunningKm : +(totalRunningKm * runningWeight / 7).toFixed(1)
-        });
+        if (dayActivity) {
+          return {
+            date: day,
+            gymVisits: dayActivity.gymVisits || 0,
+            runningKm: dayActivity.runningKm || 0
+          };
+        }
       }
-    } else {
-      // Si pas d'activité, juste créer des entrées vides
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        entries.push({
-          date,
-          gymVisits: 0,
-          runningKm: 0
-        });
+      
+      // If we're showing today and have no daily data, show the weekly totals
+      if (isSameDay(day, today)) {
+        return {
+          date: day,
+          gymVisits: userData.sportModule.weeklyGymVisits || 0,
+          runningKm: userData.sportModule.weeklyRunningKm || 0
+        };
       }
-    }
+      
+      // For days without data, create empty entries
+      return {
+        date: day,
+        gymVisits: 0,
+        runningKm: 0
+      };
+    });
     
     setWeeklyData(entries);
   }, [userData.sportModule]);
@@ -76,42 +75,51 @@ export function SportHistory() {
           Pas d'activités enregistrées récemment
         </div>
       ) : (
-        weeklyData.map((entry, index) => (
-          <div 
-            key={index}
-            className={`p-3 rounded-md ${entry.gymVisits > 0 || entry.runningKm > 0 
-              ? 'bg-gray-50 border border-gray-100' 
-              : 'bg-gray-50/50 border border-gray-50'}`}
-          >
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-medium">
-                {format(entry.date, 'EEEE d MMMM', { locale: fr })}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {format(entry.date, 'dd/MM/yyyy')}
-              </span>
+        weeklyData.map((entry, index) => {
+          const isToday = isSameDay(entry.date, new Date());
+          
+          return (
+            <div 
+              key={index}
+              className={`p-3 rounded-md ${
+                isToday 
+                  ? 'bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800' 
+                  : entry.gymVisits > 0 || entry.runningKm > 0 
+                    ? 'bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700' 
+                    : 'bg-gray-50/50 dark:bg-gray-800/30 border border-gray-50 dark:border-gray-800'
+              }`}
+            >
+              <div className="flex justify-between items-center mb-1">
+                <span className={`font-medium ${isToday ? 'text-blue-600 dark:text-blue-400' : ''}`}>
+                  {format(entry.date, 'EEEE d MMMM', { locale: fr })}
+                  {isToday && ' (Aujourd\'hui)'}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {format(entry.date, 'dd/MM/yyyy')}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {entry.gymVisits > 0 && (
+                  <div className="flex items-center text-sm">
+                    <Dumbbell size={14} className="mr-1 text-purple-500" />
+                    <span>{entry.gymVisits} visite(s)</span>
+                  </div>
+                )}
+                {entry.runningKm > 0 && (
+                  <div className="flex items-center text-sm">
+                    <Activity size={14} className="mr-1 text-blue-500" />
+                    <span>{entry.runningKm} km</span>
+                  </div>
+                )}
+                {entry.gymVisits === 0 && entry.runningKm === 0 && (
+                  <div className="text-sm text-muted-foreground col-span-2">
+                    Pas d'activité ce jour
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {entry.gymVisits > 0 && (
-                <div className="flex items-center text-sm">
-                  <Dumbbell size={14} className="mr-1 text-purple-500" />
-                  <span>{entry.gymVisits} visite(s)</span>
-                </div>
-              )}
-              {entry.runningKm > 0 && (
-                <div className="flex items-center text-sm">
-                  <Activity size={14} className="mr-1 text-blue-500" />
-                  <span>{entry.runningKm} km</span>
-                </div>
-              )}
-              {entry.gymVisits === 0 && entry.runningKm === 0 && (
-                <div className="text-sm text-muted-foreground col-span-2">
-                  Pas d'activité ce jour
-                </div>
-              )}
-            </div>
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );

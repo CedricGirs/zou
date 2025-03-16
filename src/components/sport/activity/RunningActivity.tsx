@@ -1,11 +1,13 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Activity, Plus } from "lucide-react";
+import { Activity, Plus, Calendar } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { useUserData } from "@/context/userData";
 import { SportBadge } from "@/types/SportTypes";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 export const RunningActivity = () => {
   const { userData, updateSportModule } = useUserData();
@@ -61,6 +63,18 @@ export const RunningActivity = () => {
       });
     }
     
+    // Record daily activity data
+    const currentDate = format(now, 'yyyy-MM-dd');
+    const dailyActivities = userData.sportModule.dailyActivities || {};
+    const dayEntry = dailyActivities[currentDate] || { gymVisits: 0, runningKm: 0 };
+    
+    // Update today's entry
+    dailyActivities[currentDate] = {
+      ...dayEntry, 
+      runningKm: dayEntry.runningKm + runningKm,
+      date: now.toISOString()
+    };
+    
     // Check for badges
     const updatedBadges = [...userData.sportModule.badges];
     
@@ -74,7 +88,8 @@ export const RunningActivity = () => {
       maxXP: newMaxXP,
       streakDays: newStreakDays,
       lastActivityDate: now.toISOString(),
-      badges: updatedBadges
+      badges: updatedBadges,
+      dailyActivities
     });
     
     toast({
@@ -144,12 +159,21 @@ export const RunningActivity = () => {
     }
   };
 
+  // Get today's formatted date
+  const today = format(new Date(), 'EEEE d MMMM', { locale: fr });
+
   return (
-    <div className="bg-blue-50 p-4 rounded-md">
-      <h3 className="font-medium mb-2 flex items-center">
+    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md">
+      <h3 className="font-medium mb-1 flex items-center">
         <Activity className="mr-2 text-blue-500" size={20} />
         Séance de course
       </h3>
+      
+      <div className="text-xs text-muted-foreground mb-4 flex items-center">
+        <Calendar size={12} className="mr-1" />
+        <span>Aujourd'hui - {today}</span>
+      </div>
+      
       <div className="mb-6">
         <div className="flex justify-between mb-2">
           <span className="text-sm text-muted-foreground">Distance (km)</span>
@@ -164,7 +188,7 @@ export const RunningActivity = () => {
           className="mb-4"
         />
       </div>
-      <Button onClick={logRunning} className="w-full" variant="default">
+      <Button onClick={logRunning} className="w-full bg-blue-600 hover:bg-blue-700">
         <Plus className="mr-2" size={16} />
         Enregistrer {runningKm} km
       </Button>
