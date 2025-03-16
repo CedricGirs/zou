@@ -155,6 +155,75 @@ const enTranslations = {
   lookModule: "Style",
   financeModule: "Finance",
   sportModule: "Sport",
+
+  // Settings page
+  appearance: "Appearance",
+  appearanceDesc: "Customize how Zou looks and feels",
+  darkMode: "Dark Mode",
+  language: "Language",
+  languageDesc: "Change the language of the application",
+  sound: "Sound",
+  soundDesc: "Control sound effects and notifications",
+  gameSounds: "Game Sounds",
+  privacy: "Privacy",
+  privacyDesc: "Manage your privacy and data sharing preferences",
+  shareProgress: "Share Progress with Friends",
+  publicProfile: "Public Profile",
+  allowFriendRequests: "Allow Friend Requests",
+
+  // Notifications page
+  unread: "Unread",
+  earlier: "Earlier",
+  markAllAsRead: "Mark All as Read",
+  noNotifications: "No Notifications",
+  allCaughtUp: "You're all caught up! Check back later for new notifications.",
+  newBadge: "New Badge Earned",
+  fashionistaUnlocked: "You've unlocked the 'Fashionista' badge!",
+  levelUp: "Level Up",
+  financeLevelUp: "Your Finance level has increased to level 3!",
+  systemUpdate: "System Update",
+  newFeaturesAdded: "New features have been added to Zou!",
+  dailyExerciseCompleted: "You've completed your daily exercise goal!",
+  justNow: "Just now",
+  hoursAgo: "hours ago",
+  yesterday: "Yesterday",
+
+  // Inventory
+  all: "All",
+  weapons: "Weapons",
+  armor: "Armor",
+  accessories: "Accessories",
+  consumables: "Consumables",
+  filterByRarity: "Filter by Rarity",
+  common: "Common",
+  uncommon: "Uncommon",
+  rare: "Rare",
+  epic: "Epic",
+  legendary: "Legendary",
+  noItemsFound: "No Items Found",
+  tryDifferentFilter: "Try a different filter or earn more items on your journey.",
+  equipped: "Equipped",
+  quantity: "Quantity",
+  use: "Use",
+  equip: "Equip",
+  unequip: "Unequip",
+
+  // Inventory Items
+  productivityPen: "Productivity Pen",
+  productivityPenDesc: "Increases your focus and productivity by 10%",
+  knowledgeTome: "Knowledge Tome",
+  knowledgeTomeDesc: "Ancient book containing wisdom that increases XP gain by 15%",
+  focusHelmet: "Focus Helmet",
+  focusHelmetDesc: "Helps you concentrate on tasks and avoid distractions",
+  comfortableShirt: "Comfortable Shirt",
+  comfortableShirtDesc: "Provides comfort during long study sessions",
+  motivationGem: "Motivation Gem",
+  motivationGemDesc: "A rare gem that boosts your motivation and energy",
+  experienceBoost: "Experience Boost",
+  experienceBoostDesc: "Consume to gain a 50% XP boost for 1 hour",
+
+  // Sport
+  sport: "Sport"
 };
 
 export default enTranslations;
