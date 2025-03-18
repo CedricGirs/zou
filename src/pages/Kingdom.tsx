@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { useUserData } from "@/context/UserDataContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Crown, Castle, Landmark, Building, Home, Trees, Palmtree, Flame, Water, Image as ImageIcon } from "lucide-react";
+import { Crown, Castle, Landmark, Building, Home, Trees, Palmtree, Flame, Droplets, Image as ImageIcon } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "@/hooks/use-toast";
 import { Kingdom } from "@/types/HeroTypes";
@@ -15,7 +14,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
-// Element types for the kingdom
 const elements = [
   { id: "temple", name: "Temple", icon: <Landmark />, width: 100, height: 100 },
   { id: "villa", name: "Villa", icon: <Home />, width: 120, height: 100 },
@@ -24,14 +22,13 @@ const elements = [
   { id: "wall", name: "Wall", icon: <Building />, width: 120, height: 30 },
   { id: "garden", name: "Garden", icon: <Trees />, width: 80, height: 80 },
   { id: "statue", name: "Statue", icon: <Landmark />, width: 60, height: 60 },
-  { id: "fountain", name: "Fountain", icon: <Water />, width: 70, height: 70 },
+  { id: "fountain", name: "Fountain", icon: <Droplets />, width: 70, height: 70 },
   { id: "market", name: "Market", icon: <Building />, width: 120, height: 90 },
   { id: "palmTree", name: "Palm Tree", icon: <Palmtree />, width: 40, height: 40 },
   { id: "fire", name: "Fire", icon: <Flame />, width: 40, height: 40 },
   { id: "column", name: "Column", icon: <Landmark />, width: 40, height: 80 },
 ];
 
-// Kingdom styles
 const kingdomStyles = [
   { id: "roman", name: "Roman", colors: ["#f5d3a3", "#e0a370", "#c27d53"] },
   { id: "medieval", name: "Medieval", colors: ["#c8b88a", "#a49066", "#776b49"] },
@@ -42,7 +39,6 @@ const KingdomPage = () => {
   const { userData, updateHeroProfile } = useUserData();
   const { t } = useLanguage();
   
-  // Initialize kingdom state
   const [kingdom, setKingdom] = useState<Kingdom>({
     elements: [],
     name: "My Kingdom",
@@ -51,7 +47,6 @@ const KingdomPage = () => {
     style: "roman"
   });
 
-  // Set up UI state
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<"place" | "move" | "erase" | "rotate">("place");
@@ -71,7 +66,6 @@ const KingdomPage = () => {
     }
   });
 
-  // Load kingdom data if exists
   useEffect(() => {
     if (userData?.heroProfile?.kingdom) {
       setKingdom(userData.heroProfile.kingdom);
@@ -80,14 +74,12 @@ const KingdomPage = () => {
     }
   }, [userData?.heroProfile?.kingdom]);
 
-  // Handle element selection
   const handleElementSelect = (elementId: string) => {
     setSelectedElement(elementId);
     setMode("place");
     setSelectedId(null);
   };
 
-  // Get element style based on type and kingdom style
   const getElementStyle = (elementType: string, kingdomStyle: string) => {
     const styleColors = kingdomStyles.find(style => style.id === kingdomStyle)?.colors || ["#f5d3a3", "#e0a370", "#c27d53"];
     
@@ -159,7 +151,6 @@ const KingdomPage = () => {
     }
   };
 
-  // Handle placement of elements on canvas
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -223,7 +214,6 @@ const KingdomPage = () => {
     }
   };
 
-  // Handle element selection on the canvas
   const handleElementClick = (e: React.MouseEvent, elementId: string) => {
     e.stopPropagation();
     
@@ -250,7 +240,6 @@ const KingdomPage = () => {
     }
   };
 
-  // Save kingdom data
   const saveKingdom = async () => {
     try {
       const updatedKingdom = {
@@ -274,7 +263,6 @@ const KingdomPage = () => {
     }
   };
 
-  // Update element details
   const updateElementName = () => {
     if (selectedId && elementDetails.name) {
       console.log("Updating element name:", elementDetails.name);
@@ -289,10 +277,8 @@ const KingdomPage = () => {
     }
   };
 
-  // Update kingdom style
   const handleStyleChange = (style: string) => {
     console.log("Changing kingdom style to:", style);
-    // Update all existing elements to match the new style
     const newElements = kingdom.elements.map(el => ({
       ...el,
       style
@@ -305,7 +291,6 @@ const KingdomPage = () => {
     });
   };
 
-  // Update kingdom name
   const handleKingdomNameChange = () => {
     setKingdom({
       ...kingdom,
@@ -318,7 +303,6 @@ const KingdomPage = () => {
     });
   };
 
-  // Calculate kingdom level based on number of elements and XP
   const kingdomLevel = Math.max(1, Math.floor(kingdom.elements.length / 5) + Math.floor(kingdom.xp / 100));
 
   return (
@@ -351,7 +335,6 @@ const KingdomPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left sidebar - Building elements */}
           <div className="lg:col-span-1 space-y-4">
             <Card className="overflow-hidden">
               <CardHeader>
@@ -503,7 +486,6 @@ const KingdomPage = () => {
             )}
           </div>
 
-          {/* Main canvas area */}
           <div className="lg:col-span-3 relative">
             <div 
               className={`kingdom-canvas border-4 border-dashed rounded-lg overflow-hidden h-[600px] relative ${
@@ -564,7 +546,6 @@ const KingdomPage = () => {
         </div>
       </div>
       
-      {/* Rename Kingdom Dialog */}
       <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
         <DialogContent>
           <DialogHeader>

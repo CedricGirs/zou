@@ -10,7 +10,6 @@ const frTranslations = {
   settings: "Paramètres",
   notifications: "Notifications",
   inventory: "Inventaire",
-  kingdom: "Royaume",
   
   // Hero Dashboard
   heroLevel: "NIVEAU",
