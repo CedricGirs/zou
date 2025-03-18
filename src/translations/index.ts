@@ -302,6 +302,7 @@ export type TranslationKey =
   | "train"
   | "work"
   | "invest"
+  | "assets"
   ;
 
 export type Language = "en" | "fr";
