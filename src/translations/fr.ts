@@ -1,3 +1,4 @@
+
 const frTranslations = {
   // Global
   home: "Accueil",
@@ -62,7 +63,6 @@ const frTranslations = {
   debts: "Dettes",
 
   // Kingdom
-  kingdom: "Royaume",
   buildKingdom: "Construisez et personnalisez votre propre royaume",
   kingdomLevel: "Niveau du Royaume",
   saveKingdom: "Sauvegarder le Royaume",
@@ -150,7 +150,7 @@ const frTranslations = {
   yesterday: "Hier",
   markAllAsRead: "Marquer tout comme lu",
   noNotifications: "Pas de notifications",
-  allCaughtUp: "Vous ��tes à jour !",
+  allCaughtUp: "Vous êtes à jour !",
   unread: "Non lues",
   earlier: "Plus tôt",
   
