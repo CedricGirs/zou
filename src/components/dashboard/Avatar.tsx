@@ -1,15 +1,12 @@
 
 import { useState, useEffect } from "react";
 
-export interface AvatarProps {
+interface AvatarProps {
   seed?: string;
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
   showLevel?: boolean;
   level?: number;
-  name?: string; // Added name prop
-  color?: string; // Added color prop
-  bgColor?: string; // Added bgColor prop
 }
 
 const Avatar = ({ 
@@ -17,10 +14,7 @@ const Avatar = ({
   size = "md", 
   className = "", 
   showLevel = false,
-  level = 1,
-  name, // New prop
-  color, // New prop
-  bgColor // New prop
+  level = 1
 }: AvatarProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -34,7 +28,7 @@ const Avatar = ({
   };
   
   // Generate random avatar if seed not provided
-  const avatarUrl = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${seed || name || "Felix"}&backgroundColor=b6e3f4`;
+  const avatarUrl = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${seed}&backgroundColor=b6e3f4`;
   
   // Animation when level up (just for demo purposes)
   useEffect(() => {

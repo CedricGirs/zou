@@ -1,8 +1,7 @@
-
 import { NavLink } from "react-router-dom";
 import { 
   Home, GraduationCap, ShoppingBag, DollarSign, Zap, 
-  Settings, Bell, Package, ChevronLeft, ChevronRight, Dumbbell, Castle
+  Settings, Bell, Package, ChevronLeft, ChevronRight, Dumbbell
 } from "lucide-react";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -20,8 +19,7 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
     { to: "/look", icon: ShoppingBag, label: t("look") },
     { to: "/finances", icon: DollarSign, label: t("finances") },
     { to: "/skills", icon: Zap, label: t("skills") },
-    { to: "/sport", icon: Dumbbell, label: t("sport") },
-    { to: "/kingdom", icon: Castle, label: "Royaume" }
+    { to: "/sport", icon: Dumbbell, label: t("sport") }
   ];
 
   const secondaryNavItems = [

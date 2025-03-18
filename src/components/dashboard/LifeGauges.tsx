@@ -1,14 +1,12 @@
 
 import { useState, useEffect } from "react";
 import { Heart, Users, Battery, Droplet } from "lucide-react";
-import { HeroProfile } from "@/types/HeroTypes";
 
-export interface LifeGaugesProps {
+interface LifeGaugesProps {
   compact?: boolean;
-  heroProfile?: HeroProfile; // Added heroProfile prop
 }
 
-const LifeGauges = ({ compact = false, heroProfile }: LifeGaugesProps) => {
+const LifeGauges = ({ compact = false }: LifeGaugesProps) => {
   // Mock data - in a real app, this would come from an API or state
   const [gauges, setGauges] = useState({
     fun: 75,
@@ -17,33 +15,19 @@ const LifeGauges = ({ compact = false, heroProfile }: LifeGaugesProps) => {
     hygiene: 90
   });
   
-  // Use heroProfile if provided
-  useEffect(() => {
-    if (heroProfile) {
-      setGauges(prev => ({
-        ...prev,
-        energy: (heroProfile.energy / heroProfile.maxEnergy) * 100,
-        hygiene: (heroProfile.health / heroProfile.maxHealth) * 100,
-        fun: (heroProfile.happiness / heroProfile.maxHappiness) * 100
-      }));
-    }
-  }, [heroProfile]);
-  
   // For demo purposes, randomly fluctuate values
   useEffect(() => {
-    if (!heroProfile) {
-      const interval = setInterval(() => {
-        setGauges(prev => ({
-          fun: Math.max(20, Math.min(100, prev.fun + (Math.random() * 10 - 5))),
-          social: Math.max(20, Math.min(100, prev.social + (Math.random() * 10 - 5))),
-          energy: Math.max(20, Math.min(100, prev.energy + (Math.random() * 10 - 5))),
-          hygiene: Math.max(20, Math.min(100, prev.hygiene + (Math.random() * 10 - 5)))
-        }));
-      }, 5000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [heroProfile]);
+    const interval = setInterval(() => {
+      setGauges(prev => ({
+        fun: Math.max(20, Math.min(100, prev.fun + (Math.random() * 10 - 5))),
+        social: Math.max(20, Math.min(100, prev.social + (Math.random() * 10 - 5))),
+        energy: Math.max(20, Math.min(100, prev.energy + (Math.random() * 10 - 5))),
+        hygiene: Math.max(20, Math.min(100, prev.hygiene + (Math.random() * 10 - 5)))
+      }));
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
   
   const gaugeItems = [
     { label: "Fun", value: gauges.fun, icon: Heart, color: "bg-fun" },
