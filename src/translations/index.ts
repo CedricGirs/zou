@@ -299,6 +299,7 @@ export type TranslationKey =
   | "study"
   | "equipment"
   | "mouth"
+  | "train"
   ;
 
 export type Language = "en" | "fr";
