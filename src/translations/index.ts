@@ -303,6 +303,8 @@ export type TranslationKey =
   | "work"
   | "invest"
   | "assets"
+  | "debts"
   ;
 
 export type Language = "en" | "fr";
+
