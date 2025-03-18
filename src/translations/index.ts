@@ -293,7 +293,9 @@ export type TranslationKey =
   | "water" 
   | "energy"
   | "sleep"
+  | "gym"
+  | "sparring"
+  | "study"
   ;
 
 export type Language = "en" | "fr";
-
