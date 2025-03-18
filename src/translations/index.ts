@@ -296,6 +296,7 @@ export type TranslationKey =
   | "gym"
   | "sparring"
   | "study"
+  | "equipment"
   ;
 
 export type Language = "en" | "fr";
