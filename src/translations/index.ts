@@ -285,6 +285,11 @@ export type TranslationKey =
   | "add"
   | "financeLevelUp"
   | "days"
+  | "quest"
+  | "reward"
+  | "complete"
+  | "completed"
+  | "noQuestsToday"
   ;
 
 export type Language = "en" | "fr";
