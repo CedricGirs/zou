@@ -300,6 +300,7 @@ export type TranslationKey =
   | "equipment"
   | "mouth"
   | "train"
+  | "work"
   ;
 
 export type Language = "en" | "fr";
