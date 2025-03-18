@@ -9,7 +9,6 @@ import { StatusModule, StatusItem } from '@/types/StatusTypes';
 import { LookModule } from '@/types/LookTypes';
 import { FinanceModule } from '@/types/FinanceTypes';
 import { SportModule } from '@/types/SportTypes';
-import { KingdomModule } from '@/types/KingdomTypes';
 import { UserData } from '@/types/UserDataTypes';
 
 // Import default data and utilities
@@ -48,13 +47,6 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
           loadedData.sportModule = defaultUserData.sportModule;
           console.log("SportModule ajouté aux données utilisateur:", loadedData);
         }
-        
-        // Vérifier si le kingdomModule existe, sinon l'ajouter
-        if (!loadedData.kingdomModule) {
-          loadedData.kingdomModule = defaultUserData.kingdomModule;
-          console.log("KingdomModule ajouté aux données utilisateur:", loadedData);
-        }
-        
         setUserData(loadedData);
       } else {
         // If no data found, create new document with default data
@@ -159,16 +151,6 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     playUpdateSound();
   };
 
-  const updateKingdomModule = async (updates: Partial<KingdomModule>) => {
-    const newData = {
-      ...userData,
-      kingdomModule: { ...userData.kingdomModule, ...updates },
-    };
-    setUserData(newData);
-    await synchronizeData();
-    playUpdateSound();
-  };
-
   const updateStatusItems = async (items: StatusItem[]) => {
     const newData = {
       ...userData,
@@ -205,7 +187,6 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         updateLookModule,
         updateFinanceModule,
         updateSportModule,
-        updateKingdomModule,
         updateStatusItems,
         updateSkills,
         forceRefreshData,

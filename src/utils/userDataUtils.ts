@@ -1,4 +1,3 @@
-
 import { doc, setDoc, getDoc, updateDoc, enableIndexedDbPersistence, clearIndexedDbPersistence } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from '@/hooks/use-toast';
@@ -22,8 +21,7 @@ export const saveUserData = async (userData: UserData) => {
       statusModule: userData.statusModule,
       lookModule: userData.lookModule,
       financeModule: userData.financeModule,
-      sportModule: userData.sportModule,
-      kingdomModule: userData.kingdomModule,
+      sportModule: userData.sportModule, // Ajouté sportModule ici
       statusItems: userData.statusItems,
       skills: userData.skills,
       lastSyncTimestamp: new Date().toISOString(), // Ajouter un timestamp de synchro
@@ -78,19 +76,6 @@ export const loadUserData = async (uid: string = 'guest'): Promise<{ userData: U
         }
       }
       
-      // Vérifier que kingdomModule existe, sinon l'ajouter
-      if (!firebaseData.kingdomModule) {
-        firebaseData.kingdomModule = defaultUserData.kingdomModule;
-        console.log("KingdomModule ajouté aux données Firebase:", firebaseData);
-        
-        // Mettre à jour les données dans Firebase
-        try {
-          await updateDoc(userDocRef, { kingdomModule: defaultUserData.kingdomModule });
-        } catch (updateError) {
-          console.error("Erreur lors de l'ajout du kingdomModule:", updateError);
-        }
-      }
-      
       // Mettre à jour le stockage local avec les données les plus récentes
       localStorage.setItem('zouUserData', JSON.stringify(firebaseData));
       
@@ -107,15 +92,8 @@ export const loadUserData = async (uid: string = 'guest'): Promise<{ userData: U
         if (!localData.sportModule) {
           localData.sportModule = defaultUserData.sportModule;
           console.log("SportModule ajouté aux données locales:", localData);
+          localStorage.setItem('zouUserData', JSON.stringify(localData));
         }
-        
-        // Vérifier que kingdomModule existe, sinon l'ajouter
-        if (!localData.kingdomModule) {
-          localData.kingdomModule = defaultUserData.kingdomModule;
-          console.log("KingdomModule ajouté aux données locales:", localData);
-        }
-        
-        localStorage.setItem('zouUserData', JSON.stringify(localData));
         
         // Essayer de créer le document utilisateur dans Firebase
         try {
@@ -151,14 +129,8 @@ export const loadUserData = async (uid: string = 'guest'): Promise<{ userData: U
       // Vérifier que sportModule existe, sinon l'ajouter
       if (!localData.sportModule) {
         localData.sportModule = defaultUserData.sportModule;
+        localStorage.setItem('zouUserData', JSON.stringify(localData));
       }
-      
-      // Vérifier que kingdomModule existe, sinon l'ajouter
-      if (!localData.kingdomModule) {
-        localData.kingdomModule = defaultUserData.kingdomModule;
-      }
-      
-      localStorage.setItem('zouUserData', JSON.stringify(localData));
       return { userData: localData, error: true };
     }
     return { userData: defaultUserData, error: true };
