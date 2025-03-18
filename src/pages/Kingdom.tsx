@@ -6,7 +6,7 @@ import { useUserData } from "@/context/UserDataContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Crown, Castle, Landmark, Buildings } from "lucide-react";
+import { Crown, Castle, Landmark, Building } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "@/hooks/use-toast";
 import { Kingdom } from "@/types/HeroTypes";
@@ -15,8 +15,8 @@ import { Kingdom } from "@/types/HeroTypes";
 const elements = [
   { id: "castle", name: "Castle", icon: <Castle />, width: 100, height: 100 },
   { id: "tower", name: "Tower", icon: <Landmark />, width: 60, height: 120 },
-  { id: "house", name: "House", icon: <Buildings />, width: 80, height: 80 },
-  { id: "wall", name: "Wall", icon: <Buildings />, width: 120, height: 30 },
+  { id: "house", name: "House", icon: <Building />, width: 80, height: 80 },
+  { id: "wall", name: "Wall", icon: <Building />, width: 120, height: 30 },
 ];
 
 // Kingdom styles
@@ -226,7 +226,7 @@ const KingdomPage = () => {
                   className="w-full justify-start"
                   onClick={() => setMode("place")}
                 >
-                  <Buildings className="mr-2" size={16} />
+                  <Building className="mr-2" size={16} />
                   Place
                 </Button>
                 <Button 
