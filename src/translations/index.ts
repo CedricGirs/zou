@@ -301,6 +301,7 @@ export type TranslationKey =
   | "mouth"
   | "train"
   | "work"
+  | "invest"
   ;
 
 export type Language = "en" | "fr";
