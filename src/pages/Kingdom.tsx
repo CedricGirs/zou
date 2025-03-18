@@ -86,27 +86,27 @@ const KingdomPage = () => {
     switch (elementType) {
       case "temple":
         return {
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='10' y='50' width='80' height='50' fill='${styleColors[0]}'/%3E%3Cpolygon points='5,50 95,50 50,20' fill='${styleColors[1]}'/%3E%3Crect x='20' y='60' width='15' height='40' fill='${styleColors[2]}'/%3E%3Crect x='65' y='60' width='15' height='40' fill='${styleColors[2]}'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='10' y='50' width='80' height='50' fill='${encodeURIComponent(styleColors[0])}'/%3E%3Cpolygon points='5,50 95,50 50,20' fill='${encodeURIComponent(styleColors[1])}'/%3E%3Crect x='20' y='60' width='15' height='40' fill='${encodeURIComponent(styleColors[2])}'/%3E%3Crect x='65' y='60' width='15' height='40' fill='${encodeURIComponent(styleColors[2])}'/%3E%3C/svg%3E")`,
           backgroundColor: "transparent",
         };
       case "villa":
         return {
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='10' y='40' width='80' height='60' fill='${styleColors[0]}'/%3E%3Cpolygon points='5,40 95,40 50,10' fill='${styleColors[1]}'/%3E%3Crect x='40' y='70' width='20' height='30' fill='${styleColors[2]}'/%3E%3Crect x='20' y='50' width='15' height='15' fill='${styleColors[2]}'/%3E%3Crect x='65' y='50' width='15' height='15' fill='${styleColors[2]}'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='10' y='40' width='80' height='60' fill='${encodeURIComponent(styleColors[0])}'/%3E%3Cpolygon points='5,40 95,40 50,10' fill='${encodeURIComponent(styleColors[1])}'/%3E%3Crect x='40' y='70' width='20' height='30' fill='${encodeURIComponent(styleColors[2])}'/%3E%3Crect x='20' y='50' width='15' height='15' fill='${encodeURIComponent(styleColors[2])}'/%3E%3Crect x='65' y='50' width='15' height='15' fill='${encodeURIComponent(styleColors[2])}'/%3E%3C/svg%3E")`,
           backgroundColor: "transparent",
         };
       case "tower":
         return {
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='25' y='20' width='50' height='80' fill='${styleColors[0]}'/%3E%3Cpolygon points='20,20 80,20 50,5' fill='${styleColors[1]}'/%3E%3Crect x='35' y='40' width='30' height='40' fill='${styleColors[2]}'/%3E%3Crect x='20' y='15' width='60' height='10' fill='${styleColors[1]}'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='25' y='20' width='50' height='80' fill='${encodeURIComponent(styleColors[0])}'/%3E%3Cpolygon points='20,20 80,20 50,5' fill='${encodeURIComponent(styleColors[1])}'/%3E%3Crect x='35' y='40' width='30' height='40' fill='${encodeURIComponent(styleColors[2])}'/%3E%3Crect x='20' y='15' width='60' height='10' fill='${encodeURIComponent(styleColors[1])}'/%3E%3C/svg%3E")`,
           backgroundColor: "transparent",
         };
       case "house":
         return {
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='20' y='50' width='60' height='50' fill='${styleColors[0]}'/%3E%3Cpolygon points='10,50 90,50 50,20' fill='${styleColors[1]}'/%3E%3Crect x='40' y='70' width='20' height='30' fill='${styleColors[2]}'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='20' y='50' width='60' height='50' fill='${encodeURIComponent(styleColors[0])}'/%3E%3Cpolygon points='10,50 90,50 50,20' fill='${encodeURIComponent(styleColors[1])}'/%3E%3Crect x='40' y='70' width='20' height='30' fill='${encodeURIComponent(styleColors[2])}'/%3E%3C/svg%3E")`,
           backgroundColor: "transparent",
         };
       case "wall":
         return {
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='5' y='30' width='90' height='40' fill='${styleColors[0]}'/%3E%3Crect x='10' y='35' width='10' height='30' fill='${styleColors[1]}'/%3E%3Crect x='30' y='35' width='10' height='30' fill='${styleColors[1]}'/%3E%3Crect x='50' y='35' width='10' height='30' fill='${styleColors[1]}'/%3E%3Crect x='70' y='35' width='10' height='30' fill='${styleColors[1]}'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='5' y='30' width='90' height='40' fill='${encodeURIComponent(styleColors[0])}'/%3E%3Crect x='10' y='35' width='10' height='30' fill='${encodeURIComponent(styleColors[1])}'/%3E%3Crect x='30' y='35' width='10' height='30' fill='${encodeURIComponent(styleColors[1])}'/%3E%3Crect x='50' y='35' width='10' height='30' fill='${encodeURIComponent(styleColors[1])}'/%3E%3Crect x='70' y='35' width='10' height='30' fill='${encodeURIComponent(styleColors[1])}'/%3E%3C/svg%3E")`,
           backgroundColor: "transparent",
         };
       case "garden":
@@ -116,17 +116,17 @@ const KingdomPage = () => {
         };
       case "statue":
         return {
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='35' y='70' width='30' height='20' fill='${styleColors[0]}'/%3E%3Crect x='40' y='60' width='20' height='10' fill='${styleColors[0]}'/%3E%3Ccircle cx='50' cy='45' r='10' fill='${styleColors[1]}'/%3E%3Crect x='45' y='20' width='10' height='20' fill='${styleColors[1]}'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='35' y='70' width='30' height='20' fill='${encodeURIComponent(styleColors[0])}'/%3E%3Crect x='40' y='60' width='20' height='10' fill='${encodeURIComponent(styleColors[0])}'/%3E%3Ccircle cx='50' cy='45' r='10' fill='${encodeURIComponent(styleColors[1])}'/%3E%3Crect x='45' y='20' width='10' height='20' fill='${encodeURIComponent(styleColors[1])}'/%3E%3C/svg%3E")`,
           backgroundColor: "transparent",
         };
       case "fountain":
         return {
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='30' fill='${styleColors[0]}'/%3E%3Ccircle cx='50' cy='50' r='20' fill='%23ADD8E6'/%3E%3Ccircle cx='50' cy='50' r='10' fill='%2387CEFA'/%3E%3Cline x1='50' y1='30' x2='50' y2='20' stroke='%2387CEFA' stroke-width='2'/%3E%3Cline x1='60' y1='35' x2='65' y2='25' stroke='%2387CEFA' stroke-width='2'/%3E%3Cline x1='40' y1='35' x2='35' y2='25' stroke='%2387CEFA' stroke-width='2'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='30' fill='${encodeURIComponent(styleColors[0])}'/%3E%3Ccircle cx='50' cy='50' r='20' fill='%23ADD8E6'/%3E%3Ccircle cx='50' cy='50' r='10' fill='%2387CEFA'/%3E%3Cline x1='50' y1='30' x2='50' y2='20' stroke='%2387CEFA' stroke-width='2'/%3E%3Cline x1='60' y1='35' x2='65' y2='25' stroke='%2387CEFA' stroke-width='2'/%3E%3Cline x1='40' y1='35' x2='35' y2='25' stroke='%2387CEFA' stroke-width='2'/%3E%3C/svg%3E")`,
           backgroundColor: "transparent",
         };
       case "market":
         return {
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='10' y='60' width='80' height='40' fill='${styleColors[0]}'/%3E%3Cpolygon points='5,60 95,60 50,40' fill='${styleColors[1]}'/%3E%3Crect x='20' y='70' width='15' height='15' fill='${styleColors[2]}'/%3E%3Crect x='45' y='70' width='15' height='15' fill='${styleColors[2]}'/%3E%3Crect x='70' y='70' width='15' height='15' fill='${styleColors[2]}'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='10' y='60' width='80' height='40' fill='${encodeURIComponent(styleColors[0])}'/%3E%3Cpolygon points='5,60 95,60 50,40' fill='${encodeURIComponent(styleColors[1])}'/%3E%3Crect x='20' y='70' width='15' height='15' fill='${encodeURIComponent(styleColors[2])}'/%3E%3Crect x='45' y='70' width='15' height='15' fill='${encodeURIComponent(styleColors[2])}'/%3E%3Crect x='70' y='70' width='15' height='15' fill='${encodeURIComponent(styleColors[2])}'/%3E%3C/svg%3E")`,
           backgroundColor: "transparent",
         };
       case "palmTree":
@@ -141,7 +141,7 @@ const KingdomPage = () => {
         };
       case "column":
         return {
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='35' y='10' width='30' height='10' fill='${styleColors[0]}'/%3E%3Crect x='40' y='20' width='20' height='60' fill='${styleColors[1]}'/%3E%3Crect x='35' y='80' width='30' height='10' fill='${styleColors[0]}'/%3E%3Cline x1='40' y1='25' x2='40' y2='75' stroke='${styleColors[2]}' stroke-width='1'/%3E%3Cline x1='45' y1='25' x2='45' y2='75' stroke='${styleColors[2]}' stroke-width='1'/%3E%3Cline x1='50' y1='25' x2='50' y2='75' stroke='${styleColors[2]}' stroke-width='1'/%3E%3Cline x1='55' y1='25' x2='55' y2='75' stroke='${styleColors[2]}' stroke-width='1'/%3E%3Cline x1='60' y1='25' x2='60' y2='75' stroke='${styleColors[2]}' stroke-width='1'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='35' y='10' width='30' height='10' fill='${encodeURIComponent(styleColors[0])}'/%3E%3Crect x='40' y='20' width='20' height='60' fill='${encodeURIComponent(styleColors[1])}'/%3E%3Crect x='35' y='80' width='30' height='10' fill='${encodeURIComponent(styleColors[0])}'/%3E%3Cline x1='40' y1='25' x2='40' y2='75' stroke='${encodeURIComponent(styleColors[2])}' stroke-width='1'/%3E%3Cline x1='45' y1='25' x2='45' y2='75' stroke='${encodeURIComponent(styleColors[2])}' stroke-width='1'/%3E%3Cline x1='50' y1='25' x2='50' y2='75' stroke='${encodeURIComponent(styleColors[2])}' stroke-width='1'/%3E%3Cline x1='55' y1='25' x2='55' y2='75' stroke='${encodeURIComponent(styleColors[2])}' stroke-width='1'/%3E%3Cline x1='60' y1='25' x2='60' y2='75' stroke='${encodeURIComponent(styleColors[2])}' stroke-width='1'/%3E%3C/svg%3E")`,
           backgroundColor: "transparent",
         };
       default:
@@ -409,7 +409,7 @@ const KingdomPage = () => {
                       onClick={() => handleElementSelect(element.id)}
                     >
                       <div className="mb-2">{element.icon}</div>
-                      <span className="text-xs text-center">{element.name}</span>
+                      <span className="text-xs text-center">{t(element.id as any)}</span>
                     </Button>
                   ))}
                 </div>
@@ -449,7 +449,7 @@ const KingdomPage = () => {
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-                  Rotation
+                  {t("rotation")}
                 </Button>
                 <Button 
                   variant={mode === "erase" ? "default" : "outline"} 
@@ -507,16 +507,17 @@ const KingdomPage = () => {
                 return (
                   <div
                     key={element.id}
-                    className={`absolute cursor-pointer transition-all transform ${
+                    className={`absolute cursor-pointer transition-all ${
                       selectedId === element.id ? "ring-2 ring-blue-500" : ""
                     }`}
                     style={{
-                      left: `${element.x - element.width/2}px`,
-                      top: `${element.y - element.height/2}px`,
-                      width: `${element.width}px`,
-                      height: `${element.height}px`,
+                      left: `${element.x - (elementDef?.width || 0)/2}px`,
+                      top: `${element.y - (elementDef?.height || 0)/2}px`,
+                      width: `${elementDef?.width}px`,
+                      height: `${elementDef?.height}px`,
                       zIndex: selectedId === element.id ? 10 : 1,
                       transform: element.rotation ? `rotate(${element.rotation}deg)` : undefined,
+                      transformOrigin: 'center center',
                       ...elementStyle
                     }}
                     onClick={(e) => handleElementClick(e, element.id)}

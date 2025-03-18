@@ -52,7 +52,6 @@ const frTranslations = {
   applyTemplate: "Appliquer un Modèle",
   createTemplate: "Créer un Modèle",
   templateName: "Nom du Modèle",
-  goalName: "Nom de l'Objectif",
   targetAmount: "Montant Cible",
   currentAmount: "Montant Actuel",
   financialInsights: "Aperçu Financier",
