@@ -1,4 +1,3 @@
-
 import { TranslationKey } from ".";
 
 const en: Record<TranslationKey, string> = {
@@ -341,7 +340,8 @@ const en: Record<TranslationKey, string> = {
   expensesExceedIncome: "Expenses exceed income",
   monthlySummary: "Monthly Summary",
   type: "Type",
-  description: "Description"
+  description: "Description",
+  height: "Height"
 };
 
 export default en;

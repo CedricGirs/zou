@@ -1,4 +1,3 @@
-
 import { TranslationKey } from ".";
 
 const fr: Record<TranslationKey, string> = {
@@ -112,7 +111,6 @@ const fr: Record<TranslationKey, string> = {
   kingdom: "Royaume",
   days: "Jours",
   age: "Âge",
-  // Removing 'weight' property as it's not in the TranslationKey type
   height: "Taille",
   title: "Titre",
   description: "Description",
@@ -528,7 +526,6 @@ const fr: Record<TranslationKey, string> = {
   progressNextLevel: "Prochaines récompenses bientôt",
   financeLevelUp: "Niveau de Finances Augmenté !",
   type: "Type",
-  // Add missing finance translations
   monthlyIncome: "Revenu Mensuel",
   fixedExpenses: "Dépenses Fixes",
   availableForSavings: "Disponible pour l'Épargne",
