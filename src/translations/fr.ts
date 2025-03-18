@@ -116,11 +116,11 @@ const frTranslations = {
   gradeDescription: 'Complétez des quêtes et gagnez de l\'XP pour faire évoluer le grade de votre héros',
   
   // Module steps
-  moduleStatus: 'Configuration du module Statut',
+  moduleSetupStatus: 'Configuration du module Statut',
   statusModuleDesc: 'Configurez le suivi de votre développement éducatif et de compétences',
-  moduleLook: 'Configuration du module Style',
+  moduleSetupLook: 'Configuration du module Style',
   lookModuleDesc: 'Configurez votre garde-robe et vos préférences de style',
-  moduleFinance: 'Configuration du module Finance',
+  moduleSetupFinance: 'Configuration du module Finance',
   financeModuleDesc: 'Configurez votre budget et vos objectifs financiers',
   tutorial: 'Tutoriel interactif',
   tutorialDesc: 'Apprenez à utiliser Zou pour en tirer le maximum d\'avantages',
@@ -190,7 +190,6 @@ const frTranslations = {
 
   // Inventory
   all: "Tous",
-  weapons: "Armes",
   armor: "Armures",
   accessories: "Accessoires",
   consumables: "Consommables",

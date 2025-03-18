@@ -116,11 +116,11 @@ const enTranslations = {
   gradeDescription: 'Complete quests and gain XP to evolve your hero grade',
   
   // Module steps
-  moduleStatus: 'Status Module Setup',
+  moduleSetupStatus: 'Status Module Setup',
   statusModuleDesc: 'Configure your educational and skill development tracking',
-  moduleLook: 'Look Module Setup',
+  moduleSetupLook: 'Look Module Setup',
   lookModuleDesc: 'Set up your wardrobe and style preferences',
-  moduleFinance: 'Finance Module Setup',
+  moduleSetupFinance: 'Finance Module Setup',
   financeModuleDesc: 'Configure your budget and financial goals',
   tutorial: 'Interactive Tutorial',
   tutorialDesc: 'Learn how to use Zou for maximum benefits',
@@ -190,7 +190,6 @@ const enTranslations = {
 
   // Inventory
   all: "All",
-  weapons: "Weapons",
   armor: "Armor",
   accessories: "Accessories",
   consumables: "Consumables",

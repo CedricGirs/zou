@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "../hooks/useTranslation";
+import { TranslationKey } from "../translations";
 
 type InventoryItem = {
   id: string;
@@ -134,6 +135,16 @@ const Inventory = () => {
     
     return true;
   });
+
+  // Helper function to safely translate rarity as a known translation key
+  const translateRarity = (rarity: string): string => {
+    // Only translate if it's a known key
+    if (rarity === "common" || rarity === "uncommon" || rarity === "rare" || 
+        rarity === "epic" || rarity === "legendary") {
+      return t(rarity as TranslationKey);
+    }
+    return rarity;
+  };
   
   return (
     <MainLayout>
@@ -145,7 +156,7 @@ const Inventory = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <Filter size={16} className="mr-2" />
-                {filterRarity ? t(filterRarity) : t("filterByRarity")}
+                {filterRarity ? translateRarity(filterRarity) : t("filterByRarity")}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -220,7 +231,7 @@ const Inventory = () => {
                         </div>
                         <div className="flex gap-2">
                           <Badge className={rarityColors[item.rarity]}>
-                            {t(item.rarity)}
+                            {translateRarity(item.rarity)}
                           </Badge>
                           {item.equipped && (
                             <Badge variant="default">
