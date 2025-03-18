@@ -290,6 +290,10 @@ export type TranslationKey =
   | "complete"
   | "completed"
   | "noQuestsToday"
+  | "water" 
+  | "energy"
+  | "sleep"
   ;
 
 export type Language = "en" | "fr";
+
