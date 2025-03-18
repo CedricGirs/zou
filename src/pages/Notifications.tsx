@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
 import { Bell, Calendar, Award, Zap, ShoppingBag, DollarSign, Dumbbell, Check } from "lucide-react";
@@ -104,6 +103,7 @@ const Notifications = () => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
+    
     <MainLayout>
       <div className="container max-w-4xl mx-auto py-8 px-4">
         <div className="flex items-center justify-between mb-6">

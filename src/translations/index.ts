@@ -1,3 +1,4 @@
+
 import en from "./en";
 import fr from "./fr";
 
@@ -279,6 +280,11 @@ export type TranslationKey =
   | "monthsToReachGoal"
   | "expensesExceedIncome"
   | "monthlySummary"
+  | "skillPoints"
+  | "available"
+  | "add"
+  | "financeLevelUp"
+  | "days"
   ;
 
 export type Language = "en" | "fr";
