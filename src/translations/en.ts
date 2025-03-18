@@ -1,3 +1,4 @@
+
 import { TranslationKey } from ".";
 
 const en: Record<TranslationKey, string> = {
@@ -28,8 +29,6 @@ const en: Record<TranslationKey, string> = {
   skillPoints: "Skill Points",
   available: "available",
   add: "Add",
-  dailyQuestsTitle: "Your Daily Quests",
-  dailyQuestsSubtitle: "Complete quests to earn rewards!",
   quest: "Quest",
   reward: "Reward",
   complete: "Complete",
