@@ -58,6 +58,7 @@ export type TranslationKey =
   | "appearance"
   | "body"
   | "hair"
+  | "facialHair"
   | "eyes"
   | "skin"
   | "clothing"
@@ -297,6 +298,7 @@ export type TranslationKey =
   | "sparring"
   | "study"
   | "equipment"
+  | "mouth"
   ;
 
 export type Language = "en" | "fr";
