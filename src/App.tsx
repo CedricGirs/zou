@@ -14,6 +14,7 @@ import Skills from "./pages/Skills";
 import DailyQuests from "./pages/DailyQuests";
 import Badges from "./pages/Badges";
 import Sport from "./pages/Sport";
+import Kingdom from "./pages/Kingdom";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import Inventory from "./pages/Inventory";
@@ -50,6 +51,7 @@ const AppRoutes = () => {
       <Route path="/finances" element={<Finances />} />
       <Route path="/skills" element={<Skills />} />
       <Route path="/sport" element={<Sport />} />
+      <Route path="/kingdom" element={<Kingdom />} />
       <Route path="/daily-quests" element={<DailyQuests />} />
       <Route path="/badges" element={<Badges />} />
       <Route path="/settings" element={<Settings />} />

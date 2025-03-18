@@ -17,6 +17,7 @@ const enTranslations = {
   settings: 'Settings',
   notifications: 'Notifications',
   inventory: 'Inventory',
+  kingdom: 'Kingdom',
   
   // Status page
   statusTitle: 'Status',
@@ -222,7 +223,50 @@ const enTranslations = {
   experienceBoostDesc: "Consume to gain a 50% XP boost for 1 hour",
 
   // Sport
-  sport: "Sport"
+  sport: "Sport",
+
+  // Kingdom
+  kingdomTitle: "My Kingdom",
+  kingdomSubtitle: "Design and build your virtual kingdom that represents your financial journey",
+  saveKingdom: "Save Kingdom",
+  autosaveEnabled: "Autosave Enabled",
+  addBuilding: "Add Building",
+  addDecoration: "Add Decoration",
+  addRoad: "Add Road",
+  clearCanvas: "Clear Canvas",
+  treasury: "Treasury",
+  palace: "Palace",
+  market: "Market",
+  barracks: "Barracks",
+  temple: "Temple",
+  garden: "Garden",
+  fountain: "Fountain",
+  statue: "Statue",
+  tree: "Tree",
+  road: "Road",
+  wall: "Wall",
+  gate: "Gate",
+  tower: "Tower",
+  confirmClear: "Are you sure you want to clear your kingdom? This action cannot be undone.",
+  kingdomSaved: "Kingdom saved successfully!",
+  itemPlaced: "Item placed in your kingdom",
+  kingdomLevel: "Kingdom Level",
+  objectsPlaced: "Objects Placed",
+  changeStyle: "Change Style",
+  medieval: "Medieval",
+  roman: "Roman",
+  fantasy: "Fantasy",
+  nameBuilding: "Name this Building",
+  enterBuildingName: "Enter a name for this building...",
+  buildingPurpose: "Building Purpose",
+  savingGoal: "Saving Goal",
+  achievement: "Achievement",
+  milestone: "Milestone",
+  contact: "Contact",
+  other: "Other",
+  buildingNameRequired: "Building name is required",
+  kingdomTutorial: "Kingdom Tutorial",
+  kingdomTutorialText: "Welcome to your Kingdom! This is where you can visualize your financial journey. Start by adding buildings and decorations to represent your goals and achievements."
 };
 
 export default enTranslations;

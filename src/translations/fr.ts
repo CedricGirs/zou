@@ -17,6 +17,7 @@ const frTranslations = {
   settings: 'Paramètres',
   notifications: 'Notifications',
   inventory: 'Inventaire',
+  kingdom: 'Royaume',
   
   // Status page
   statusTitle: 'Statut',
@@ -222,7 +223,50 @@ const frTranslations = {
   experienceBoostDesc: "Consommez pour obtenir un bonus d'XP de 50% pendant 1 heure",
 
   // Sport
-  sport: "Sport"
+  sport: "Sport",
+
+  // Kingdom
+  kingdomTitle: "Mon Royaume",
+  kingdomSubtitle: "Concevez et construisez votre royaume virtuel qui représente votre parcours financier",
+  saveKingdom: "Sauvegarder le Royaume",
+  autosaveEnabled: "Sauvegarde automatique activée",
+  addBuilding: "Ajouter un Bâtiment",
+  addDecoration: "Ajouter une Décoration",
+  addRoad: "Ajouter une Route",
+  clearCanvas: "Effacer le Canevas",
+  treasury: "Trésorerie",
+  palace: "Palais",
+  market: "Marché",
+  barracks: "Caserne",
+  temple: "Temple",
+  garden: "Jardin",
+  fountain: "Fontaine",
+  statue: "Statue",
+  tree: "Arbre",
+  road: "Route",
+  wall: "Mur",
+  gate: "Porte",
+  tower: "Tour",
+  confirmClear: "Êtes-vous sûr de vouloir effacer votre royaume ? Cette action ne peut pas être annulée.",
+  kingdomSaved: "Royaume sauvegardé avec succès !",
+  itemPlaced: "Élément placé dans votre royaume",
+  kingdomLevel: "Niveau du Royaume",
+  objectsPlaced: "Objets Placés",
+  changeStyle: "Changer de Style",
+  medieval: "Médiéval",
+  roman: "Romain",
+  fantasy: "Fantaisie",
+  nameBuilding: "Nommer ce Bâtiment",
+  enterBuildingName: "Entrez un nom pour ce bâtiment...",
+  buildingPurpose: "Fonction du Bâtiment",
+  savingGoal: "Objectif d'Épargne",
+  achievement: "Réalisation",
+  milestone: "Étape Importante",
+  contact: "Contact",
+  other: "Autre",
+  buildingNameRequired: "Le nom du bâtiment est requis",
+  kingdomTutorial: "Tutoriel du Royaume",
+  kingdomTutorialText: "Bienvenue dans votre Royaume ! C'est ici que vous pouvez visualiser votre parcours financier. Commencez par ajouter des bâtiments et des décorations pour représenter vos objectifs et réalisations."
 };
 
 export default frTranslations;

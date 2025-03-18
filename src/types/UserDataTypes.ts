@@ -4,6 +4,7 @@ import { StatusModule, StatusItem } from './StatusTypes';
 import { LookModule } from './LookTypes';
 import { FinanceModule } from './FinanceTypes';
 import { SportModule } from './SportTypes';
+import { KingdomModule } from './KingdomTypes';
 
 export interface UserData {
   uid: string;
@@ -12,6 +13,7 @@ export interface UserData {
   lookModule: LookModule;
   financeModule: FinanceModule;
   sportModule: SportModule;
+  kingdomModule: KingdomModule;
   statusItems: StatusItem[];
   skills: any[]; // You can define a more precise type if necessary
   lastSyncTimestamp?: string; // Timestamp de la dernière synchronisation
@@ -25,6 +27,7 @@ export interface UserDataContextType {
   updateLookModule: (updates: Partial<LookModule>) => Promise<void>;
   updateFinanceModule: (updates: Partial<FinanceModule>) => Promise<void>;
   updateSportModule: (updates: Partial<SportModule>) => Promise<void>;
+  updateKingdomModule: (updates: Partial<KingdomModule>) => Promise<void>;
   updateStatusItems: (items: StatusItem[]) => Promise<void>;
   updateSkills: (skills: any[]) => Promise<void>;
   forceRefreshData: () => Promise<boolean>; // Nouvelle fonction pour rafraîchir les données
