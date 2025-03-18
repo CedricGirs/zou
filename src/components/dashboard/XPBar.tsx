@@ -3,14 +3,15 @@ import { useState, useEffect } from "react";
 import { useLanguage } from "../../context/LanguageContext";
 import { Progress } from "@/components/ui/progress";
 
-interface XPBarProps {
+export interface XPBarProps {
   currentXP: number;
   maxXP: number;
   animated?: boolean;
   variant?: "default" | "success" | "warning" | "danger" | "purple" | "gradient" | "minimal";
+  level?: number; // Added level prop
 }
 
-const XPBar = ({ currentXP, maxXP, animated = true, variant = "purple" }: XPBarProps) => {
+const XPBar = ({ currentXP, maxXP, animated = true, variant = "purple", level }: XPBarProps) => {
   const { t } = useLanguage();
   const [animatedXP, setAnimatedXP] = useState(0);
   const percentage = Math.min(100, (currentXP / maxXP) * 100);

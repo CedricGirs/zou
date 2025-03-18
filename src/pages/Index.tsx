@@ -48,7 +48,8 @@ const Index = () => {
           <div className="md:col-span-2 space-y-6">
             <div className="pixel-card bg-gradient-to-br from-white to-gray-50 p-6">
               <Avatar 
-                name={userData.heroProfile.name} 
+                seed={userData.heroProfile.name} 
+                showLevel={true}
                 level={userData.heroProfile.level}
                 bgColor={userData.heroProfile.avatarBgColor}
                 color={userData.heroProfile.avatarColor}
@@ -57,12 +58,11 @@ const Index = () => {
                 <XPBar 
                   currentXP={userData.heroProfile.heroXP} 
                   maxXP={userData.heroProfile.maxXP} 
-                  level={userData.heroProfile.level}
                 />
               </div>
             </div>
 
-            <LifeGauges heroProfile={userData.heroProfile} />
+            <LifeGauges compact={false} />
 
             {/* Kingdom Card */}
             <div className="pixel-card bg-gradient-to-br from-amber-50 to-amber-100/60 border-amber-200 p-6">

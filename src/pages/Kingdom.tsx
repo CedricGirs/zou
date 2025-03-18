@@ -1,394 +1,325 @@
-
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserData } from "@/context/UserDataContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { toast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Ancient, Building, Castle, Sword, Save, Plus, Eraser, Move, Palette } from "lucide-react";
-import { playSound } from "@/utils/audioUtils";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Crown, Castle, Landmark, Buildings } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
+import { toast } from "@/hooks/use-toast";
+import { Kingdom } from "@/types/HeroTypes";
 
-// Types pour les éléments du royaume
-interface KingdomElement {
-  id: string;
-  type: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  name: string;
-  style?: string;
-}
+// Element types for the kingdom
+const elements = [
+  { id: "castle", name: "Castle", icon: <Castle />, width: 100, height: 100 },
+  { id: "tower", name: "Tower", icon: <Landmark />, width: 60, height: 120 },
+  { id: "house", name: "House", icon: <Buildings />, width: 80, height: 80 },
+  { id: "wall", name: "Wall", icon: <Buildings />, width: 120, height: 30 },
+];
 
-// Type pour le royaume
-interface Kingdom {
-  elements: KingdomElement[];
-  name: string;
-  xp: number;
-  level: number;
-  style: string;
-}
+// Kingdom styles
+const kingdomStyles = [
+  { id: "medieval", name: "Medieval" },
+  { id: "roman", name: "Roman" },
+  { id: "futuristic", name: "Futuristic" },
+];
 
-// Fonction pour générer un ID unique
-const generateId = () => Math.random().toString(36).substring(2, 9);
-
-const Kingdom = () => {
+const KingdomPage = () => {
   const { userData, updateHeroProfile } = useUserData();
   const { t } = useLanguage();
-  const [kingdom, setKingdom] = useState<Kingdom>(() => {
-    // Initialiser avec les données existantes ou des valeurs par défaut
-    return userData.heroProfile.kingdom || {
-      elements: [],
-      name: "Mon Royaume",
-      xp: 0,
-      level: 1,
-      style: "medieval"
-    };
+  
+  // Initialize kingdom state
+  const [kingdom, setKingdom] = useState<Kingdom>({
+    elements: [],
+    name: "My Kingdom",
+    xp: 0,
+    level: 1,
+    style: "medieval"
   });
 
-  const [selectedTool, setSelectedTool] = useState<string | null>(null);
-  const [selectedElement, setSelectedElement] = useState<KingdomElement | null>(null);
-  const [isMoving, setIsMoving] = useState(false);
-  const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Set up UI state
+  const [selectedElement, setSelectedElement] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mode, setMode] = useState<"place" | "move" | "erase">("place");
+  const [elementDetails, setElementDetails] = useState({ name: "", style: "" });
 
-  // Éléments prédéfinis pour la construction
-  const buildingElements = [
-    { type: "castle", name: "Château", icon: <Castle /> },
-    { type: "house", name: "Maison", icon: <Building /> },
-    { type: "temple", name: "Temple", icon: <Ancient /> },
-    { type: "barracks", name: "Caserne", icon: <Sword /> },
-  ];
+  // Load kingdom data if exists
+  useEffect(() => {
+    if (userData?.heroProfile?.kingdom) {
+      setKingdom(userData.heroProfile.kingdom);
+    }
+  }, [userData?.heroProfile?.kingdom]);
 
-  // Sauvegarder le royaume dans les données utilisateur
+  // Handle element selection
+  const handleElementSelect = (elementId: string) => {
+    setSelectedElement(elementId);
+    setMode("place");
+    setSelectedId(null);
+  };
+
+  // Handle placement of elements on canvas
+  const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (mode === "place" && selectedElement) {
+      const elementType = elements.find(el => el.id === selectedElement);
+      
+      if (elementType) {
+        const newElement = {
+          id: uuidv4(),
+          type: selectedElement,
+          x,
+          y,
+          width: elementType.width,
+          height: elementType.height,
+          name: `${elementType.name} ${kingdom.elements.length + 1}`,
+          style: kingdom.style
+        };
+
+        const newElements = [...kingdom.elements, newElement];
+        setKingdom({ ...kingdom, elements: newElements, xp: kingdom.xp + 10 });
+        toast({ title: "Element added", description: `Added ${elementType.name} to your kingdom!` });
+      }
+    } else if (mode === "move" && selectedId) {
+      const newElements = kingdom.elements.map(el => 
+        el.id === selectedId ? { ...el, x, y } : el
+      );
+      setKingdom({ ...kingdom, elements: newElements });
+    } else if (mode === "erase" && selectedId) {
+      const newElements = kingdom.elements.filter(el => el.id !== selectedId);
+      setKingdom({ ...kingdom, elements: newElements });
+      setSelectedId(null);
+      toast({ title: "Element removed", description: "Element removed from your kingdom" });
+    }
+  };
+
+  // Handle element selection on the canvas
+  const handleElementClick = (e: React.MouseEvent, elementId: string) => {
+    e.stopPropagation();
+    setSelectedId(elementId);
+    
+    const element = kingdom.elements.find(el => el.id === elementId);
+    if (element) {
+      setElementDetails({ name: element.name, style: element.style || kingdom.style });
+    }
+  };
+
+  // Save kingdom data
   const saveKingdom = async () => {
     try {
       await updateHeroProfile({ kingdom });
-      toast({
-        title: "Royaume sauvegardé",
-        description: "Votre royaume a été sauvegardé avec succès !",
+      toast({ 
+        title: "Kingdom saved!", 
+        description: "Your kingdom has been saved successfully" 
       });
-      playSound("success");
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde du royaume:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder votre royaume",
-        variant: "destructive",
+      console.error("Error saving kingdom:", error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to save your kingdom", 
+        variant: "destructive" 
       });
     }
   };
 
-  // Sauvegarde automatique
-  useEffect(() => {
-    const autoSaveInterval = setInterval(() => {
-      if (kingdom.elements.length > 0) {
-        saveKingdom();
-      }
-    }, 60000); // Auto-sauvegarde toutes les minutes
-
-    return () => clearInterval(autoSaveInterval);
-  }, [kingdom]);
-
-  // Gestion du click sur le canvas
-  const handleCanvasClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!canvasRef.current || !selectedTool) return;
-    
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    
-    if (selectedTool !== "move" && selectedTool !== "eraser") {
-      const newElement: KingdomElement = {
-        id: generateId(),
-        type: selectedTool,
-        x,
-        y,
-        width: 100,
-        height: 100,
-        name: `${selectedTool.charAt(0).toUpperCase() + selectedTool.slice(1)}`,
-        style: kingdom.style
-      };
-      
-      setKingdom(prev => {
-        const newKingdom = {
-          ...prev,
-          elements: [...prev.elements, newElement],
-          xp: prev.xp + 10
-        };
-        
-        // Vérifier si le royaume doit monter de niveau
-        const newLevel = Math.floor(newKingdom.xp / 100) + 1;
-        if (newLevel > prev.level) {
-          playSound("levelUp");
-          toast({
-            title: "Niveau supérieur !",
-            description: `Votre royaume est maintenant niveau ${newLevel} !`,
-          });
-          newKingdom.level = newLevel;
-        }
-        
-        return newKingdom;
-      });
-      
-      playSound("click");
-      setSelectedTool(null);
+  // Update element details
+  const updateElementName = () => {
+    if (selectedId && elementDetails.name) {
+      const newElements = kingdom.elements.map(el => 
+        el.id === selectedId ? { ...el, name: elementDetails.name } : el
+      );
+      setKingdom({ ...kingdom, elements: newElements });
+      toast({ title: "Element updated", description: "Name updated successfully" });
     }
   };
 
-  // Gestion du click sur un élément
-  const handleElementClick = (event: React.MouseEvent, element: KingdomElement) => {
-    event.stopPropagation();
-    
-    if (selectedTool === "eraser") {
-      // Supprimer l'élément
-      setKingdom(prev => ({
-        ...prev,
-        elements: prev.elements.filter(el => el.id !== element.id)
-      }));
-      playSound("delete");
-      return;
-    }
-    
-    if (selectedTool === "move") {
-      setSelectedElement(element);
-      setIsMoving(true);
-      setStartPosition({ x: event.clientX, y: event.clientY });
-      setIsDragging(true);
-      return;
-    }
-    
-    // Sinon, simplement sélectionner l'élément
-    setSelectedElement(element);
+  // Update kingdom style
+  const handleStyleChange = (style: string) => {
+    setKingdom({ ...kingdom, style });
   };
 
-  // Gérer le mouvement de la souris pour déplacer les éléments
-  const handleMouseMove = (event: React.MouseEvent) => {
-    if (isMoving && selectedElement && isDragging) {
-      const deltaX = event.clientX - startPosition.x;
-      const deltaY = event.clientY - startPosition.y;
-      
-      setStartPosition({ x: event.clientX, y: event.clientY });
-      
-      setKingdom(prev => ({
-        ...prev,
-        elements: prev.elements.map(el => 
-          el.id === selectedElement.id 
-            ? { ...el, x: el.x + deltaX, y: el.y + deltaY } 
-            : el
-        )
-      }));
-    }
-  };
-
-  // Gérer la fin du déplacement
-  const handleMouseUp = () => {
-    if (isMoving) {
-      setIsMoving(false);
-      setIsDragging(false);
-      setSelectedElement(null);
-    }
-  };
-  
-  // Renommer un élément
-  const handleRenameElement = (id: string, newName: string) => {
-    setKingdom(prev => ({
-      ...prev,
-      elements: prev.elements.map(el => 
-        el.id === id ? { ...el, name: newName } : el
-      )
-    }));
-  };
-
-  // Changer le style du royaume
-  const changeStyle = (style: string) => {
-    setKingdom(prev => ({
-      ...prev,
-      style,
-      elements: prev.elements.map(el => ({ ...el, style }))
-    }));
-    toast({
-      title: "Style mis à jour",
-      description: `Le style du royaume est maintenant ${style}`,
-    });
-  };
+  // Calculate kingdom level based on number of elements and XP
+  const kingdomLevel = Math.max(1, Math.floor(kingdom.elements.length / 5) + Math.floor(kingdom.xp / 100));
 
   return (
     <MainLayout>
-      <div className="p-4 max-w-full">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center space-x-2">
-            <Castle className="text-zou-purple" />
-            <h1 className="text-2xl font-bold">{kingdom.name}</h1>
-            <span className="ml-4 bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs font-semibold">
-              Niveau {kingdom.level} - {kingdom.xp % 100}/100 XP
-            </span>
-          </div>
-          
-          <Button 
-            onClick={saveKingdom} 
-            className="flex items-center gap-2"
-            variant="sound"
-            sound="success"
-          >
-            <Save size={16} />
-            Sauvegarder
-          </Button>
-        </div>
-        
-        {/* Barre d'outils */}
-        <div className="mb-4 p-3 bg-white rounded-lg shadow-md flex flex-wrap gap-2">
-          <div className="flex-1 flex flex-wrap gap-2">
-            {buildingElements.map((tool) => (
-              <Button
-                key={tool.type}
-                onClick={() => setSelectedTool(tool.type)}
-                variant={selectedTool === tool.type ? "secondary" : "outline"}
-                className="flex items-center gap-2"
-              >
-                {tool.icon}
-                {tool.name}
-              </Button>
-            ))}
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-pixel mb-2">
+              {t("kingdom")}
+            </h1>
+            <p className="text-muted-foreground">
+              {t("buildKingdom")}
+            </p>
           </div>
           
           <div className="flex gap-2">
-            <Button
-              onClick={() => setSelectedTool("move")}
-              variant={selectedTool === "move" ? "secondary" : "outline"}
-              className="flex items-center gap-2"
-            >
-              <Move size={16} />
-              Déplacer
-            </Button>
+            <div className="flex items-center gap-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-md">
+              <Crown size={16} />
+              <span className="font-medium">{t("kingdomLevel")}: {kingdomLevel}</span>
+            </div>
             
-            <Button
-              onClick={() => setSelectedTool("eraser")}
-              variant={selectedTool === "eraser" ? "destructive" : "outline"}
-              className="flex items-center gap-2"
-            >
-              <Eraser size={16} />
-              Effacer
-            </Button>
-            
-            <Button
-              onClick={() => {
-                const stylePalette = document.getElementById('stylePalette');
-                if (stylePalette) {
-                  stylePalette.classList.toggle('hidden');
-                }
-              }}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Palette size={16} />
-              Style
+            <Button onClick={saveKingdom}>
+              {t("saveKingdom")}
             </Button>
           </div>
         </div>
 
-        {/* Palette de styles (initialement cachée) */}
-        <div id="stylePalette" className="hidden mb-4 p-3 bg-white rounded-lg shadow-md flex gap-2">
-          <Button onClick={() => changeStyle('medieval')} variant="outline">Médiéval</Button>
-          <Button onClick={() => changeStyle('roman')} variant="outline">Romain</Button>
-          <Button onClick={() => changeStyle('futuristic')} variant="outline">Futuriste</Button>
-        </div>
-        
-        {/* Zone de dessin du royaume */}
-        <div 
-          ref={containerRef}
-          className="border-4 border-zinc-200 rounded-lg overflow-hidden bg-amber-50 relative"
-          style={{ height: '600px' }}
-        >
-          <div 
-            ref={canvasRef}
-            className="h-full w-full relative cursor-pointer"
-            onClick={handleCanvasClick}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          >
-            {/* Grille d'arrière-plan */}
-            <div className="absolute inset-0 grid grid-cols-12 grid-rows-12 opacity-10 pointer-events-none">
-              {Array.from({ length: 144 }).map((_, i) => (
-                <div key={i} className="border border-gray-400" />
-              ))}
-            </div>
-            
-            {/* Éléments du royaume */}
-            {kingdom.elements.map((element) => (
-              <div
-                key={element.id}
-                className={`absolute border-2 border-gray-400 rounded-md bg-white shadow-md flex items-center justify-center transform transition-transform hover:scale-105 ${
-                  selectedElement?.id === element.id ? 'ring-2 ring-blue-500' : ''
-                }`}
-                style={{
-                  left: `${element.x}px`,
-                  top: `${element.y}px`,
-                  width: `${element.width}px`,
-                  height: `${element.height}px`,
-                  backgroundColor: element.style === 'roman' ? '#FEF7CD' : 
-                                   element.style === 'futuristic' ? '#E6F7FF' : '#F9FAFB'
-                }}
-                onClick={(e) => handleElementClick(e, element)}
-              >
-                <div className="flex flex-col items-center">
-                  {element.type === 'castle' && <Castle className="text-purple-600" size={40} />}
-                  {element.type === 'house' && <Building className="text-amber-600" size={40} />}
-                  {element.type === 'temple' && <Ancient className="text-blue-600" size={40} />}
-                  {element.type === 'barracks' && <Sword className="text-red-600" size={40} />}
-                  <p className="text-xs mt-1 font-medium">{element.name}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Panneau de détails si un élément est sélectionné */}
-        {selectedElement && (
-          <Card className="mt-4 p-4">
-            <h3 className="font-bold mb-2">Détails de l'élément</h3>
-            <div className="space-y-2">
-              <div>
-                <label className="block text-sm font-medium mb-1">Nom:</label>
-                <input
-                  type="text"
-                  value={selectedElement.name}
-                  onChange={(e) => handleRenameElement(selectedElement.id, e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-              <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setSelectedElement(null)}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Left sidebar - Building elements */}
+          <div className="lg:col-span-1 space-y-4">
+            <Card className="overflow-hidden">
+              <CardHeader>
+                <CardTitle>{t("style")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select 
+                  value={kingdom.style} 
+                  onValueChange={handleStyleChange}
                 >
-                  Fermer
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
-        
-        {/* Message d'aide si le royaume est vide */}
-        {kingdom.elements.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <Card className="p-6 text-center bg-white/80 max-w-md">
-              <h3 className="text-xl font-bold mb-2">Construisez votre royaume !</h3>
-              <p className="mb-4">Sélectionnez un élément dans la barre d'outils puis cliquez sur la carte pour le placer.</p>
-              <div className="flex justify-center">
-                <Plus className="animate-pulse text-zou-purple" size={24} />
-              </div>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select style" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {kingdomStyles.map(style => (
+                      <SelectItem key={style.id} value={style.id}>
+                        {t(style.id as any)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Building Elements</CardTitle>
+                <CardDescription>Select an element to place</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {elements.map(element => (
+                  <Button 
+                    key={element.id}
+                    variant={selectedElement === element.id ? "default" : "outline"} 
+                    className="w-full justify-start"
+                    onClick={() => handleElementSelect(element.id)}
+                  >
+                    <span className="mr-2">{element.icon}</span>
+                    {element.name}
+                  </Button>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Tools</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button 
+                  variant={mode === "place" ? "default" : "outline"} 
+                  className="w-full justify-start"
+                  onClick={() => setMode("place")}
+                >
+                  <Buildings className="mr-2" size={16} />
+                  Place
+                </Button>
+                <Button 
+                  variant={mode === "move" ? "default" : "outline"} 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    setMode("move");
+                    setSelectedElement(null);
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M5 9l4-4 4 4"/><path d="M7 6v14"/><path d="M15 9l4 4 4-4"/><path d="M19 6v14"/></svg>
+                  {t("move")}
+                </Button>
+                <Button 
+                  variant={mode === "erase" ? "default" : "outline"} 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    setMode("erase");
+                    setSelectedElement(null);
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z"/><line x1="18" x2="12" y1="9" y2="15"/><line x1="12" x2="18" y1="9" y2="15"/></svg>
+                  {t("erase")}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {selectedId && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("elementDetails")}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Name</label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={elementDetails.name} 
+                        onChange={(e) => setElementDetails({...elementDetails, name: e.target.value})}
+                      />
+                      <Button onClick={updateElementName}>{t("rename")}</Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
-        )}
+
+          {/* Main canvas area */}
+          <div className="lg:col-span-3 relative">
+            <div 
+              className={`kingdom-canvas border-4 border-dashed rounded-lg overflow-hidden h-[600px] relative ${
+                kingdom.style === "medieval" ? "bg-amber-50" : 
+                kingdom.style === "roman" ? "bg-orange-50" : 
+                "bg-blue-50"
+              }`}
+              onClick={handleCanvasClick}
+            >
+              {kingdom.elements.map(element => {
+                const elementDef = elements.find(e => e.id === element.type);
+                return (
+                  <div
+                    key={element.id}
+                    className={`absolute cursor-pointer transition-all transform ${
+                      selectedId === element.id ? "ring-2 ring-zou-purple" : ""
+                    } ${
+                      element.style === "medieval" ? "bg-amber-200 text-amber-800" : 
+                      element.style === "roman" ? "bg-orange-200 text-orange-800" : 
+                      "bg-blue-200 text-blue-800"
+                    }`}
+                    style={{
+                      left: `${element.x - element.width/2}px`,
+                      top: `${element.y - element.height/2}px`,
+                      width: `${element.width}px`,
+                      height: `${element.height}px`,
+                    }}
+                    onClick={(e) => handleElementClick(e, element.id)}
+                  >
+                    <div className="flex flex-col items-center justify-center h-full p-2">
+                      {elementDef?.icon}
+                      <span className="text-xs mt-1 font-medium text-center truncate w-full">
+                        {element.name}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
     </MainLayout>
   );
 };
 
-export default Kingdom;
+export default KingdomPage;
