@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Crown, Castle, Landmark, Building } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "@/hooks/use-toast";
 import { Kingdom } from "@/types/HeroTypes";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 // Element types for the kingdom
 const elements = [
@@ -44,11 +46,14 @@ const KingdomPage = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<"place" | "move" | "erase">("place");
   const [elementDetails, setElementDetails] = useState({ name: "", style: "" });
+  const [kingdomName, setKingdomName] = useState("My Kingdom");
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
   // Load kingdom data if exists
   useEffect(() => {
     if (userData?.heroProfile?.kingdom) {
       setKingdom(userData.heroProfile.kingdom);
+      setKingdomName(userData.heroProfile.kingdom.name);
     }
   }, [userData?.heroProfile?.kingdom]);
 
@@ -61,6 +66,7 @@ const KingdomPage = () => {
 
   // Handle placement of elements on canvas
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    console.log("Canvas clicked, mode:", mode, "selectedElement:", selectedElement);
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -69,6 +75,7 @@ const KingdomPage = () => {
       const elementType = elements.find(el => el.id === selectedElement);
       
       if (elementType) {
+        console.log("Creating new element:", elementType);
         const newElement = {
           id: uuidv4(),
           type: selectedElement,
@@ -81,25 +88,53 @@ const KingdomPage = () => {
         };
 
         const newElements = [...kingdom.elements, newElement];
-        setKingdom({ ...kingdom, elements: newElements, xp: kingdom.xp + 10 });
-        toast({ title: "Element added", description: `Added ${elementType.name} to your kingdom!` });
+        const newKingdom = { 
+          ...kingdom, 
+          elements: newElements, 
+          xp: kingdom.xp + 10,
+          level: Math.max(1, Math.floor((kingdom.xp + 10) / 100) + Math.floor(newElements.length / 5))
+        };
+        
+        setKingdom(newKingdom);
+        toast({ 
+          title: t("elementAdded"), 
+          description: `${t("added")} ${elementType.name} ${t("toYourKingdom")}!` 
+        });
       }
     } else if (mode === "move" && selectedId) {
+      console.log("Moving element with ID:", selectedId);
       const newElements = kingdom.elements.map(el => 
         el.id === selectedId ? { ...el, x, y } : el
       );
       setKingdom({ ...kingdom, elements: newElements });
     } else if (mode === "erase" && selectedId) {
+      console.log("Erasing element with ID:", selectedId);
       const newElements = kingdom.elements.filter(el => el.id !== selectedId);
       setKingdom({ ...kingdom, elements: newElements });
       setSelectedId(null);
-      toast({ title: "Element removed", description: "Element removed from your kingdom" });
+      toast({ 
+        title: t("elementRemoved"), 
+        description: t("elementRemovedDesc") 
+      });
     }
   };
 
   // Handle element selection on the canvas
   const handleElementClick = (e: React.MouseEvent, elementId: string) => {
     e.stopPropagation();
+    console.log("Element clicked:", elementId, "mode:", mode);
+    
+    if (mode === "erase") {
+      const newElements = kingdom.elements.filter(el => el.id !== elementId);
+      setKingdom({ ...kingdom, elements: newElements });
+      setSelectedId(null);
+      toast({ 
+        title: t("elementRemoved"), 
+        description: t("elementRemovedDesc") 
+      });
+      return;
+    }
+    
     setSelectedId(elementId);
     
     const element = kingdom.elements.find(el => el.id === elementId);
@@ -111,16 +146,21 @@ const KingdomPage = () => {
   // Save kingdom data
   const saveKingdom = async () => {
     try {
-      await updateHeroProfile({ kingdom });
+      const updatedKingdom = {
+        ...kingdom,
+        name: kingdomName
+      };
+      
+      await updateHeroProfile({ kingdom: updatedKingdom });
       toast({ 
-        title: "Kingdom saved!", 
-        description: "Your kingdom has been saved successfully" 
+        title: t("kingdomSaved"), 
+        description: t("kingdomSavedDesc") 
       });
     } catch (error) {
       console.error("Error saving kingdom:", error);
       toast({ 
-        title: "Error", 
-        description: "Failed to save your kingdom", 
+        title: t("error"), 
+        description: t("failedToSaveKingdom"), 
         variant: "destructive" 
       });
     }
@@ -129,17 +169,45 @@ const KingdomPage = () => {
   // Update element details
   const updateElementName = () => {
     if (selectedId && elementDetails.name) {
+      console.log("Updating element name:", elementDetails.name);
       const newElements = kingdom.elements.map(el => 
         el.id === selectedId ? { ...el, name: elementDetails.name } : el
       );
       setKingdom({ ...kingdom, elements: newElements });
-      toast({ title: "Element updated", description: "Name updated successfully" });
+      toast({ 
+        title: t("elementUpdated"), 
+        description: t("nameUpdatedSuccessfully") 
+      });
     }
   };
 
   // Update kingdom style
   const handleStyleChange = (style: string) => {
-    setKingdom({ ...kingdom, style });
+    console.log("Changing kingdom style to:", style);
+    // Update all existing elements to match the new style
+    const newElements = kingdom.elements.map(el => ({
+      ...el,
+      style
+    }));
+    
+    setKingdom({ 
+      ...kingdom, 
+      style,
+      elements: newElements 
+    });
+  };
+
+  // Update kingdom name
+  const handleKingdomNameChange = () => {
+    setKingdom({
+      ...kingdom,
+      name: kingdomName
+    });
+    setIsRenameDialogOpen(false);
+    toast({ 
+      title: t("kingdomRenamed"), 
+      description: t("kingdomRenamedDesc") 
+    });
   };
 
   // Calculate kingdom level based on number of elements and XP
@@ -149,13 +217,17 @@ const KingdomPage = () => {
     <MainLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-pixel mb-2">
-              {t("kingdom")}
+          <div className="flex flex-col md:flex-row md:items-center gap-2">
+            <h1 className="text-2xl font-pixel mr-4">
+              {kingdomName}
             </h1>
-            <p className="text-muted-foreground">
-              {t("buildKingdom")}
-            </p>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setIsRenameDialogOpen(true)}
+            >
+              {t("rename")}
+            </Button>
           </div>
           
           <div className="flex gap-2">
@@ -183,7 +255,7 @@ const KingdomPage = () => {
                   onValueChange={handleStyleChange}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select style" />
+                    <SelectValue placeholder={t("selectStyle")} />
                   </SelectTrigger>
                   <SelectContent>
                     {kingdomStyles.map(style => (
@@ -198,8 +270,8 @@ const KingdomPage = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Building Elements</CardTitle>
-                <CardDescription>Select an element to place</CardDescription>
+                <CardTitle>{t("buildingElements")}</CardTitle>
+                <CardDescription>{t("selectElementToPlace")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 {elements.map(element => (
@@ -210,7 +282,7 @@ const KingdomPage = () => {
                     onClick={() => handleElementSelect(element.id)}
                   >
                     <span className="mr-2">{element.icon}</span>
-                    {element.name}
+                    {t(element.id)}
                   </Button>
                 ))}
               </CardContent>
@@ -218,7 +290,7 @@ const KingdomPage = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Tools</CardTitle>
+                <CardTitle>{t("tools")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button 
@@ -227,7 +299,7 @@ const KingdomPage = () => {
                   onClick={() => setMode("place")}
                 >
                   <Building className="mr-2" size={16} />
-                  Place
+                  {t("place")}
                 </Button>
                 <Button 
                   variant={mode === "move" ? "default" : "outline"} 
@@ -261,7 +333,7 @@ const KingdomPage = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Name</label>
+                    <label className="text-sm font-medium">{t("name")}</label>
                     <div className="flex gap-2">
                       <Input 
                         value={elementDetails.name} 
@@ -302,6 +374,7 @@ const KingdomPage = () => {
                       top: `${element.y - element.height/2}px`,
                       width: `${element.width}px`,
                       height: `${element.height}px`,
+                      zIndex: selectedId === element.id ? 10 : 1
                     }}
                     onClick={(e) => handleElementClick(e, element.id)}
                   >
@@ -314,10 +387,44 @@ const KingdomPage = () => {
                   </div>
                 );
               })}
+              
+              {kingdom.elements.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                  <div className="text-center">
+                    <Building size={48} className="mx-auto mb-2 opacity-30" />
+                    <p>{t("emptyKingdom")}</p>
+                    <p className="text-sm">{t("selectElementAndPlace")}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Rename Kingdom Dialog */}
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("renameKingdom")}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              value={kingdomName}
+              onChange={(e) => setKingdomName(e.target.value)}
+              placeholder={t("enterKingdomName")}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
+              {t("cancel")}
+            </Button>
+            <Button onClick={handleKingdomNameChange}>
+              {t("save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };
