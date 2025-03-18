@@ -9,16 +9,19 @@ export interface Kingdom {
     height: number;
     name: string;
     style?: string;
+    rotation?: number;
+    color?: string;
   }>;
   name: string;
   xp: number;
   level: number;
   style: string;
+  backgroundImage?: string;
 }
 
 export interface HeroProfile {
   name: string;
-  username?: string; // Added username as optional
+  username?: string;
   age: number;
   energy: number;
   maxEnergy: number;
@@ -32,5 +35,5 @@ export interface HeroProfile {
   avatarColor: string;
   avatarBgColor: string;
   kingdom?: Kingdom;
-  seed?: string; // Added for Avatar component
+  seed?: string;
 }

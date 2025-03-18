@@ -204,5 +204,15 @@ export default {
   castle: "Castle",
   tower: "Tower",
   house: "House",
-  wall: "Wall"
+  wall: "Wall",
+  garden: "Garden",
+  statue: "Statue",
+  fountain: "Fountain",
+  palmTree: "Palm Tree",
+  temple: "Temple",
+  villa: "Villa",
+  market: "Market",
+  column: "Column",
+  fire: "Fire",
+  rotation: "Rotation"
 } as const;

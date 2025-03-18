@@ -16,5 +16,12 @@ export const defaultHeroProfile: HeroProfile = {
   level: 1,
   avatarColor: 'blue',
   avatarBgColor: 'lightblue',
-  seed: 'Felix'
+  seed: 'Felix',
+  kingdom: {
+    elements: [],
+    name: 'My Kingdom',
+    xp: 0,
+    level: 1,
+    style: 'roman'
+  }
 };

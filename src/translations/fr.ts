@@ -63,6 +63,7 @@ const frTranslations = {
   debts: "Dettes",
 
   // Kingdom
+  kingdom: "Royaume",
   buildKingdom: "Construisez et personnalisez votre propre royaume",
   kingdomLevel: "Niveau du Royaume",
   saveKingdom: "Sauvegarder le Royaume",
@@ -103,6 +104,16 @@ const frTranslations = {
   tower: "Tour",
   house: "Maison",
   wall: "Muraille",
+  garden: "Jardin",
+  statue: "Statue",
+  fountain: "Fontaine",
+  palmTree: "Palmier",
+  temple: "Temple",
+  villa: "Villa",
+  market: "Marché",
+  column: "Colonne",
+  fire: "Feu",
+  rotation: "Rotation",
   
   // Inventory
   productivityPen: "Stylo de Productivité",
