@@ -112,7 +112,7 @@ const fr: Record<TranslationKey, string> = {
   kingdom: "Royaume",
   days: "Jours",
   age: "Âge",
-  weight: "Poids",
+  // Removing 'weight' property as it's not in the TranslationKey type
   height: "Taille",
   title: "Titre",
   description: "Description",
@@ -133,7 +133,6 @@ const fr: Record<TranslationKey, string> = {
   dexteritySkill: "Dextérité",
   constitutionSkill: "Constitution",
   perceptionSkill: "Perception",
-  enduranceSkill: "Endurance",
   memorySkill: "Mémoire",
   reasoningSkill: "Raisonnement",
   intuitionSkill: "Intuition",
@@ -180,7 +179,6 @@ const fr: Record<TranslationKey, string> = {
   strengthTrainingSkill: "Musculation",
   teamSportsSkill: "Sports d'Équipe",
   combatSportsSkill: "Sports de Combat",
-  dailyQuestsTitle: "Quêtes Quotidiennes",
   questCompletionBonus: "Bonus de Fin de Quête",
   timeRemaining: "Temps Restant",
   questType: "Type de Quête",
@@ -237,13 +235,9 @@ const fr: Record<TranslationKey, string> = {
   badgeTotalFirstAcquired: "Première Acquisition Totale du Badge",
   badgeTotalTimesAcquired: "Nombre Total d'Acquisitions du Badge",
   statusModuleTitle: "Statut",
-  statusModuleSubtitle: "Surveillez votre bien-être général",
   lookModuleTitle: "Apparence",
-  lookModuleSubtitle: "Personnalisez l'apparence de votre héros",
   financeModuleTitle: "Finances",
-  financeModuleSubtitle: "Gérez vos finances et investissements",
   sportModuleTitle: "Sport",
-  sportModuleSubtitle: "Suivez vos activités sportives et votre forme",
   kingdomModuleTitle: "Royaume",
   kingdomModuleSubtitle: "Construisez et gérez votre propre royaume",
   savingGoal: "Objectif d'Épargne",
@@ -255,13 +249,13 @@ const fr: Record<TranslationKey, string> = {
   roman: "Romain",
   fantasy: "Fantaisie",
   road: "Route",
-  statusModule: "Statut",
-  lookModule: "Apparence",
-  financeModule: "Finances",
-  sportModule: "Sport",
-  settingsModule: "Paramètres",
-  notificationsModule: "Notifications",
-  inventoryModule: "Inventaire",
+  statusModule: "Module de Statut",
+  lookModule: "Module d'Apparence",
+  financeModule: "Module de Finances",
+  sportModule: "Module de Sport",
+  settingsModule: "Module de Paramètres",
+  notificationsModule: "Module de Notifications",
+  inventoryModule: "Module d'Inventaire",
   generalSettings: "Paramètres Généraux",
   profileSettings: "Paramètres du Profil",
   accountSettings: "Paramètres du Compte",
@@ -361,7 +355,7 @@ const fr: Record<TranslationKey, string> = {
   lastSaved: "Dernière Sauvegarde",
   kingdomTutorialText: "Bienvenue dans votre royaume ! Commencez par placer quelques bâtiments et décorations.",
   
-  // Nouvelles traductions pour les composants du Royaume
+  // Kingdom component translations
   addBuilding: "Ajouter un Bâtiment",
   addDecoration: "Ajouter une Décoration",
   addRoad: "Ajouter une Route",
@@ -372,7 +366,7 @@ const fr: Record<TranslationKey, string> = {
   enterBuildingName: "Entrez le nom du bâtiment",
   buildingPurpose: "Objectif du Bâtiment",
   
-  // Nouvelles traductions pour l'inventaire
+  // Inventory component translations
   productivityPen: "Stylo de Productivité",
   productivityPenDesc: "Augmente votre productivité de 10%",
   knowledgeTome: "Tome de Connaissance",
@@ -397,7 +391,7 @@ const fr: Record<TranslationKey, string> = {
   quantity: "Quantité",
   use: "Utiliser",
   
-  // Nouvelles traductions pour les notifications
+  // Notifications component translations
   dailyExerciseCompleted: "Exercice Quotidien Terminé !",
   fashionistaUnlocked: "Badge Fashionista Débloqué !",
   systemUpdate: "Mise à Jour du Système",
@@ -411,7 +405,7 @@ const fr: Record<TranslationKey, string> = {
   unread: "Non Lu",
   earlier: "Plus Tôt",
   
-  // Nouvelles traductions pour les paramètres
+  // Settings component translations
   appearanceDesc: "Personnaliser l'apparence de votre application",
   darkMode: "Mode Sombre",
   languageDesc: "Changer votre langue préférée",
@@ -422,7 +416,7 @@ const fr: Record<TranslationKey, string> = {
   shareProgress: "Partager la Progression",
   allowFriendRequests: "Autoriser les Demandes d'Ami",
   
-  // Clés manquantes
+  // Missing translation keys
   hero: "Héros",
   name: "Nom",
   wisdom: "Sagesse",
@@ -532,7 +526,15 @@ const fr: Record<TranslationKey, string> = {
   progressMotivation: "Continuez !",
   progressXPTip: "Complétez des tâches pour l'XP",
   progressNextLevel: "Prochaines récompenses bientôt",
-  financeLevelUp: "Niveau de Finances Augmenté !"
+  financeLevelUp: "Niveau de Finances Augmenté !",
+  type: "Type",
+  // Add missing finance translations
+  monthlyIncome: "Revenu Mensuel",
+  fixedExpenses: "Dépenses Fixes",
+  availableForSavings: "Disponible pour l'Épargne",
+  monthsToReachGoal: "Mois pour Atteindre l'Objectif",
+  expensesExceedIncome: "Les dépenses dépassent les revenus",
+  monthlySummary: "Résumé Mensuel"
 };
 
 export default fr;

@@ -324,7 +324,24 @@ const en: Record<TranslationKey, string> = {
   confirmSkillReset: "Confirm Skill Reset",
   skillResetWarning: "Skill Reset Warning",
   days: "Days",
-  stamina: "Stamina"
+  stamina: "Stamina",
+  // Adding missing module names
+  statusModule: "Status Module",
+  lookModule: "Look Module",
+  financeModule: "Finance Module",
+  sportModule: "Sport Module",
+  settingsModule: "Settings Module",
+  notificationsModule: "Notifications Module",
+  inventoryModule: "Inventory Module",
+  // Adding missing finance translations
+  monthlyIncome: "Monthly Income",
+  fixedExpenses: "Fixed Expenses",
+  availableForSavings: "Available for Savings",
+  monthsToReachGoal: "Months to Reach Goal",
+  expensesExceedIncome: "Expenses exceed income",
+  monthlySummary: "Monthly Summary",
+  type: "Type",
+  description: "Description"
 };
 
 export default en;
