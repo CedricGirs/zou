@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/context/LanguageContext";
 import { Save, Crown } from "lucide-react";
-import { XPBar } from "@/components/dashboard/XPBar";
+import XPBar from "@/components/dashboard/XPBar";
 
 interface KingdomHeaderProps {
   saveKingdom: () => void;
