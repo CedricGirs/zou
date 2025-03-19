@@ -11,4 +11,5 @@ export const defaultHeroProfile: HeroProfile = {
   primaryFocus: 'mix',
   ambitionLevel: 'casual',
   class: 'warrior',
+  kingdom: [],
 };

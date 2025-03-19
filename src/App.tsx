@@ -17,6 +17,7 @@ import Sport from "./pages/Sport";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import Inventory from "./pages/Inventory";
+import Kingdom from "./pages/Kingdom";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const AppRoutes = () => {
       <Route path="/sport" element={<Sport />} />
       <Route path="/daily-quests" element={<DailyQuests />} />
       <Route path="/badges" element={<Badges />} />
+      <Route path="/kingdom" element={<Kingdom />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/notifications" element={<Notifications />} />
       <Route path="/inventory" element={<Inventory />} />

@@ -8,4 +8,7 @@ export interface HeroProfile {
   primaryFocus: 'status' | 'look' | 'finances' | 'mix';
   ambitionLevel: 'casual' | 'pro' | 'hardcore';
   class: 'warrior' | 'mage' | 'healer';
+  kingdom?: KingdomElement[];
 }
+
+import { KingdomElement } from './KingdomTypes';
